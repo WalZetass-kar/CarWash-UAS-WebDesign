@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CleanRide Car Wash
 
-## Getting Started
+Aplikasi web fullstack modern untuk Projek UAS Mata Kuliah Web Design. CleanRide berisi landing page promosi, dashboard admin/petugas, CRUD operasional car wash, realtime queue, laporan, invoice, dan autentikasi JWT berbasis HTTPOnly cookies.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js 16 App Router, React 19, TypeScript
+- TailwindCSS 4, shadcn/ui style components, Lucide React Icons
+- Framer Motion, Flatpickr, TanStack Table, Chart.js
+- Supabase Database + Supabase Realtime
+- Drizzle ORM + Drizzle Kit
+- Zod, JWT `jose`, bcryptjs, DOMPurify
+- HTTPOnly cookies, RBAC middleware, CSRF guard, security headers
+- PWA manifest + service worker basic cache
+- Vercel deployment ready
+
+## Cara Install
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup Supabase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Buat project Supabase.
+2. Ambil `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, dan `SUPABASE_SERVICE_ROLE_KEY`.
+3. Ambil connection string Postgres dari Project Settings > Database.
+4. Isi `.env.local`.
+5. Jalankan schema:
 
-## Learn More
+```bash
+npm run db:push
+npm run db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+Alternatif manual: copy SQL dari `drizzle/0001_initial.sql` ke Supabase SQL Editor.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Drizzle ORM
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Schema utama ada di `drizzle/schema.ts`.
 
-## Deploy on Vercel
+```bash
+npm run db:generate
+npm run db:push
+npm run db:seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Akun Demo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Admin: `admin@cleanride.my.id` / `admin123`
+- Petugas: `petugas@cleanride.my.id` / `petugas123`
+
+Jika `DATABASE_URL` belum diisi, aplikasi tetap berjalan memakai data demo in-memory agar presentasi lokal tidak terblokir.
+
+## Struktur Database
+
+Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk soft delete.
+
+- `users`: user dashboard, role admin/petugas, password hash, status aktif
+- `customers`: data pelanggan dan kendaraan
+- `wash_packages`: paket pencucian, harga, estimasi, status aktif
+- `queues`: antrian pencucian, jadwal Flatpickr, status realtime
+- `transactions`: transaksi dari antrian
+- `payments`: metode dan status pembayaran
+- `activity_logs`: login, logout, CRUD, pembayaran, update status, reset password
+
+## Struktur Folder
+
+- `app`: App Router pages, API routes, metadata, sitemap, robots
+- `components`: reusable UI, dashboard shell, providers, realtime
+- `features`: modul auth, customer, package, queue, payment, report
+- `hooks`: client hooks seperti CSRF fetch
+- `lib`: auth, security, constants, utils, Supabase clients
+- `services`: data access layer Drizzle + fallback demo
+- `schemas`: validasi Zod
+- `drizzle`: schema, config, migration SQL, seeder
+- `actions`, `api`, `middleware`: folder pendukung sesuai requirement
+- `proxy.ts`: pengganti modern `middleware.ts` di Next.js 16 untuk auth, RBAC, CSRF cookie, dan security headers
+
+## Fitur
+
+- Landing page responsive dengan hero, CTA, paket, statistik, testimoni, FAQ, gallery, footer
+- Login/logout JWT, HTTPOnly cookies, SameSite, route protection via Next.js Proxy atau middleware modern
+- Session otomatis tidak valid setelah pergantian tanggal pukul 00:00 Asia/Jakarta
+- RBAC admin/petugas di middleware dan API routes
+- Dashboard analytics, search global, notification shell, dark/light mode
+- CRUD pelanggan, paket, antrian, pembayaran, user
+- Supabase Realtime untuk queues dan payments
+- TanStack Table untuk search, sorting, pagination
+- Chart.js bar, line, pie chart
+- Invoice printable dan export PDF
+- Export laporan CSV/PDF
+- Activity log server-side
+- Zod validation, DOMPurify sanitization, bcryptjs password hash
+- CSRF protection, login rate limiting, security headers
+- Upload guard 2MB untuk jpg/jpeg/png/webp di `lib/security/upload-guard.ts`
+
+## Deploy ke Vercel
+
+1. Push project ke GitHub.
+2. Import repository di Vercel.
+3. Tambahkan environment variables dari `.env.example`.
+4. Pastikan Supabase schema sudah dibuat dengan `npm run db:push` atau SQL Editor.
+5. Deploy.
+
+Build command: `npm run build`
+
+## Catatan Presentasi
+
+Mode demo bisa dipakai tanpa Supabase untuk menunjukkan UI dan alur aplikasi. Untuk penyimpanan production, isi env Supabase dan jalankan Drizzle push/seed.

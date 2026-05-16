@@ -1,8 +1,14 @@
 @import "tailwindcss";
+@import "flatpickr/dist/themes/material_blue.css";
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --muted: #64748b;
+  --brand: #0891b2;
+  --brand-deep: #0f4c81;
 }
 
 @theme inline {
@@ -14,13 +20,58 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #020617;
+    --foreground: #e2e8f0;
+    --card: #0f172a;
+    --border: #1e293b;
+    --muted: #94a3b8;
   }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: rgba(8, 145, 178, 0.2);
+}
+
+.glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 24px 80px rgba(15, 76, 129, 0.14);
+  backdrop-filter: blur(18px);
+}
+
+.dark .glass-panel {
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.74);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.flatpickr-calendar {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: #0f172a !important;
+  }
 }
