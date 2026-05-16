@@ -4,6 +4,8 @@ import { FormEvent, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
+import { QRCodeCanvas } from "qrcode.react";
 import { FileDown, Printer, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -14,31 +16,43 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { Payment } from "@/lib/data";
+import type { TransactionItem } from "@/lib/data";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { paymentMethodLabels, paymentStatusLabels } from "@/lib/constants";
 
-const demoTransactionId = "50000000-0000-4000-8000-000000000004";
-
-export function PaymentManager({ initialData }: { initialData: Payment[] }) {
+export function PaymentManager({
+  initialData,
+  transactions,
+}: {
+  initialData: Payment[];
+  transactions: TransactionItem[];
+}) {
   const csrfFetch = useCsrfFetch();
   const [data, setData] = useState<Payment[]>(initialData);
+  const [pendingTransactions, setPendingTransactions] = useState<TransactionItem[]>(transactions);
   const [selected, setSelected] = useState<Payment | null>(initialData[0] ?? null);
   const [form, setForm] = useState({
-    transactionId: demoTransactionId,
+    transactionId: pendingTransactions[0]?.id ?? "",
     method: "qris",
-    amount: 85000,
+    amount: pendingTransactions[0]?.total ?? 0,
     status: "lunas",
   });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const transaction = pendingTransactions.find((item) => item.id === form.transactionId);
+    if (!transaction) {
+      toast.error("Pilih transaksi yang belum lunas");
+      return;
+    }
+
     const optimistic: Payment = {
       id: crypto.randomUUID(),
       transactionId: form.transactionId,
-      queueNumber: "CR-MANUAL",
-      customerName: "Pelanggan Manual",
+      queueNumber: transaction.queueNumber,
+      customerName: transaction.customerName,
       method: form.method as Payment["method"],
-      amount: form.amount,
+      amount: transaction.total,
       status: form.status as Payment["status"],
       paidAt: form.status === "lunas" ? new Date().toISOString() : null,
       createdAt: new Date().toISOString(),
@@ -57,6 +71,15 @@ export function PaymentManager({ initialData }: { initialData: Payment[] }) {
       return;
     }
 
+    setPendingTransactions((items) => {
+      const next = items.filter((item) => item.id !== form.transactionId);
+      setForm((current) => ({
+        ...current,
+        transactionId: next[0]?.id ?? "",
+        amount: next[0]?.total ?? 0,
+      }));
+      return next;
+    });
     toast.success("Pembayaran tersimpan");
   }
 
@@ -65,12 +88,17 @@ export function PaymentManager({ initialData }: { initialData: Payment[] }) {
     window.setTimeout(() => window.print(), 80);
   }
 
-  function exportPdf(payment: Payment) {
+  async function exportPdf(payment: Payment) {
     const doc = new jsPDF();
+    const qrDataUrl = await QRCode.toDataURL(invoicePayload(payment), {
+      margin: 1,
+      width: 140,
+    });
     doc.setFontSize(18);
     doc.text("CleanRide Car Wash", 14, 18);
     doc.setFontSize(11);
     doc.text(`Invoice ${payment.queueNumber}`, 14, 28);
+    doc.addImage(qrDataUrl, "PNG", 158, 14, 35, 35);
     autoTable(doc, {
       startY: 38,
       head: [["Field", "Value"]],
@@ -141,8 +169,30 @@ export function PaymentManager({ initialData }: { initialData: Payment[] }) {
           <CardContent>
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-2">
-                <Label>ID Transaksi</Label>
-                <Input value={form.transactionId} onChange={(event) => setForm({ ...form, transactionId: event.target.value })} required />
+                <Label>Transaksi Belum Lunas</Label>
+                <select
+                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                  value={form.transactionId}
+                  onChange={(event) => {
+                    const transaction = pendingTransactions.find((item) => item.id === event.target.value);
+                    setForm({
+                      ...form,
+                      transactionId: event.target.value,
+                      amount: transaction?.total ?? 0,
+                    });
+                  }}
+                  required
+                >
+                  {pendingTransactions.length ? (
+                    pendingTransactions.map((transaction) => (
+                      <option key={transaction.id} value={transaction.id}>
+                        {transaction.queueNumber} - {transaction.customerName} - {formatCurrency(transaction.total)}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">Tidak ada transaksi pending</option>
+                  )}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label>Metode</Label>
@@ -160,7 +210,7 @@ export function PaymentManager({ initialData }: { initialData: Payment[] }) {
               </div>
               <div className="space-y-2">
                 <Label>Total Otomatis</Label>
-                <Input type="number" value={form.amount} onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })} required />
+                <Input type="number" value={form.amount} readOnly />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
@@ -176,7 +226,7 @@ export function PaymentManager({ initialData }: { initialData: Payment[] }) {
                   ))}
                 </select>
               </div>
-              <Button className="w-full">
+              <Button className="w-full" disabled={!pendingTransactions.length}>
                 <Receipt className="size-4" />
                 Simpan Pembayaran
               </Button>
@@ -202,7 +252,13 @@ export function PaymentManager({ initialData }: { initialData: Payment[] }) {
                 <div className="flex justify-between border-t border-slate-200 pt-3 text-base"><span>Total</span><strong>{formatCurrency(selected.amount)}</strong></div>
               </div>
               <div className="mt-5 rounded-lg border border-slate-200 p-3 text-center font-mono text-xs">
-                || ||| |||| | ||| CleanRide
+                <QRCodeCanvas
+                  value={invoicePayload(selected)}
+                  size={112}
+                  includeMargin
+                  className="mx-auto"
+                />
+                <div className="mt-2">Scan invoice CleanRide</div>
               </div>
             </CardContent>
           </Card>
@@ -219,4 +275,15 @@ export function PaymentManager({ initialData }: { initialData: Payment[] }) {
       </Card>
     </div>
   );
+}
+
+function invoicePayload(payment: Payment) {
+  return JSON.stringify({
+    brand: "CleanRide Car Wash",
+    invoice: payment.queueNumber,
+    customer: payment.customerName,
+    method: payment.method,
+    status: payment.status,
+    total: payment.amount,
+  });
 }

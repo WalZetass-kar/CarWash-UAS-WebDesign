@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { RealtimeStatus } from "@/components/realtime/realtime-status";
+import { RealtimeRefresh } from "@/components/realtime/realtime-refresh";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/lib/auth/jwt";
@@ -148,6 +149,7 @@ export function DashboardShell({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <RealtimeRefresh />
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">{sidebar}</div>
       {sidebarOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { KeyRound, UserRoundPlus } from "lucide-react";
+import { KeyRound, Pencil, UserRoundPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,9 +26,45 @@ export function UserManager({ initialData }: { initialData: User[] }) {
   const csrfFetch = useCsrfFetch();
   const [data, setData] = useState<User[]>(initialData);
   const [form, setForm] = useState(initialForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!editingId && !form.password) {
+      toast.error("Password awal wajib diisi");
+      return;
+    }
+
+    if (editingId) {
+      const previous = data;
+      const updated: User = {
+        id: editingId,
+        name: form.name,
+        email: form.email,
+        role: form.role as User["role"],
+        isActive: form.isActive,
+        createdAt: data.find((item) => item.id === editingId)?.createdAt ?? new Date().toISOString(),
+      };
+      setData((items) => items.map((item) => (item.id === editingId ? updated : item)));
+      const response = await csrfFetch(`/api/users/${editingId}`, {
+        method: "PUT",
+        body: JSON.stringify(form),
+      });
+
+      if (!response.ok) {
+        setData(previous);
+        toast.error("Gagal memperbarui user");
+        return;
+      }
+
+      const saved = await response.json();
+      setData((items) => items.map((item) => (item.id === editingId ? saved : item)));
+      setEditingId(null);
+      setForm(initialForm);
+      toast.success(form.password ? "User dan password diperbarui" : "User diperbarui");
+      return;
+    }
+
     const optimistic: User = {
       id: crypto.randomUUID(),
       name: form.name,
@@ -54,6 +90,22 @@ export function UserManager({ initialData }: { initialData: User[] }) {
     setData((items) => items.map((item) => (item.id === optimistic.id ? created : item)));
     setForm(initialForm);
     toast.success("User ditambahkan");
+  }
+
+  function startEdit(user: User) {
+    setEditingId(user.id);
+    setForm({
+      name: user.name,
+      email: user.email,
+      password: "",
+      role: user.role,
+      isActive: user.isActive,
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(initialForm);
   }
 
   async function deactivate(id: string) {
@@ -94,10 +146,16 @@ export function UserManager({ initialData }: { initialData: User[] }) {
         id: "actions",
         header: "Aksi",
         cell: ({ row }) => (
-          <Button variant="outline" size="sm" onClick={() => deactivate(row.original.id)} disabled={!row.original.isActive}>
-            <KeyRound className="size-4" />
-            Nonaktifkan
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => startEdit(row.original)}>
+              <Pencil className="size-4" />
+              Edit
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => deactivate(row.original.id)} disabled={!row.original.isActive}>
+              <KeyRound className="size-4" />
+              Nonaktifkan
+            </Button>
+          </div>
         ),
       },
   ];
@@ -106,7 +164,14 @@ export function UserManager({ initialData }: { initialData: User[] }) {
     <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
       <Card>
         <CardHeader>
-          <CardTitle>Tambah User</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>{editingId ? "Edit / Reset User" : "Tambah User"}</CardTitle>
+            {editingId ? (
+              <Button type="button" variant="ghost" size="icon" onClick={cancelEdit}>
+                <X className="size-4" />
+              </Button>
+            ) : null}
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="space-y-4">
@@ -119,8 +184,8 @@ export function UserManager({ initialData }: { initialData: User[] }) {
               <Input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required />
             </div>
             <div className="space-y-2">
-              <Label>Password awal/reset</Label>
-              <Input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required />
+              <Label>{editingId ? "Password baru (opsional)" : "Password awal"}</Label>
+              <Input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required={!editingId} />
             </div>
             <div className="space-y-2">
               <Label>Role</Label>
@@ -143,7 +208,7 @@ export function UserManager({ initialData }: { initialData: User[] }) {
             </label>
             <Button className="w-full">
               <UserRoundPlus className="size-4" />
-              Simpan User
+              {editingId ? "Update User" : "Simpan User"}
             </Button>
           </form>
         </CardContent>

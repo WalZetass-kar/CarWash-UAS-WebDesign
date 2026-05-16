@@ -36,7 +36,18 @@ export const paymentStatusLabels: Record<(typeof paymentStatuses)[number], strin
   lunas: "Lunas",
 };
 
-export const protectedPrefixes = ["/dashboard", "/api/customers", "/api/packages", "/api/queues", "/api/payments", "/api/reports", "/api/search", "/api/users"];
+export const protectedPrefixes = [
+  "/dashboard",
+  "/api/customers",
+  "/api/packages",
+  "/api/queues",
+  "/api/payments",
+  "/api/transactions",
+  "/api/reports",
+  "/api/search",
+  "/api/users",
+  "/api/uploads",
+];
 
 export const adminOnlyPrefixes = ["/dashboard/users", "/dashboard/settings", "/api/users"];
 

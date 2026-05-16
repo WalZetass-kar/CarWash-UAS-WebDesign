@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { PackagePlus, Trash2 } from "lucide-react";
+import { PackagePlus, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,11 +32,39 @@ export function PackageManager({
   const csrfFetch = useCsrfFetch();
   const [data, setData] = useState<WashPackage[]>(initialData);
   const [form, setForm] = useState(initialForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (role !== "admin") {
       toast.error("Petugas tidak dapat menambah paket");
+      return;
+    }
+
+    if (editingId) {
+      const previous = data;
+      const updated: WashPackage = {
+        id: editingId,
+        ...form,
+        createdAt: data.find((item) => item.id === editingId)?.createdAt ?? new Date().toISOString(),
+      };
+      setData((items) => items.map((item) => (item.id === editingId ? updated : item)));
+      const response = await csrfFetch(`/api/packages/${editingId}`, {
+        method: "PUT",
+        body: JSON.stringify(form),
+      });
+
+      if (!response.ok) {
+        setData(previous);
+        toast.error("Gagal memperbarui paket");
+        return;
+      }
+
+      const saved = await response.json();
+      setData((items) => items.map((item) => (item.id === editingId ? saved : item)));
+      setForm(initialForm);
+      setEditingId(null);
+      toast.success("Paket diperbarui");
       return;
     }
 
@@ -76,6 +104,22 @@ export function PackageManager({
     toast.success("Paket dihapus");
   }
 
+  function startEdit(washPackage: WashPackage) {
+    setEditingId(washPackage.id);
+    setForm({
+      name: washPackage.name,
+      description: washPackage.description,
+      price: washPackage.price,
+      estimatedMinutes: washPackage.estimatedMinutes,
+      isActive: washPackage.isActive,
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(initialForm);
+  }
+
   const columns: ColumnDef<WashPackage>[] = [
       { accessorKey: "name", header: "Paket" },
       { accessorKey: "description", header: "Deskripsi" },
@@ -108,9 +152,14 @@ export function PackageManager({
         header: "Aksi",
         cell: ({ row }) =>
           role === "admin" ? (
-            <Button variant="ghost" size="icon" onClick={() => remove(row.original.id)}>
-              <Trash2 className="size-4 text-rose-600" />
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="icon" onClick={() => startEdit(row.original)}>
+                <Pencil className="size-4 text-cyan-700" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => remove(row.original.id)}>
+                <Trash2 className="size-4 text-rose-600" />
+              </Button>
+            </div>
           ) : (
             <span className="text-xs text-slate-400">Read only</span>
           ),
@@ -121,7 +170,14 @@ export function PackageManager({
     <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
       <Card>
         <CardHeader>
-          <CardTitle>Tambah Paket</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>{editingId ? "Edit Paket" : "Tambah Paket"}</CardTitle>
+            {editingId ? (
+              <Button type="button" variant="ghost" size="icon" onClick={cancelEdit}>
+                <X className="size-4" />
+              </Button>
+            ) : null}
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="space-y-4">
@@ -154,7 +210,7 @@ export function PackageManager({
             </label>
             <Button className="w-full" disabled={role !== "admin"}>
               <PackagePlus className="size-4" />
-              Simpan Paket
+              {editingId ? "Update Paket" : "Simpan Paket"}
             </Button>
           </form>
         </CardContent>

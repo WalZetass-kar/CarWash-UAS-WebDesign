@@ -23,6 +23,7 @@ export default async function ReportsPage() {
       <ReportManager
         payments={JSON.parse(JSON.stringify(data.payments))}
         monthlyRevenue={data.monthlyRevenue}
+        popularPackage={data.metrics.popularPackage}
       />
     </div>
   );

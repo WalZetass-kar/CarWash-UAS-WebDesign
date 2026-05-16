@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GalleryUpload } from "@/features/dashboard/gallery-upload";
 import { requireRole } from "@/lib/auth/session";
 
 export const metadata = {
@@ -37,6 +38,14 @@ export default async function SettingsPage() {
             <p>Supabase Realtime tersambung ke tabel queues dan payments.</p>
             <p>Dashboard akan memakai mode demo bila environment Supabase belum diisi.</p>
             <p>Preferensi dark mode tersimpan via next-themes localStorage.</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Gallery Aman</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GalleryUpload />
           </CardContent>
         </Card>
       </div>

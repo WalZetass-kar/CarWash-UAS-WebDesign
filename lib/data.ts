@@ -67,6 +67,19 @@ export type Payment = {
   createdAt: string;
 };
 
+export type TransactionItem = {
+  id: string;
+  queueId: string;
+  queueNumber: string;
+  customerId: string;
+  customerName: string;
+  packageId: string;
+  packageName: string;
+  total: number;
+  status: PaymentStatus;
+  createdAt: string;
+};
+
 const now = new Date();
 const iso = (dayOffset = 0, hour = 9, minute = 0) => {
   const date = new Date(now);
@@ -205,6 +218,57 @@ export const demoQueues: QueueItem[] = [
     status: "menunggu",
     total: demoPackages[0].price,
     createdAt: iso(0, 11, 15),
+  },
+];
+
+export const demoTransactions: TransactionItem[] = [
+  {
+    id: "50000000-0000-4000-8000-000000000001",
+    queueId: demoQueues[0].id,
+    queueNumber: demoQueues[0].queueNumber,
+    customerId: demoCustomers[0].id,
+    customerName: demoCustomers[0].name,
+    packageId: demoPackages[1].id,
+    packageName: demoPackages[1].name,
+    total: demoPackages[1].price,
+    status: "lunas",
+    createdAt: iso(0, 10, 15),
+  },
+  {
+    id: "50000000-0000-4000-8000-000000000002",
+    queueId: demoQueues[1].id,
+    queueNumber: demoQueues[1].queueNumber,
+    customerId: demoCustomers[1].id,
+    customerName: demoCustomers[1].name,
+    packageId: demoPackages[2].id,
+    packageName: demoPackages[2].name,
+    total: demoPackages[2].price,
+    status: "belum_bayar",
+    createdAt: iso(0, 10, 25),
+  },
+  {
+    id: "50000000-0000-4000-8000-000000000003",
+    queueId: demoQueues[2].id,
+    queueNumber: demoQueues[2].queueNumber,
+    customerId: demoCustomers[2].id,
+    customerName: demoCustomers[2].name,
+    packageId: demoPackages[3].id,
+    packageName: demoPackages[3].name,
+    total: demoPackages[3].price,
+    status: "belum_bayar",
+    createdAt: iso(0, 10, 40),
+  },
+  {
+    id: "50000000-0000-4000-8000-000000000004",
+    queueId: demoQueues[3].id,
+    queueNumber: demoQueues[3].queueNumber,
+    customerId: demoCustomers[3].id,
+    customerName: demoCustomers[3].name,
+    packageId: demoPackages[0].id,
+    packageName: demoPackages[0].name,
+    total: demoPackages[0].price,
+    status: "belum_bayar",
+    createdAt: iso(0, 11, 20),
   },
 ];
 

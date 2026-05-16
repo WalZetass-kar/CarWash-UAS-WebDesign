@@ -3,6 +3,7 @@ import { customers, payments, queues, transactions } from "@/drizzle/schema";
 import { getDb, hasDatabaseConfig } from "@/drizzle/db";
 import { demoPayments, type Payment } from "@/lib/data";
 import type { PaymentInput } from "@/schemas/payment";
+import { getTransactionById, updateTransactionPaymentStatus } from "@/services/transactions";
 
 let memoryPayments: Payment[] = [...demoPayments];
 
@@ -49,11 +50,12 @@ export async function listPayments(query = "", status?: string | null) {
 
 export async function createPayment(input: PaymentInput) {
   if (!hasDatabaseConfig()) {
+    const transaction = await getTransactionById(input.transactionId);
     const payment: Payment = {
       id: crypto.randomUUID(),
       transactionId: input.transactionId,
-      queueNumber: "CR-DEMO",
-      customerName: "Pelanggan Demo",
+      queueNumber: transaction?.queueNumber ?? "CR-DEMO",
+      customerName: transaction?.customerName ?? "Pelanggan Demo",
       method: input.method,
       amount: input.amount,
       status: input.status,
@@ -61,6 +63,7 @@ export async function createPayment(input: PaymentInput) {
       createdAt: new Date().toISOString(),
     };
     memoryPayments = [payment, ...memoryPayments];
+    await updateTransactionPaymentStatus(input.transactionId, input.status);
     return payment;
   }
 
@@ -83,15 +86,19 @@ export async function createPayment(input: PaymentInput) {
 
 export async function updatePayment(id: string, input: PaymentInput) {
   if (!hasDatabaseConfig()) {
+    const transaction = await getTransactionById(input.transactionId);
     memoryPayments = memoryPayments.map((item) =>
       item.id === id
         ? {
             ...item,
             ...input,
+            queueNumber: transaction?.queueNumber ?? item.queueNumber,
+            customerName: transaction?.customerName ?? item.customerName,
             paidAt: input.status === "lunas" ? new Date().toISOString() : null,
           }
         : item,
     );
+    await updateTransactionPaymentStatus(input.transactionId, input.status);
     return memoryPayments.find((item) => item.id === id) ?? null;
   }
 

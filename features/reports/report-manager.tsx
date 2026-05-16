@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import Flatpickr from "react-flatpickr";
 import type { ColumnDef } from "@tanstack/react-table";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Download, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,9 +16,11 @@ import { MonthlyLineChart, PaymentPieChart } from "@/features/dashboard/charts";
 export function ReportManager({
   payments,
   monthlyRevenue,
+  popularPackage,
 }: {
   payments: Payment[];
   monthlyRevenue: Array<{ month: string; revenue: number }>;
+  popularPackage: string;
 }) {
   const [range, setRange] = useState<Date[]>([]);
   const filtered = useMemo(() => {
@@ -35,28 +35,11 @@ export function ReportManager({
   const total = paid.reduce((sum, payment) => sum + Number(payment.amount), 0);
 
   function exportCsv() {
-    window.location.href = "/api/reports?format=csv";
+    window.location.href = `/api/reports?format=csv${buildRangeParams(range)}`;
   }
 
   function exportPdf() {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Laporan Transaksi CleanRide", 14, 18);
-    doc.setFontSize(11);
-    doc.text(`Total pemasukan: ${formatCurrency(total)}`, 14, 28);
-    autoTable(doc, {
-      startY: 38,
-      head: [["Tanggal", "Pelanggan", "Invoice", "Metode", "Status", "Total"]],
-      body: filtered.map((payment) => [
-        formatDate(payment.createdAt),
-        payment.customerName,
-        payment.queueNumber,
-        paymentMethodLabels[payment.method],
-        paymentStatusLabels[payment.status],
-        formatCurrency(payment.amount),
-      ]),
-    });
-    doc.save("cleanride-laporan.pdf");
+    window.location.href = `/api/reports?format=pdf${buildRangeParams(range)}`;
   }
 
   const columns = useMemo<ColumnDef<Payment>[]>(
@@ -105,7 +88,7 @@ export function ReportManager({
         <Card>
           <CardContent className="pt-5">
             <p className="text-sm text-slate-500">Paket populer</p>
-            <p className="mt-2 text-2xl font-semibold">Premium Gloss</p>
+            <p className="mt-2 text-2xl font-semibold">{popularPackage}</p>
           </CardContent>
         </Card>
       </div>
@@ -161,4 +144,10 @@ export function ReportManager({
       </div>
     </div>
   );
+}
+
+function buildRangeParams(range: Date[]) {
+  if (range.length < 2) return "";
+  const [from, to] = range;
+  return `&from=${from.toISOString()}&to=${to.toISOString()}`;
 }

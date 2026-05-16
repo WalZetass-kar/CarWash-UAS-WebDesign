@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Trash2, UserPlus } from "lucide-react";
+import { Pencil, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,11 +32,44 @@ export function CustomerManager({
   const csrfFetch = useCsrfFetch();
   const [data, setData] = useState<Customer[]>(initialData);
   const [form, setForm] = useState(initialForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
+    if (editingId) {
+      const previous = data;
+      const updated: Customer = {
+        id: editingId,
+        name: form.name,
+        phone: form.phone,
+        licensePlate: form.licensePlate.toUpperCase(),
+        vehicleType: form.vehicleType as Customer["vehicleType"],
+        notes: form.notes,
+        createdAt: data.find((item) => item.id === editingId)?.createdAt ?? new Date().toISOString(),
+      };
+      setData((items) => items.map((item) => (item.id === editingId ? updated : item)));
+      const response = await csrfFetch(`/api/customers/${editingId}`, {
+        method: "PUT",
+        body: JSON.stringify(updated),
+      });
+      setLoading(false);
+
+      if (!response.ok) {
+        setData(previous);
+        toast.error("Gagal memperbarui pelanggan");
+        return;
+      }
+
+      const saved = await response.json();
+      setData((items) => items.map((item) => (item.id === editingId ? saved : item)));
+      setForm(initialForm);
+      setEditingId(null);
+      toast.success("Pelanggan diperbarui");
+      return;
+    }
+
     const optimistic: Customer = {
       id: crypto.randomUUID(),
       name: form.name,
@@ -64,6 +97,22 @@ export function CustomerManager({
     setData((items) => items.map((item) => (item.id === optimistic.id ? created : item)));
     setForm(initialForm);
     toast.success("Pelanggan ditambahkan");
+  }
+
+  function startEdit(customer: Customer) {
+    setEditingId(customer.id);
+    setForm({
+      name: customer.name,
+      phone: customer.phone,
+      licensePlate: customer.licensePlate,
+      vehicleType: customer.vehicleType,
+      notes: customer.notes ?? "",
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(initialForm);
   }
 
   async function remove(id: string) {
@@ -96,14 +145,18 @@ export function CustomerManager({
       {
         id: "actions",
         header: "Aksi",
-        cell: ({ row }) =>
-          role === "admin" ? (
+        cell: ({ row }) => (
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={() => startEdit(row.original)}>
+              <Pencil className="size-4 text-cyan-700" />
+            </Button>
+            {role === "admin" ? (
             <Button variant="ghost" size="icon" onClick={() => remove(row.original.id)}>
               <Trash2 className="size-4 text-rose-600" />
             </Button>
-          ) : (
-            <span className="text-xs text-slate-400">Terbatas</span>
-          ),
+            ) : null}
+          </div>
+        ),
       },
   ];
 
@@ -111,7 +164,14 @@ export function CustomerManager({
     <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
       <Card>
         <CardHeader>
-          <CardTitle>Tambah Pelanggan</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>{editingId ? "Edit Pelanggan" : "Tambah Pelanggan"}</CardTitle>
+            {editingId ? (
+              <Button type="button" variant="ghost" size="icon" onClick={cancelEdit}>
+                <X className="size-4" />
+              </Button>
+            ) : null}
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="space-y-4">
@@ -151,7 +211,7 @@ export function CustomerManager({
             </div>
             <Button className="w-full" disabled={loading}>
               <UserPlus className="size-4" />
-              Simpan Pelanggan
+              {editingId ? "Update Pelanggan" : "Simpan Pelanggan"}
             </Button>
           </form>
         </CardContent>

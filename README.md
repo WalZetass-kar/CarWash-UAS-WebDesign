@@ -39,6 +39,8 @@ npm run db:seed
 
 Alternatif manual: copy SQL dari `drizzle/0001_initial.sql` ke Supabase SQL Editor.
 
+Untuk upload gallery production, buat bucket Supabase Storage public bernama `cleanride`. API upload akan menyimpan file ke path `gallery/...` bila `SUPABASE_SERVICE_ROLE_KEY` tersedia.
+
 ## Drizzle ORM
 
 Schema utama ada di `drizzle/schema.ts`.
@@ -89,15 +91,19 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - RBAC admin/petugas di middleware dan API routes
 - Dashboard analytics, search global, notification shell, dark/light mode
 - CRUD pelanggan, paket, antrian, pembayaran, user
+- Edit pelanggan, edit paket, edit/reset password user, dan nonaktifkan user
+- Pembayaran memilih transaksi pending dari data antrian/transaksi, bukan input ID manual
 - Supabase Realtime untuk queues dan payments
+- Dashboard auto-refresh saat event realtime queues/payments masuk
 - TanStack Table untuk search, sorting, pagination
 - Chart.js bar, line, pie chart
-- Invoice printable dan export PDF
-- Export laporan CSV/PDF
+- Invoice printable dan export PDF dengan QR invoice real
+- Export laporan CSV/PDF, termasuk PDF server-side dari `/api/reports?format=pdf`
 - Activity log server-side
 - Zod validation, DOMPurify sanitization, bcryptjs password hash
 - CSRF protection, login rate limiting, security headers
-- Upload guard 2MB untuk jpg/jpeg/png/webp di `lib/security/upload-guard.ts`
+- Upload guard 2MB untuk jpg/jpeg/png/webp di `lib/security/upload-guard.ts` dan halaman Settings admin
+- Favicon, Open Graph image, manifest PWA, icon 192/512, dan screenshot PWA
 
 ## Deploy ke Vercel
 
