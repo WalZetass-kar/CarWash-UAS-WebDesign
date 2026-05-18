@@ -43,14 +43,23 @@ body {
 }
 
 ::selection {
-  background: rgba(8, 145, 178, 0.2);
+  background: rgba(8, 145, 178, 0.25);
+  color: white;
 }
 
+/* Glass Panel Effect */
 .glass-panel {
   border: 1px solid rgba(255, 255, 255, 0.45);
   background: rgba(255, 255, 255, 0.78);
   box-shadow: 0 24px 80px rgba(15, 76, 129, 0.14);
   backdrop-filter: blur(18px);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glass-panel:hover {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 32px 100px rgba(15, 76, 129, 0.2);
+  transform: translateY(-2px);
 }
 
 .dark .glass-panel {
@@ -59,12 +68,92 @@ body {
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
 }
 
+.dark .glass-panel:hover {
+  background: rgba(15, 23, 42, 0.84);
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.45);
+}
+
+/* Smooth Transitions */
+a, button, input, select, textarea {
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0891b2;
+}
+
+/* Flatpickr Calendar */
 .flatpickr-calendar {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+  animation: fadeInScale 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Pulse Animation for Badges */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Gradient Animation */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Focus Visible Styles */
+*:focus-visible {
+  outline: 2px solid #0891b2;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Print Styles */
 @media print {
   .no-print {
     display: none !important;
@@ -73,5 +162,22 @@ body {
   body {
     background: white !important;
     color: #0f172a !important;
+  }
+  
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
