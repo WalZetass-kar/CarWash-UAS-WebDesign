@@ -13,7 +13,7 @@ export async function PATCH(
   const csrfResponse = rejectInvalidCsrf(request);
   if (csrfResponse) return csrfResponse;
 
-  const { session, response } = await requireApiRole(request, ["admin", "petugas"]);
+  const { session, response } = await requireApiRole(request, ["admin", "staff", "petugas"]);
   if (response || !session) return response;
 
   const parsed = queueStatusSchema.safeParse(sanitizeObject(await request.json()));

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { PackageManager } from "@/features/packages/package-manager";
-import { requireSession } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { listPackages } from "@/services/packages";
 
 export const metadata = {
@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function PackagesPage() {
-  const session = await requireSession();
+  const session = await requireRole(["admin", "petugas"]);
   const packages = JSON.parse(JSON.stringify(await listPackages()));
 
   return (

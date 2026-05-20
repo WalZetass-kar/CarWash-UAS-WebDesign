@@ -59,6 +59,8 @@ const gallery = [
   "https://images.unsplash.com/photo-1600320254374-ce2d293c324e?auto=format&fit=crop&w=900&q=80",
 ];
 
+const easing = [0.22, 1, 0.36, 1] as const;
+
 function MotionSection({ children, className, id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (
     <motion.section
@@ -67,7 +69,7 @@ function MotionSection({ children, className, id }: { children: React.ReactNode;
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.7, ease: easing }}
     >
       {children}
     </motion.section>
@@ -92,7 +94,7 @@ const itemVariants = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
+      ease: easing,
     },
   },
 };
@@ -125,7 +127,7 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
           strokeLinejoin="round"
           className="flex-shrink-0 text-cyan-600 dark:text-cyan-400"
           animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.3, ease: easing }}
         >
           <polyline points="6 9 12 15 18 9" />
         </motion.svg>
@@ -138,9 +140,9 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
           marginTop: isOpen ? 12 : 0,
         }}
         transition={{
-          height: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+          height: { duration: 0.4, ease: easing },
           opacity: { duration: 0.3, delay: isOpen ? 0.1 : 0 },
-          marginTop: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+          marginTop: { duration: 0.4, ease: easing },
         }}
         className="overflow-hidden"
       >
@@ -149,7 +151,7 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
           animate={{
             y: isOpen ? 0 : -10,
           }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.3, ease: easing }}
           className="text-sm leading-6 text-slate-500 dark:text-slate-400"
         >
           {answer}
@@ -175,14 +177,14 @@ export function LandingPage() {
         style={{ backgroundColor: headerBg }}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.6, ease: easing }}
       >
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="group flex items-center gap-2 font-semibold text-white dark:text-white">
             <motion.span 
               className="grid size-9 place-items-center rounded-lg bg-cyan-600 text-white shadow-lg shadow-cyan-900/20"
               whileHover={{ rotate: 360, scale: 1.1 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.6, ease: easing }}
             >
               <Car className="size-5" />
             </motion.span>
@@ -244,7 +246,7 @@ export function LandingPage() {
             height: open ? "auto" : 0,
             opacity: open ? 1 : 0
           }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.3, ease: easing }}
           className="overflow-hidden border-t border-slate-700 bg-slate-900 md:hidden dark:border-slate-800 dark:bg-slate-950"
         >
           <div className="flex flex-col gap-2 px-4 py-4">
@@ -273,7 +275,7 @@ export function LandingPage() {
           <motion.div
             initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
-            transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.5, ease: easing }}
             className="absolute inset-0"
           >
             <Image
@@ -291,7 +293,7 @@ export function LandingPage() {
               className="max-w-3xl text-white"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.8, delay: 0.2, ease: easing }}
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -345,7 +347,7 @@ export function LandingPage() {
                 initial="hidden"
                 animate="visible"
               >
-                {["Realtime Queue", "Secure Payment", "Printable Invoice"].map((item, index) => (
+                {["Realtime Queue", "Secure Payment", "Printable Invoice"].map((item) => (
                   <motion.div 
                     key={item} 
                     className="rounded-lg border border-cyan-500 bg-slate-950/90 px-3 py-3 text-center font-medium text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-cyan-400 hover:bg-slate-900 hover:shadow-lg hover:shadow-cyan-500/30 cursor-default"
@@ -366,7 +368,7 @@ export function LandingPage() {
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.7, ease: easing }}
             >
               <Badge className="transition-all duration-300 hover:scale-105">About Service</Badge>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">Standar cuci kendaraan yang cepat, bersih, dan transparan.</h2>
@@ -431,7 +433,7 @@ export function LandingPage() {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              {packages.map((item, index) => (
+              {packages.map((item) => (
                 <motion.div
                   key={item.name}
                   variants={itemVariants}
@@ -667,7 +669,7 @@ export function LandingPage() {
               <motion.div
                 className="inline-block"
                 whileHover={{ rotate: 360, scale: 1.1 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, ease: easing }}
               >
                 <Car className="size-5 text-cyan-300 transition-colors duration-300 group-hover:text-cyan-400" />
               </motion.div>

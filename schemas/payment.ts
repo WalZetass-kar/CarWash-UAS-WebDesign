@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const paymentSchema = z.object({
-  transactionId: z.string().uuid(),
+  transactionId: z.string().uuid("Transaksi wajib dipilih"),
   method: z.enum(["tunai", "transfer", "qris", "e-wallet"]),
-  amount: z.coerce.number().int().min(1000),
+  amount: z.coerce.number().int().min(0, "Harga tidak boleh minus"),
   status: z.enum(["belum_bayar", "lunas"]),
 });
 

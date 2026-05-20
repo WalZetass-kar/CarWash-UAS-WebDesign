@@ -1,20 +1,16 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { users } from "@/drizzle/schema";
 import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import { demoUsers } from "@/lib/constants";
+import { demoStore } from "@/lib/demo-store";
+import { roles } from "@/lib/constants";
 import type { User } from "@/lib/data";
 import type { UserFormInput } from "@/schemas/auth";
 import { hashPassword } from "@/lib/auth/password";
 
-let memoryUsers: User[] = demoUsers.map((user) => ({
-  ...user,
-  createdAt: new Date().toISOString(),
-}));
-
 export async function listUsers(query = "", role?: string | null) {
   if (!hasDatabaseConfig()) {
     const normalized = query.toLowerCase();
-    return memoryUsers.filter((item) => {
+    return demoStore.users.filter((item) => {
       const matchesQuery = [item.name, item.email, item.role].join(" ").toLowerCase().includes(normalized);
       const matchesRole = role ? item.role === role : true;
       return matchesQuery && matchesRole;
@@ -22,7 +18,7 @@ export async function listUsers(query = "", role?: string | null) {
   }
 
   const roleFilter =
-    role && ["admin", "petugas"].includes(role) ? eq(users.role, role as UserFormInput["role"]) : undefined;
+    role && roles.includes(role as (typeof roles)[number]) ? eq(users.role, role as UserFormInput["role"]) : undefined;
   const searchFilter = query
     ? or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`))
     : undefined;
@@ -48,12 +44,13 @@ export async function createUser(input: UserFormInput) {
     const user: User = {
       id: crypto.randomUUID(),
       name: input.name,
-      email: input.email,
+      email: input.email.toLowerCase(),
       role: input.role,
       isActive: input.isActive,
       createdAt: new Date().toISOString(),
     };
-    memoryUsers = [user, ...memoryUsers];
+    demoStore.users = [user, ...demoStore.users];
+    demoStore.passwords[user.email] = input.password;
     return user;
   }
 
@@ -79,18 +76,25 @@ export async function createUser(input: UserFormInput) {
 
 export async function updateUser(id: string, input: UserFormInput) {
   if (!hasDatabaseConfig()) {
-    memoryUsers = memoryUsers.map((item) =>
+    const previousUser = demoStore.users.find((item) => item.id === id);
+    demoStore.users = demoStore.users.map((item) =>
       item.id === id
         ? {
             ...item,
             name: input.name,
-            email: input.email,
+            email: input.email.toLowerCase(),
             role: input.role,
             isActive: input.isActive,
           }
         : item,
     );
-    return memoryUsers.find((item) => item.id === id) ?? null;
+    if (previousUser && previousUser.email !== input.email.toLowerCase()) {
+      delete demoStore.passwords[previousUser.email];
+    }
+    if (input.password) {
+      demoStore.passwords[input.email.toLowerCase()] = input.password;
+    }
+    return demoStore.users.find((item) => item.id === id) ?? null;
   }
 
   const [updated] = await getDb()
@@ -117,7 +121,7 @@ export async function updateUser(id: string, input: UserFormInput) {
 
 export async function deactivateUser(id: string) {
   if (!hasDatabaseConfig()) {
-    memoryUsers = memoryUsers.map((item) =>
+    demoStore.users = demoStore.users.map((item) =>
       item.id === id ? { ...item, isActive: false } : item,
     );
     return true;

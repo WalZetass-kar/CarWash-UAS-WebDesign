@@ -1,15 +1,14 @@
 import { and, desc, eq, ilike, isNull } from "drizzle-orm";
 import { washPackages } from "@/drizzle/schema";
 import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import { demoPackages, type WashPackage } from "@/lib/data";
+import type { WashPackage } from "@/lib/data";
+import { demoStore } from "@/lib/demo-store";
 import type { PackageInput } from "@/schemas/package";
-
-let memoryPackages: WashPackage[] = [...demoPackages];
 
 export async function listPackages(query = "") {
   if (!hasDatabaseConfig()) {
     const normalized = query.toLowerCase();
-    return memoryPackages.filter((item) =>
+    return demoStore.packages.filter((item) =>
       [item.name, item.description, item.price].join(" ").toLowerCase().includes(normalized),
     );
   }
@@ -28,7 +27,7 @@ export async function createPackage(input: PackageInput) {
       ...input,
       createdAt: new Date().toISOString(),
     };
-    memoryPackages = [washPackage, ...memoryPackages];
+    demoStore.packages = [washPackage, ...demoStore.packages];
     return washPackage;
   }
 
@@ -38,10 +37,10 @@ export async function createPackage(input: PackageInput) {
 
 export async function updatePackage(id: string, input: PackageInput) {
   if (!hasDatabaseConfig()) {
-    memoryPackages = memoryPackages.map((item) =>
+    demoStore.packages = demoStore.packages.map((item) =>
       item.id === id ? { ...item, ...input } : item,
     );
-    return memoryPackages.find((item) => item.id === id) ?? null;
+    return demoStore.packages.find((item) => item.id === id) ?? null;
   }
 
   const [updated] = await getDb()
@@ -54,7 +53,7 @@ export async function updatePackage(id: string, input: PackageInput) {
 
 export async function deletePackage(id: string) {
   if (!hasDatabaseConfig()) {
-    memoryPackages = memoryPackages.filter((item) => item.id !== id);
+    demoStore.packages = demoStore.packages.filter((item) => item.id !== id);
     return true;
   }
 

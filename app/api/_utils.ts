@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE } from "@/lib/constants";
+import { SESSION_COOKIE, type Role } from "@/lib/constants";
 import { verifySession } from "@/lib/auth/jwt";
 import { validateCsrf } from "@/lib/security/csrf";
 
@@ -23,7 +23,7 @@ export async function requireApiSession(request: NextRequest) {
   return { session, response: null };
 }
 
-export async function requireApiRole(request: NextRequest, roles: Array<"admin" | "petugas">) {
+export async function requireApiRole(request: NextRequest, roles: Role[]) {
   const { session, response } = await requireApiSession(request);
   if (response || !session) return { session, response };
 

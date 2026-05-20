@@ -1,15 +1,14 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { customers } from "@/drizzle/schema";
 import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import { demoCustomers, type Customer } from "@/lib/data";
+import type { Customer } from "@/lib/data";
+import { demoStore } from "@/lib/demo-store";
 import type { CustomerInput } from "@/schemas/customer";
-
-let memoryCustomers: Customer[] = [...demoCustomers];
 
 export async function listCustomers(query = "") {
   if (!hasDatabaseConfig()) {
     const normalized = query.toLowerCase();
-    return memoryCustomers.filter((customer) =>
+    return demoStore.customers.filter((customer) =>
       [customer.name, customer.phone, customer.licensePlate, customer.vehicleType]
         .join(" ")
         .toLowerCase()
@@ -40,7 +39,7 @@ export async function createCustomer(input: CustomerInput) {
       notes: input.notes,
       createdAt: new Date().toISOString(),
     };
-    memoryCustomers = [customer, ...memoryCustomers];
+    demoStore.customers = [customer, ...demoStore.customers];
     return customer;
   }
 
@@ -53,10 +52,10 @@ export async function createCustomer(input: CustomerInput) {
 
 export async function updateCustomer(id: string, input: CustomerInput) {
   if (!hasDatabaseConfig()) {
-    memoryCustomers = memoryCustomers.map((customer) =>
+    demoStore.customers = demoStore.customers.map((customer) =>
       customer.id === id ? { ...customer, ...input, notes: input.notes } : customer,
     );
-    return memoryCustomers.find((customer) => customer.id === id) ?? null;
+    return demoStore.customers.find((customer) => customer.id === id) ?? null;
   }
 
   const [updated] = await getDb()
@@ -69,7 +68,7 @@ export async function updateCustomer(id: string, input: CustomerInput) {
 
 export async function deleteCustomer(id: string) {
   if (!hasDatabaseConfig()) {
-    memoryCustomers = memoryCustomers.filter((customer) => customer.id !== id);
+    demoStore.customers = demoStore.customers.filter((customer) => customer.id !== id);
     return true;
   }
 

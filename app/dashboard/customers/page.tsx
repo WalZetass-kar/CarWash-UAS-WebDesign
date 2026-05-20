@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { CustomerManager } from "@/features/customers/customer-manager";
-import { requireSession } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { listCustomers } from "@/services/customers";
 
 export const metadata = {
@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function CustomersPage() {
-  const session = await requireSession();
+  const session = await requireRole(["admin", "petugas"]);
   const customers = JSON.parse(JSON.stringify(await listCustomers()));
 
   return (

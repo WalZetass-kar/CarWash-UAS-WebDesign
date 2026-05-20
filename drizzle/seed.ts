@@ -17,23 +17,16 @@ import {
   demoQueues,
   demoTransactions,
 } from "@/lib/data";
-import { demoUsers } from "@/lib/constants";
+import { demoUserPasswords, demoUsers } from "@/lib/constants";
 
 async function main() {
   const db = getDb();
-  const adminHash = await bcrypt.hash("admin123", 12);
-  const petugasHash = await bcrypt.hash("petugas123", 12);
-
-  const seededUsers = [
-    {
-      ...demoUsers[0],
-      passwordHash: adminHash,
-    },
-    {
-      ...demoUsers[1],
-      passwordHash: petugasHash,
-    },
-  ];
+  const seededUsers = await Promise.all(
+    demoUsers.map(async (user) => ({
+      ...user,
+      passwordHash: await bcrypt.hash(demoUserPasswords[user.email] ?? "password123", 12),
+    })),
+  );
 
   for (const user of seededUsers) {
     const existing = await db.query.users.findFirst({
@@ -65,6 +58,7 @@ async function main() {
         description: item.description,
         price: item.price,
         estimatedMinutes: item.estimatedMinutes,
+        imageUrl: item.imageUrl,
         isActive: item.isActive,
         createdAt: new Date(item.createdAt),
       })),

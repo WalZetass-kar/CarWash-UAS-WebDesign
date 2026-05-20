@@ -1,21 +1,27 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import {
   BarElement,
   CategoryScale,
   Chart as ChartJS,
+  type ChartOptions,
+  Filler,
   Legend,
   LinearScale,
   LineElement,
   ArcElement,
   PointElement,
   Tooltip,
+  type TooltipItem,
 } from "chart.js";
-import { Bar, Line, Pie } from "react-chartjs-2";
+import { Bar, Doughnut, Line } from "react-chartjs-2";
+import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/utils";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Tooltip, Legend, Filler);
 
-const options = {
+const baseCartesianOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -42,22 +48,53 @@ const options = {
 };
 
 export function WeeklyBarChart({ data }: { data: Array<{ day: string; revenue: number; transactions: number }> }) {
-  return (
-    <div className="h-72">
-      <Bar
-        options={options}
-        data={{
-          labels: data.map((item) => item.day),
-          datasets: [
-            {
-              label: "Transaksi",
-              data: data.map((item) => item.transactions),
-              backgroundColor: "rgba(8, 145, 178, 0.75)",
-              borderRadius: 6,
+  const [mode, setMode] = useState<"transactions" | "revenue">("transactions");
+  const chartOptions = useMemo<ChartOptions<"bar">>(
+    () => ({
+      ...baseCartesianOptions,
+      plugins: {
+        ...baseCartesianOptions.plugins,
+        tooltip: {
+          callbacks: {
+            label(context: TooltipItem<"bar">) {
+              const value = Number(context.raw ?? 0);
+              return mode === "transactions"
+                ? `${value} transaksi`
+                : formatCurrency(value);
             },
-          ],
-        }}
-      />
+          },
+        },
+      },
+    }),
+    [mode],
+  );
+
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Button variant={mode === "transactions" ? "default" : "outline"} size="sm" onClick={() => setMode("transactions")}>
+          Transaksi
+        </Button>
+        <Button variant={mode === "revenue" ? "default" : "outline"} size="sm" onClick={() => setMode("revenue")}>
+          Pendapatan
+        </Button>
+      </div>
+      <div className="h-72">
+        <Bar
+          options={chartOptions}
+          data={{
+            labels: data.map((item) => item.day),
+            datasets: [
+              {
+                label: mode === "transactions" ? "Transaksi" : "Pendapatan",
+                data: data.map((item) => (mode === "transactions" ? item.transactions : item.revenue)),
+                backgroundColor: mode === "transactions" ? "rgba(8, 145, 178, 0.75)" : "rgba(16, 185, 129, 0.78)",
+                borderRadius: 10,
+              },
+            ],
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -66,7 +103,19 @@ export function MonthlyLineChart({ data }: { data: Array<{ month: string; revenu
   return (
     <div className="h-72">
       <Line
-        options={options}
+        options={{
+          ...baseCartesianOptions,
+          plugins: {
+            ...baseCartesianOptions.plugins,
+            tooltip: {
+              callbacks: {
+                label(context: TooltipItem<"line">) {
+                  return formatCurrency(Number(context.raw ?? 0));
+                },
+              },
+            },
+          },
+        } satisfies ChartOptions<"line">}
         data={{
           labels: data.map((item) => item.month),
           datasets: [
@@ -76,6 +125,7 @@ export function MonthlyLineChart({ data }: { data: Array<{ month: string; revenu
               borderColor: "rgb(8, 145, 178)",
               backgroundColor: "rgba(8, 145, 178, 0.18)",
               pointBackgroundColor: "rgb(15, 76, 129)",
+              fill: true,
               tension: 0.35,
             },
           ],
@@ -88,7 +138,21 @@ export function MonthlyLineChart({ data }: { data: Array<{ month: string; revenu
 export function PaymentPieChart({ paid, unpaid }: { paid: number; unpaid: number }) {
   return (
     <div className="h-72">
-      <Pie
+      <Doughnut
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "68%",
+          plugins: {
+            legend: {
+              position: "bottom" as const,
+              labels: {
+                usePointStyle: true,
+                boxHeight: 8,
+              },
+            },
+          },
+        }}
         data={{
           labels: ["Lunas", "Belum Bayar"],
           datasets: [
@@ -96,6 +160,7 @@ export function PaymentPieChart({ paid, unpaid }: { paid: number; unpaid: number
               data: [paid, unpaid],
               backgroundColor: ["rgba(16, 185, 129, 0.8)", "rgba(245, 158, 11, 0.8)"],
               borderWidth: 0,
+              hoverOffset: 10,
             },
           ],
         }}

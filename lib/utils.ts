@@ -26,6 +26,24 @@ export function formatDate(value: Date | string | null | undefined) {
   }).format(date);
 }
 
+export function getDateKey(value: Date | string | number, timeZone = "Asia/Jakarta") {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  return `${year}-${month}-${day}`;
+}
+
 export function toTitleCase(value: string) {
   return value
     .split(/[\s_-]+/)
@@ -35,18 +53,7 @@ export function toTitleCase(value: string) {
 }
 
 export function getTodayKey(timeZone = "Asia/Jakarta") {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-
-  const year = parts.find((part) => part.type === "year")?.value;
-  const month = parts.find((part) => part.type === "month")?.value;
-  const day = parts.find((part) => part.type === "day")?.value;
-
-  return `${year}-${month}-${day}`;
+  return getDateKey(new Date(), timeZone);
 }
 
 export function getClientIp(headers: Headers) {

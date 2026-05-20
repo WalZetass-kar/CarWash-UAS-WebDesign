@@ -20,17 +20,28 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { startTransition, useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { RealtimeStatus } from "@/components/realtime/realtime-status";
 import { RealtimeRefresh } from "@/components/realtime/realtime-refresh";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
+import { getResponseMessage } from "@/lib/form-utils";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/lib/auth/jwt";
+import { roleLabels } from "@/lib/constants";
 
 type NavItem = {
   href: string;
@@ -40,11 +51,11 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ["admin", "petugas"] },
+  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ["admin", "kasir", "staff", "petugas"] },
   { href: "/dashboard/customers", label: "Pelanggan", icon: Users, roles: ["admin", "petugas"] },
   { href: "/dashboard/packages", label: "Paket", icon: PackageCheck, roles: ["admin", "petugas"] },
-  { href: "/dashboard/queues", label: "Antrian", icon: Car, roles: ["admin", "petugas"] },
-  { href: "/dashboard/payments", label: "Pembayaran", icon: CreditCard, roles: ["admin", "petugas"] },
+  { href: "/dashboard/queues", label: "Antrian", icon: Car, roles: ["admin", "staff", "petugas"] },
+  { href: "/dashboard/payments", label: "Pembayaran", icon: CreditCard, roles: ["admin", "kasir", "petugas"] },
   { href: "/dashboard/reports", label: "Laporan", icon: FileText, roles: ["admin"] },
   { href: "/dashboard/users", label: "Manajemen User", icon: BarChart3, roles: ["admin"] },
   { href: "/dashboard/settings", label: "Pengaturan", icon: Settings, roles: ["admin"] },
@@ -71,27 +82,69 @@ export function DashboardShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const deferredQuery = useDeferredValue(query);
 
   const visibleNav = useMemo(
     () => navItems.filter((item) => item.roles.includes(user.role)),
     [user.role],
   );
 
+  const handleSearchResult = useEffectEvent((nextResults: SearchResult[]) => {
+    setResults(nextResults);
+    setSearchLoading(false);
+  });
+
   useEffect(() => {
+    const controller = new AbortController();
+
     const timeout = window.setTimeout(async () => {
-      if (query.trim().length < 2) {
+      if (deferredQuery.trim().length < 2) {
+        setSearchLoading(false);
         setResults([]);
         return;
       }
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      if (response.ok) setResults(await response.json());
+
+      setSearchLoading(true);
+
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(deferredQuery)}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          handleSearchResult([]);
+          return;
+        }
+        handleSearchResult(await response.json());
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        handleSearchResult([]);
+      }
     }, 250);
 
-    return () => window.clearTimeout(timeout);
-  }, [query]);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [deferredQuery]);
+
+  function requestLogout() {
+    setLogoutDialogOpen(true);
+  }
 
   async function logout() {
-    await csrfFetch("/api/auth/logout", { method: "POST", body: JSON.stringify({}) });
+    setLoggingOut(true);
+    const response = await csrfFetch("/api/auth/logout", { method: "POST", body: JSON.stringify({}) });
+    setLoggingOut(false);
+
+    if (!response.ok) {
+      toast.error(await getResponseMessage(response, "Logout gagal. Coba lagi."));
+      return;
+    }
+
+    setLogoutDialogOpen(false);
     toast.success("Logout berhasil");
     router.push("/login");
     router.refresh();
@@ -141,8 +194,12 @@ export function DashboardShell({
         <div className="text-sm font-semibold">{user.name}</div>
         <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
         <Badge className="mt-3" variant={user.role === "admin" ? "default" : "secondary"}>
-          {user.role === "admin" ? "Admin" : "Petugas"}
+          {roleLabels[user.role]}
         </Badge>
+        <Button variant="outline" size="sm" onClick={requestLogout} className="mt-3 w-full lg:hidden">
+          <LogOut className="size-4" />
+          Logout
+        </Button>
       </div>
     </aside>
   );
@@ -173,10 +230,18 @@ export function DashboardShell({
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               <Input
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  startTransition(() => setQuery(nextValue));
+                }}
                 placeholder="Cari pelanggan, transaksi, antrian, user..."
                 className="pl-9"
               />
+              {searchLoading ? (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <LoadingSpinner />
+                </div>
+              ) : null}
               {results.length > 0 ? (
                 <div className="absolute left-0 right-0 top-12 z-50 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-950">
                   {results.map((result) => (
@@ -210,7 +275,7 @@ export function DashboardShell({
               <Sun className="size-5 dark:hidden" />
               <Moon className="hidden size-5 dark:block" />
             </Button>
-            <Button variant="outline" size="sm" onClick={logout} className="hidden sm:inline-flex">
+            <Button variant="outline" size="sm" onClick={requestLogout} className="hidden sm:inline-flex">
               <LogOut className="size-4" />
               Logout
             </Button>
@@ -219,6 +284,26 @@ export function DashboardShell({
 
         <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
+
+      <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Logout</DialogTitle>
+            <DialogDescription>
+              Apakah Anda yakin ingin logout? Sesi dashboard saat ini akan diakhiri.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setLogoutDialogOpen(false)} disabled={loggingOut}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={logout} disabled={loggingOut}>
+              {loggingOut ? <LoadingSpinner className="text-white" /> : null}
+              Oke
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

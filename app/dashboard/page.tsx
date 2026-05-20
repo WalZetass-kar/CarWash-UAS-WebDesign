@@ -12,28 +12,32 @@ export default async function DashboardPage() {
 
   const cards = [
     {
-      title: "Pendapatan Hari Ini",
-      value: formatCurrency(data.metrics.revenueToday),
+      title: "Total Transaksi Hari Ini",
+      value: data.metrics.totalTransactionsToday.toLocaleString("id-ID"),
       icon: Banknote,
-      tone: "text-emerald-600",
-    },
-    {
-      title: "Pendapatan Bulan Ini",
-      value: formatCurrency(data.metrics.revenueMonth),
-      icon: PackageCheck,
       tone: "text-cyan-600",
+      note: "Semua transaksi yang tercatat hari ini",
     },
     {
-      title: "Total Pelanggan",
-      value: data.metrics.totalCustomers.toLocaleString("id-ID"),
-      icon: Users,
-      tone: "text-indigo-600",
-    },
-    {
-      title: "Kendaraan Dicuci",
-      value: data.metrics.totalWashed.toLocaleString("id-ID"),
-      icon: Car,
+      title: "Total Kendaraan Hari Ini",
+      value: data.metrics.totalVehiclesToday.toLocaleString("id-ID"),
+      icon: PackageCheck,
       tone: "text-amber-600",
+      note: "Antrian kendaraan aktif dan terjadwal",
+    },
+    {
+      title: "Kendaraan Selesai",
+      value: data.metrics.completedToday.toLocaleString("id-ID"),
+      icon: Users,
+      tone: "text-emerald-600",
+      note: "Unit yang selesai dikerjakan hari ini",
+    },
+    {
+      title: "Kendaraan Dalam Proses",
+      value: data.metrics.inProgressToday.toLocaleString("id-ID"),
+      icon: Car,
+      tone: "text-sky-600",
+      note: "Status antrian yang sedang berjalan",
     },
   ];
 
@@ -47,18 +51,21 @@ export default async function DashboardPage() {
             Pantau pendapatan, antrian, pembayaran, dan performa paket pencucian.
           </p>
         </div>
-        <div className="rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800 dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200">
-          Paket populer: <span className="font-semibold">{data.metrics.popularPackage}</span>
+        <div className="rounded-2xl border border-cyan-200 bg-cyan-50/80 px-4 py-3 text-sm text-cyan-800 shadow-sm dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200">
+          <div>Pendapatan hari ini: <span className="font-semibold">{formatCurrency(data.metrics.revenueToday)}</span></div>
+          <div className="mt-1">Pendapatan bulan ini: <span className="font-semibold">{formatCurrency(data.metrics.revenueMonth)}</span></div>
+          <div className="mt-1">Paket populer: <span className="font-semibold">{data.metrics.popularPackage}</span></div>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((item) => (
-          <Card key={item.title}>
+        {cards.map((item, index) => (
+          <Card key={item.title} className="animate-rise-in hover:-translate-y-0.5 hover:shadow-lg" style={{ animationDelay: `${index * 80}ms` }}>
             <CardContent className="flex items-center justify-between pt-5">
               <div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">{item.title}</p>
                 <p className="mt-2 text-2xl font-semibold">{item.value}</p>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{item.note}</p>
               </div>
               <div className="grid size-11 place-items-center rounded-lg bg-slate-100 dark:bg-slate-900">
                 <item.icon className={`size-5 ${item.tone}`} />
