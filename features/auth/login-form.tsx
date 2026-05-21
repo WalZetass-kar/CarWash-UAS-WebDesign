@@ -49,7 +49,7 @@ export function LoginForm() {
         </Link>
         <h1 className="text-2xl font-semibold">Masuk Dashboard</h1>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          Gunakan akun demo admin atau petugas untuk presentasi.
+          Gunakan akun demo admin, kasir, staff, atau petugas legacy untuk presentasi.
         </p>
       </div>
 
@@ -104,7 +104,13 @@ export function LoginForm() {
           <span className="font-semibold">Admin:</span> admin@cleanride.my.id / admin123
         </div>
         <div>
-          <span className="font-semibold">Petugas:</span> petugas@cleanride.my.id / petugas123
+          <span className="font-semibold">Kasir:</span> kasir@cleanride.my.id / kasir123
+        </div>
+        <div>
+          <span className="font-semibold">Staff:</span> staff@cleanride.my.id / staff123
+        </div>
+        <div>
+          <span className="font-semibold">Petugas Legacy:</span> petugas@cleanride.my.id / petugas123
         </div>
       </div>
     </div>

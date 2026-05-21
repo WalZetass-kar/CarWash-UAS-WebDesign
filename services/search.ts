@@ -1,14 +1,15 @@
+import { roleLabels, queueStatusLabels, type Role } from "@/lib/constants";
 import { listCustomers } from "@/services/customers";
 import { listQueues } from "@/services/queues";
 import { listPayments } from "@/services/payments";
 import { listUsers } from "@/services/users";
 
-export async function globalSearch(query: string) {
+export async function globalSearch(query: string, role: Role) {
   const [customers, queues, payments, users] = await Promise.all([
     listCustomers(query),
     listQueues(query),
     listPayments(query),
-    listUsers(query),
+    role === "admin" ? listUsers(query) : Promise.resolve([]),
   ]);
 
   return [
@@ -21,7 +22,7 @@ export async function globalSearch(query: string) {
     ...queues.slice(0, 5).map((item) => ({
       type: "Antrian",
       title: item.queueNumber,
-      description: `${item.customerName} - ${item.status}`,
+      description: `${item.customerName} - ${queueStatusLabels[item.status]}`,
       href: "/dashboard/queues",
     })),
     ...payments.slice(0, 5).map((item) => ({
@@ -33,7 +34,7 @@ export async function globalSearch(query: string) {
     ...users.slice(0, 5).map((item) => ({
       type: "User",
       title: item.name,
-      description: `${item.email} - ${item.role}`,
+      description: `${item.email} - ${roleLabels[item.role]}`,
       href: "/dashboard/users",
     })),
   ].slice(0, 12);

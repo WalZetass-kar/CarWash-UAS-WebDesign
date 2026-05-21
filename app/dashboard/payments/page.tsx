@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { PaymentManager } from "@/features/payments/payment-manager";
+import { requireRole } from "@/lib/auth/session";
 import { listPayments } from "@/services/payments";
 import { listTransactions } from "@/services/transactions";
 
@@ -8,6 +9,7 @@ export const metadata = {
 };
 
 export default async function PaymentsPage() {
+  await requireRole(["admin", "kasir", "petugas"]);
   const [payments, transactions] = await Promise.all([
     listPayments(),
     listTransactions("", "belum_bayar"),

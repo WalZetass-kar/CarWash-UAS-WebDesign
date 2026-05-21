@@ -1,16 +1,6 @@
-import {
-  paymentMethods,
-  paymentStatuses,
-  queueStatuses,
-  vehicleTypes,
-  type demoUsers,
-} from "@/lib/constants";
+import { demoUsers, type PaymentMethod, type PaymentStatus, type QueueStatus, type Role, type VehicleType } from "@/lib/constants";
 
-export type Role = "admin" | "petugas";
-export type QueueStatus = (typeof queueStatuses)[number];
-export type PaymentMethod = (typeof paymentMethods)[number];
-export type PaymentStatus = (typeof paymentStatuses)[number];
-export type VehicleType = (typeof vehicleTypes)[number];
+export type { PaymentMethod, PaymentStatus, QueueStatus, Role, VehicleType };
 
 export type User = {
   id: string;
@@ -37,6 +27,7 @@ export type WashPackage = {
   description: string;
   price: number;
   estimatedMinutes: number;
+  imageUrl?: string | null;
   isActive: boolean;
   createdAt: string;
 };
@@ -59,7 +50,9 @@ export type Payment = {
   id: string;
   transactionId: string;
   queueNumber: string;
+  customerId: string;
   customerName: string;
+  packageName?: string | null;
   method: PaymentMethod;
   amount: number;
   status: PaymentStatus;
@@ -134,6 +127,7 @@ export const demoPackages: WashPackage[] = [
     description: "Cuci eksterior cepat, bilas salju, dan pengeringan microfiber.",
     price: 35000,
     estimatedMinutes: 25,
+    imageUrl: null,
     isActive: true,
     createdAt: iso(-20),
   },
@@ -143,6 +137,7 @@ export const demoPackages: WashPackage[] = [
     description: "Cuci eksterior, vacuum interior, semir ban, dan wax kilap.",
     price: 85000,
     estimatedMinutes: 55,
+    imageUrl: null,
     isActive: true,
     createdAt: iso(-20),
   },
@@ -152,6 +147,7 @@ export const demoPackages: WashPackage[] = [
     description: "Perawatan lengkap interior-eksterior dengan coating ringan.",
     price: 175000,
     estimatedMinutes: 120,
+    imageUrl: null,
     isActive: true,
     createdAt: iso(-18),
   },
@@ -161,6 +157,7 @@ export const demoPackages: WashPackage[] = [
     description: "Cuci motor, degreaser ringan, dan finishing body.",
     price: 25000,
     estimatedMinutes: 20,
+    imageUrl: null,
     isActive: true,
     createdAt: iso(-16),
   },
@@ -189,7 +186,7 @@ export const demoQueues: QueueItem[] = [
     packageName: demoPackages[2].name,
     licensePlate: demoCustomers[1].licensePlate,
     scheduledAt: iso(0, 10, 15),
-    status: "diproses",
+    status: "interior_cleaning",
     total: demoPackages[2].price,
     createdAt: iso(0, 9, 25),
   },
@@ -202,7 +199,7 @@ export const demoQueues: QueueItem[] = [
     packageName: demoPackages[3].name,
     licensePlate: demoCustomers[2].licensePlate,
     scheduledAt: iso(0, 11, 0),
-    status: "menunggu",
+    status: "antrian",
     total: demoPackages[3].price,
     createdAt: iso(0, 10, 10),
   },
@@ -277,7 +274,9 @@ export const demoPayments: Payment[] = [
     id: "40000000-0000-4000-8000-000000000001",
     transactionId: "50000000-0000-4000-8000-000000000001",
     queueNumber: "CR-001",
+    customerId: demoCustomers[0].id,
     customerName: demoCustomers[0].name,
+    packageName: demoPackages[1].name,
     method: "qris",
     amount: demoPackages[1].price,
     status: "lunas",
@@ -288,7 +287,9 @@ export const demoPayments: Payment[] = [
     id: "40000000-0000-4000-8000-000000000002",
     transactionId: "50000000-0000-4000-8000-000000000002",
     queueNumber: "CR-002",
+    customerId: demoCustomers[1].id,
     customerName: demoCustomers[1].name,
+    packageName: demoPackages[2].name,
     method: "transfer",
     amount: demoPackages[2].price,
     status: "belum_bayar",
@@ -299,7 +300,9 @@ export const demoPayments: Payment[] = [
     id: "40000000-0000-4000-8000-000000000003",
     transactionId: "50000000-0000-4000-8000-000000000003",
     queueNumber: "CR-003",
+    customerId: demoCustomers[2].id,
     customerName: demoCustomers[2].name,
+    packageName: demoPackages[3].name,
     method: "tunai",
     amount: demoPackages[3].price,
     status: "belum_bayar",
@@ -329,7 +332,7 @@ export const monthlyRevenue = [
 
 export const demoActivity = [
   "Admin CleanRide login ke dashboard",
-  "Status CR-002 diubah menjadi Diproses",
+  "Status CR-002 diubah menjadi Interior Cleaning",
   "Pembayaran QRIS CR-001 ditandai Lunas",
   "Paket Premium Gloss diperbarui",
   "Pelanggan Sinta Aulia ditambahkan",

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Flatpickr from "react-flatpickr";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Download, FileDown } from "lucide-react";
+import { Download, FileDown, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/tables/data-table";
@@ -40,6 +40,10 @@ export function ReportManager({
 
   function exportPdf() {
     window.location.href = `/api/reports?format=pdf${buildRangeParams(range)}`;
+  }
+
+  function exportExcel() {
+    window.location.href = `/api/reports?format=excel${buildRangeParams(range)}`;
   }
 
   const columns = useMemo<ColumnDef<Payment>[]>(
@@ -109,6 +113,10 @@ export function ReportManager({
                 <Download className="size-4" />
                 CSV
               </Button>
+              <Button variant="outline" onClick={exportExcel}>
+                <FileSpreadsheet className="size-4" />
+                Excel
+              </Button>
               <Button onClick={exportPdf}>
                 <FileDown className="size-4" />
                 PDF
@@ -149,5 +157,7 @@ export function ReportManager({
 function buildRangeParams(range: Date[]) {
   if (range.length < 2) return "";
   const [from, to] = range;
-  return `&from=${from.toISOString()}&to=${to.toISOString()}`;
+  const endDate = new Date(to);
+  endDate.setHours(23, 59, 59, 999);
+  return `&from=${from.toISOString()}&to=${endDate.toISOString()}`;
 }

@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { QueueManager } from "@/features/queues/queue-manager";
+import { requireRole } from "@/lib/auth/session";
 import { listCustomers } from "@/services/customers";
 import { listPackages } from "@/services/packages";
 import { listQueues } from "@/services/queues";
@@ -9,6 +10,7 @@ export const metadata = {
 };
 
 export default async function QueuesPage() {
+  const session = await requireRole(["admin", "staff", "petugas"]);
   const [queues, customers, packages] = await Promise.all([listQueues(), listCustomers(), listPackages()]);
 
   return (
@@ -24,6 +26,7 @@ export default async function QueuesPage() {
         initialQueues={JSON.parse(JSON.stringify(queues))}
         customers={JSON.parse(JSON.stringify(customers))}
         packages={JSON.parse(JSON.stringify(packages))}
+        role={session.user.role}
       />
     </div>
   );

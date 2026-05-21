@@ -2,17 +2,14 @@ import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { customers, queues, transactions, washPackages } from "@/drizzle/schema";
 import { getDb, hasDatabaseConfig } from "@/drizzle/db";
 import {
-  demoTransactions,
   type PaymentStatus,
-  type TransactionItem,
 } from "@/lib/data";
-
-let memoryTransactions: TransactionItem[] = [...demoTransactions];
+import { demoStore } from "@/lib/demo-store";
 
 export async function listTransactions(query = "", status?: PaymentStatus | null) {
   if (!hasDatabaseConfig()) {
     const normalized = query.toLowerCase();
-    return memoryTransactions.filter((item) => {
+    return demoStore.transactions.filter((item) => {
       const matchesQuery = [
         item.queueNumber,
         item.customerName,
@@ -59,19 +56,36 @@ export async function listTransactions(query = "", status?: PaymentStatus | null
 
 export async function getTransactionById(id: string) {
   if (!hasDatabaseConfig()) {
-    return memoryTransactions.find((item) => item.id === id) ?? null;
+    return demoStore.transactions.find((item) => item.id === id) ?? null;
   }
 
-  const [transaction] = await listTransactions(id);
+  const [transaction] = await getDb()
+    .select({
+      id: transactions.id,
+      queueId: transactions.queueId,
+      queueNumber: queues.queueNumber,
+      customerId: transactions.customerId,
+      customerName: customers.name,
+      packageId: transactions.packageId,
+      packageName: washPackages.name,
+      total: transactions.total,
+      status: transactions.status,
+      createdAt: transactions.createdAt,
+    })
+    .from(transactions)
+    .innerJoin(queues, eq(transactions.queueId, queues.id))
+    .innerJoin(customers, eq(transactions.customerId, customers.id))
+    .innerJoin(washPackages, eq(transactions.packageId, washPackages.id))
+    .where(and(eq(transactions.id, id), isNull(transactions.deletedAt)));
   return transaction ?? null;
 }
 
 export async function updateTransactionPaymentStatus(id: string, status: PaymentStatus) {
   if (!hasDatabaseConfig()) {
-    memoryTransactions = memoryTransactions.map((item) =>
+    demoStore.transactions = demoStore.transactions.map((item) =>
       item.id === id ? { ...item, status } : item,
     );
-    return memoryTransactions.find((item) => item.id === id) ?? null;
+    return demoStore.transactions.find((item) => item.id === id) ?? null;
   }
 
   const [updated] = await getDb()

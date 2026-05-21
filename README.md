@@ -37,7 +37,7 @@ npm run db:push
 npm run db:seed
 ```
 
-Alternatif manual: copy SQL dari `drizzle/0001_initial.sql` ke Supabase SQL Editor.
+Alternatif manual: jalankan SQL dari `drizzle/0001_initial.sql`, lalu lanjutkan `drizzle/0002_professional_features.sql` untuk role, status kendaraan, dan field gambar paket terbaru.
 
 Untuk upload gallery production, buat bucket Supabase Storage public bernama `cleanride`. API upload akan menyimpan file ke path `gallery/...` bila `SUPABASE_SERVICE_ROLE_KEY` tersedia.
 
@@ -62,10 +62,10 @@ Jika `DATABASE_URL` belum diisi, aplikasi tetap berjalan memakai data demo in-me
 
 Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk soft delete.
 
-- `users`: user dashboard, role admin/petugas, password hash, status aktif
+- `users`: user dashboard, role admin/kasir/staff + kompatibilitas petugas lama, password hash, status aktif
 - `customers`: data pelanggan dan kendaraan
-- `wash_packages`: paket pencucian, harga, estimasi, status aktif
-- `queues`: antrian pencucian, jadwal Flatpickr, status realtime
+- `wash_packages`: paket pencucian, harga, estimasi, gambar opsional, status aktif
+- `queues`: antrian pencucian, jadwal Flatpickr, status realtime detail
 - `transactions`: transaksi dari antrian
 - `payments`: metode dan status pembayaran
 - `activity_logs`: login, logout, CRUD, pembayaran, update status, reset password
@@ -88,9 +88,10 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - Landing page responsive dengan hero, CTA, paket, statistik, testimoni, FAQ, gallery, footer
 - Login/logout JWT, HTTPOnly cookies, SameSite, route protection via Next.js Proxy atau middleware modern
 - Session otomatis tidak valid setelah pergantian tanggal pukul 00:00 Asia/Jakarta
-- RBAC admin/petugas di middleware dan API routes
+- RBAC admin/kasir/staff dengan kompatibilitas petugas lama di middleware dan API routes
 - Dashboard analytics, search global, notification shell, dark/light mode
 - CRUD pelanggan, paket, antrian, pembayaran, user
+- Riwayat pelanggan lengkap dengan total pengeluaran, kendaraan, dan paket favorit
 - Edit pelanggan, edit paket, edit/reset password user, dan nonaktifkan user
 - Pembayaran memilih transaksi pending dari data antrian/transaksi, bukan input ID manual
 - Supabase Realtime untuk queues dan payments
@@ -98,7 +99,7 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - TanStack Table untuk search, sorting, pagination
 - Chart.js bar, line, pie chart
 - Invoice printable dan export PDF dengan QR invoice real
-- Export laporan CSV/PDF, termasuk PDF server-side dari `/api/reports?format=pdf`
+- Export laporan CSV/Excel/PDF, termasuk PDF server-side dari `/api/reports?format=pdf`
 - Activity log server-side
 - Zod validation, DOMPurify sanitization, bcryptjs password hash
 - CSRF protection, login rate limiting, security headers

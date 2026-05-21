@@ -1,11 +1,12 @@
 import { jwtVerify, SignJWT, type JWTPayload } from "jose";
+import type { Role } from "@/lib/constants";
 import { getTodayKey } from "@/lib/utils";
 
 export type SessionUser = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "petugas";
+  role: Role;
 };
 
 export type SessionPayload = JWTPayload & {

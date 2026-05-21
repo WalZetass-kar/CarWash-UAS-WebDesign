@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE } from "@/lib/constants";
+import type { Role } from "@/lib/constants";
 import { verifySession } from "@/lib/auth/jwt";
 import { cookies } from "next/headers";
 
@@ -14,7 +15,7 @@ export async function requireSession() {
   return session;
 }
 
-export async function requireRole(roles: Array<"admin" | "petugas">) {
+export async function requireRole(roles: Role[]) {
   const session = await requireSession();
   if (!roles.includes(session.user.role)) redirect("/dashboard");
   return session;
