@@ -1,12 +1,13 @@
 import {
+  demoUsers,
   paymentMethods,
   paymentStatuses,
   queueStatuses,
   vehicleTypes,
-  type demoUsers,
+  type Role as AppRole,
 } from "@/lib/constants";
 
-export type Role = "admin" | "petugas";
+export type Role = AppRole;
 export type QueueStatus = (typeof queueStatuses)[number];
 export type PaymentMethod = (typeof paymentMethods)[number];
 export type PaymentStatus = (typeof paymentStatuses)[number];
@@ -37,6 +38,7 @@ export type WashPackage = {
   description: string;
   price: number;
   estimatedMinutes: number;
+  imageUrl?: string | null;
   isActive: boolean;
   createdAt: string;
 };

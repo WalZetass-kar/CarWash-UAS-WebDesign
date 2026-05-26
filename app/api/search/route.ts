@@ -9,5 +9,5 @@ export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("q") ?? "";
   if (query.length < 2) return jsonResponse([]);
 
-  return jsonResponse(await globalSearch(query, session.user.role));
+  return jsonResponse(await globalSearch(query));
 }

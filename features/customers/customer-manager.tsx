@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/tables/data-table";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
-import type { Customer } from "@/lib/data";
+import type { Customer, Role } from "@/lib/data";
 import { cn, formatDate, toTitleCase } from "@/lib/utils";
 
 const initialForm = {
@@ -29,7 +29,7 @@ export function CustomerManager({
   highlightedId,
 }: {
   initialData: Customer[];
-  role: "admin" | "petugas";
+  role: Role;
   initialSearch?: string;
   highlightedId?: string;
 }) {

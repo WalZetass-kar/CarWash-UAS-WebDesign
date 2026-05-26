@@ -11,7 +11,7 @@ import { DataTable } from "@/components/tables/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
-import type { WashPackage } from "@/lib/data";
+import type { Role, WashPackage } from "@/lib/data";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 
 const initialForm = {
@@ -29,7 +29,7 @@ export function PackageManager({
   highlightedId,
 }: {
   initialData: WashPackage[];
-  role: "admin" | "petugas";
+  role: Role;
   initialSearch?: string;
   highlightedId?: string;
 }) {

@@ -13,14 +13,18 @@ import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { Customer, QueueItem, WashPackage } from "@/lib/data";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
-import { queueStatusLabels } from "@/lib/constants";
+import { queueStatusLabels, type QueueStatus } from "@/lib/constants";
 
-const statusVariant = {
+const statusVariant: Record<QueueStatus, "default" | "success" | "warning" | "destructive" | "secondary"> = {
   menunggu: "warning",
+  antrian: "warning",
+  sedang_dicuci: "default",
+  interior_cleaning: "default",
+  finishing: "default",
   diproses: "default",
   selesai: "success",
   dibatalkan: "destructive",
-} as const;
+};
 
 export function QueueManager({
   initialQueues,

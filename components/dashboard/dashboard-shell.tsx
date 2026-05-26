@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { RealtimeStatus } from "@/components/realtime/realtime-status";
 import { RealtimeRefresh } from "@/components/realtime/realtime-refresh";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
+import { roleLabels } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/lib/auth/jwt";
 
@@ -41,11 +42,11 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ["admin", "petugas"] },
+  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ["admin", "kasir", "staff", "petugas"] },
   { href: "/dashboard/customers", label: "Pelanggan", icon: Users, roles: ["admin", "petugas"] },
   { href: "/dashboard/packages", label: "Paket", icon: PackageCheck, roles: ["admin", "petugas"] },
-  { href: "/dashboard/queues", label: "Antrian", icon: Car, roles: ["admin", "petugas"] },
-  { href: "/dashboard/payments", label: "Pembayaran", icon: CreditCard, roles: ["admin", "petugas"] },
+  { href: "/dashboard/queues", label: "Antrian", icon: Car, roles: ["admin", "staff", "petugas"] },
+  { href: "/dashboard/payments", label: "Pembayaran", icon: CreditCard, roles: ["admin", "kasir", "petugas"] },
   { href: "/dashboard/reports", label: "Laporan", icon: FileText, roles: ["admin"] },
   { href: "/dashboard/users", label: "Manajemen User", icon: BarChart3, roles: ["admin"] },
   { href: "/dashboard/settings", label: "Pengaturan", icon: Settings, roles: ["admin"] },
@@ -144,7 +145,7 @@ export function DashboardShell({
         <div className="text-sm font-semibold">{user.name}</div>
         <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
         <Badge className="mt-3" variant={user.role === "admin" ? "default" : "secondary"}>
-          {user.role === "admin" ? "Admin" : "Petugas"}
+          {roleLabels[user.role]}
         </Badge>
       </div>
     </aside>

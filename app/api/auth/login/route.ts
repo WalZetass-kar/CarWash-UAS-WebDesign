@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { loginSchema } from "@/schemas/auth";
 import { authenticateUser } from "@/services/auth";
-import { signSession } from "@/lib/auth/jwt";
+import { signSession, type SessionUser } from "@/lib/auth/jwt";
 import { setSessionCookie } from "@/lib/auth/cookies";
 import { getClientIp } from "@/lib/utils";
 import { rateLimit } from "@/lib/security/rate-limit";
@@ -30,12 +30,13 @@ export async function POST(request: NextRequest) {
     return jsonResponse({ message: "Email atau password salah, atau user tidak aktif." }, 401);
   }
 
-  const token = await signSession({
+  const sessionUser: SessionUser = {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role,
-  });
+  };
+  const token = await signSession(sessionUser);
   await setSessionCookie(token, request);
 
   await logActivity({

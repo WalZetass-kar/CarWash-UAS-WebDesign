@@ -27,24 +27,6 @@ export function formatDate(value: Date | string | null | undefined) {
   }).format(date);
 }
 
-export function getDateKey(value: Date | string | number, timeZone = "Asia/Jakarta") {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-
-  const year = parts.find((part) => part.type === "year")?.value;
-  const month = parts.find((part) => part.type === "month")?.value;
-  const day = parts.find((part) => part.type === "day")?.value;
-
-  return `${year}-${month}-${day}`;
-}
-
 export function toTitleCase(value: string) {
   return value
     .split(/[\s_-]+/)
@@ -57,11 +39,11 @@ export function getTodayKey(timeZone = "Asia/Jakarta") {
   return getDateKey(new Date(), timeZone);
 }
 
-export function getDateKey(value: Date | string | null | undefined, timeZone = "Asia/Jakarta") {
-  if (!value) return null;
+export function getDateKey(value: Date | string | number | null | undefined, timeZone = "Asia/Jakarta") {
+  if (value === null || value === undefined) return "";
 
-  const date = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
 
   return getDateParts(date, timeZone).dateKey;
 }

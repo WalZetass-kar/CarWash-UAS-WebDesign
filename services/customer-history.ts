@@ -1,7 +1,7 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { customers, payments, queues, transactions, washPackages } from "@/drizzle/schema";
 import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import { demoStore } from "@/lib/demo-store";
+import { getDemoState } from "@/lib/demo-store";
 import { normalizeQueueStatus, type PaymentMethod, type PaymentStatus, type QueueStatus } from "@/lib/constants";
 
 export type CustomerHistoryEntry = {
@@ -59,14 +59,15 @@ function buildSummary(history: CustomerHistoryEntry[]) {
 
 export async function getCustomerHistory(customerId: string): Promise<CustomerHistoryData | null> {
   if (!hasDatabaseConfig()) {
-    const customer = demoStore.customers.find((item) => item.id === customerId);
+    const state = getDemoState();
+    const customer = state.customers.find((item) => item.id === customerId);
     if (!customer) return null;
 
-    const history = demoStore.transactions
+    const history = state.transactions
       .filter((item) => item.customerId === customerId)
       .map((transaction) => {
-        const queue = demoStore.queues.find((item) => item.id === transaction.queueId);
-        const payment = demoStore.payments.find((item) => item.transactionId === transaction.id);
+        const queue = state.queues.find((item) => item.id === transaction.queueId);
+        const payment = state.payments.find((item) => item.transactionId === transaction.id);
         return {
           id: transaction.id,
           queueNumber: transaction.queueNumber,

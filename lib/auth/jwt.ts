@@ -1,13 +1,13 @@
 import { jwtVerify, SignJWT, type JWTPayload } from "jose";
 import { getJwtSecret } from "@/lib/auth/jwt-secret";
-import { APP_TIME_ZONE } from "@/lib/constants";
+import { APP_TIME_ZONE, type Role } from "@/lib/constants";
 import { getTodayKey } from "@/lib/utils";
 
 export type SessionUser = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "petugas";
+  role: Role;
 };
 
 export type SessionPayload = JWTPayload & {
