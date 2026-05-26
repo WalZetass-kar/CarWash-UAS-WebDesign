@@ -1,5 +1,6 @@
 import { DatabaseZap } from "lucide-react";
 import { APP_NAME } from "@/lib/constants";
+import { getDatabaseEnvHint } from "@/lib/runtime/database-config";
 
 export function BackendSetupNotice({
   area,
@@ -15,8 +16,8 @@ export function BackendSetupNotice({
 
   const description =
     area === "dashboard"
-      ? "Route dashboard butuh koneksi database aktif. Saat ini DATABASE_URL belum tersedia di environment deployment."
-      : "Halaman booking butuh paket dan pengaturan dari database. Saat ini DATABASE_URL belum tersedia di environment deployment.";
+      ? `Route dashboard butuh koneksi database aktif. Saat ini ${getDatabaseEnvHint()} belum tersedia di environment deployment.`
+      : `Halaman booking butuh paket dan pengaturan dari database. Saat ini ${getDatabaseEnvHint()} belum tersedia di environment deployment.`;
 
   const wrapperClass = compact
     ? "rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-950 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100"
@@ -35,7 +36,7 @@ export function BackendSetupNotice({
           </div>
           <div className="rounded-lg border border-amber-300/70 bg-white/70 p-3 text-sm dark:border-amber-400/20 dark:bg-slate-950/30">
             <p className="font-medium">{APP_NAME} memerlukan konfigurasi minimum berikut di Vercel:</p>
-            <p className="mt-2 font-mono text-xs sm:text-sm">DATABASE_URL</p>
+            <p className="mt-2 font-mono text-xs sm:text-sm">{getDatabaseEnvHint()}</p>
             <p className="mt-1 text-amber-800/90 dark:text-amber-100/85">
               Setelah env diisi, jalankan migrasi atau seed yang sesuai lalu redeploy.
             </p>

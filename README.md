@@ -42,9 +42,9 @@ npm run start
 ## Setup Supabase
 
 1. Buat project Supabase.
-2. Ambil `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, dan `SUPABASE_SERVICE_ROLE_KEY`.
+2. Ambil `NEXT_PUBLIC_SUPABASE_URL`, key browser Supabase (`NEXT_PUBLIC_SUPABASE_ANON_KEY` atau `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), dan key admin (`SUPABASE_SERVICE_ROLE_KEY` atau `SUPABASE_SECRET_KEY`).
 3. Ambil connection string Postgres dari Project Settings > Database.
-4. Isi `.env.local`.
+4. Isi `.env.local`. Aplikasi akan membaca `DATABASE_URL` atau fallback langsung ke `POSTGRES_URL_NON_POOLING` / `POSTGRES_URL` kalau itu yang diberikan provider.
 5. Jalankan schema:
 
 ```bash
@@ -52,7 +52,24 @@ npm run db:push
 npm run db:seed
 ```
 
-Alternatif manual: jalankan SQL dari `drizzle/0001_initial.sql` lalu `drizzle/0002_settings_and_payment_integrity.sql` di Supabase SQL Editor.
+Alternatif manual di Supabase SQL Editor:
+
+1. Jalankan `scripts/supabase-bootstrap.sql`
+2. Jika ingin langsung ada data operasional contoh, jalankan `scripts/supabase-seed-operational.sql`
+3. Login dengan akun awal:
+   `admin@cleanride.my.id` / `admin123`
+   `kasir@cleanride.my.id` / `kasir123`
+   `staff@cleanride.my.id` / `staff123`
+   `petugas@cleanride.my.id` / `petugas123`
+4. Jika perlu reset ulang akun admin, jalankan `scripts/supabase-reset-admin.sql`
+
+Kalau ingin pakai password lain, generate hash bcrypt dengan:
+
+```bash
+npm run password:hash -- "password-baru"
+```
+
+Lalu ganti nilai `password_hash` pada SQL admin.
 
 Untuk upload gallery production, buat bucket Supabase Storage public bernama `cleanride`. API upload akan menyimpan file ke path `gallery/...` bila `SUPABASE_SERVICE_ROLE_KEY` tersedia.
 
@@ -69,6 +86,8 @@ npm run db:seed
 ## Akun Seed Awal
 
 - Admin: `admin@cleanride.my.id` / `admin123`
+- Kasir: `kasir@cleanride.my.id` / `kasir123`
+- Staff: `staff@cleanride.my.id` / `staff123`
 - Petugas: `petugas@cleanride.my.id` / `petugas123`
 
 Data akun di atas berasal dari proses seed database. Aplikasi tidak lagi fallback ke data in-memory pada mode normal.

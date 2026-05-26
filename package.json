@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "env:check": "node scripts/check-online-env.mjs",
+    "password:hash": "node scripts/hash-password.mjs",
     "lint": "eslint . --cache",
     "test": "tsx tests/core.test.ts",
     "typecheck": "next typegen && tsc --noEmit",

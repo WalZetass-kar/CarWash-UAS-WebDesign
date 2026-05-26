@@ -1,17 +1,14 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { schema } from "@/drizzle/schema";
+import { getConfiguredDatabaseUrl, getDatabaseEnvHint } from "@/lib/runtime/database-config";
 
 declare global {
   var cleanrideSql: postgres.Sql | undefined;
 }
 
-function getConnectionString() {
-  return process.env.DATABASE_URL?.trim();
-}
-
 export function hasDatabaseConfig() {
-  return Boolean(getConnectionString());
+  return Boolean(getConfiguredDatabaseUrl());
 }
 
 export function isDemoModeEnabled() {
@@ -23,10 +20,10 @@ export function shouldUseDemoData() {
 }
 
 export function getDb() {
-  const connectionString = getConnectionString();
+  const connectionString = getConfiguredDatabaseUrl();
   if (!connectionString) {
     throw new Error(
-      "DATABASE_URL wajib diatur. ENABLE_DEMO_MODE hanya boleh dipakai untuk pengujian internal lokal.",
+      `${getDatabaseEnvHint()} wajib diatur. ENABLE_DEMO_MODE hanya boleh dipakai untuk pengujian internal lokal.`,
     );
   }
 

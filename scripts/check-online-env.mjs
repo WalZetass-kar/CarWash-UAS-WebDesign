@@ -1,13 +1,38 @@
+import nextEnv from "@next/env";
+
+const { loadEnvConfig } = nextEnv;
+
+loadEnvConfig(process.cwd());
+
+const publicSupabaseKeyCandidates = [
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  "SUPABASE_ANON_KEY",
+];
+
+const adminSupabaseKeyCandidates = ["SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"];
+
 const required = [
   "NEXT_PUBLIC_APP_URL",
   "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
-  "DATABASE_URL",
   "JWT_SECRET",
 ];
 
+const databaseCandidates = ["DATABASE_URL", "POSTGRES_URL_NON_POOLING", "POSTGRES_URL"];
+
 const missing = required.filter((name) => !process.env[name]?.trim());
+
+if (!publicSupabaseKeyCandidates.some((name) => process.env[name]?.trim())) {
+  missing.push(publicSupabaseKeyCandidates.join("/"));
+}
+
+if (!adminSupabaseKeyCandidates.some((name) => process.env[name]?.trim())) {
+  missing.push(adminSupabaseKeyCandidates.join("/"));
+}
+
+if (!databaseCandidates.some((name) => process.env[name]?.trim())) {
+  missing.push("DATABASE_URL/POSTGRES_URL_NON_POOLING/POSTGRES_URL");
+}
 
 if (missing.length > 0) {
   console.error(`Env wajib belum lengkap: ${missing.join(", ")}`);
@@ -22,8 +47,10 @@ try {
   process.exit(1);
 }
 
-if (!/^postgres(ql)?:\/\//.test(process.env.DATABASE_URL)) {
-  console.error("DATABASE_URL harus berupa connection string Postgres yang valid.");
+const databaseUrl = databaseCandidates.map((name) => process.env[name]?.trim()).find(Boolean);
+
+if (!databaseUrl || !/^postgres(ql)?:\/\//.test(databaseUrl)) {
+  console.error("Connection string database harus berupa URL Postgres yang valid.");
   process.exit(1);
 }
 

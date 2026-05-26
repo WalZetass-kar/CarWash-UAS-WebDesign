@@ -33,7 +33,7 @@ function csrfRequest(method: string, cookieToken?: string, headerToken?: string)
   } as unknown as NextRequest;
 }
 
-function withEnv<T>(updates: NodeJS.ProcessEnv, callback: () => T) {
+function withEnv<T>(updates: Partial<NodeJS.ProcessEnv>, callback: () => T) {
   const previous = { ...process.env };
   Object.assign(process.env, updates);
 
@@ -83,7 +83,25 @@ test("service data menolak jalan tanpa database jika mode demo tidak diaktifkan"
   delete process.env.ENABLE_DEMO_MODE;
   const { listCustomers } = await import("../services/customers");
 
-  await assert.rejects(() => listCustomers(), /DATABASE_URL wajib diatur/);
+  await assert.rejects(
+    () => listCustomers(),
+    /DATABASE_URL, POSTGRES_URL_NON_POOLING, POSTGRES_URL wajib diatur/,
+  );
+});
+
+test("konfigurasi database menerima fallback POSTGRES_URL_NON_POOLING", async () => {
+  const { hasDatabaseConfig } = await import("../drizzle/db");
+
+  withEnv(
+    {
+      DATABASE_URL: "",
+      POSTGRES_URL_NON_POOLING: "postgresql://postgres:secret@db.example.com:5432/postgres",
+      POSTGRES_URL: "",
+    },
+    () => {
+      assert.equal(hasDatabaseConfig(), true);
+    },
+  );
 });
 
 test("schema CRUD pelanggan menolak input tidak valid", () => {

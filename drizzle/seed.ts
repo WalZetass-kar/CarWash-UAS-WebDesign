@@ -1,3 +1,4 @@
+import nextEnv from "@next/env";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/drizzle/db";
@@ -20,6 +21,10 @@ import {
   defaultAppSettings,
 } from "@/lib/data";
 import { demoUserPasswords, demoUsers } from "@/lib/constants";
+
+const { loadEnvConfig } = nextEnv;
+
+loadEnvConfig(process.cwd());
 
 async function main() {
   const db = getDb();

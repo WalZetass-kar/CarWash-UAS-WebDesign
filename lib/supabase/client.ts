@@ -1,10 +1,11 @@
 "use client";
 
 import { createClient } from "@supabase/supabase-js";
+import { getSupabaseBrowserKey, getSupabaseUrl } from "@/lib/runtime/supabase-config";
 
 export function createSupabaseBrowserClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = getSupabaseUrl();
+  const anonKey = getSupabaseBrowserKey();
 
   if (!url || !anonKey) return null;
 
