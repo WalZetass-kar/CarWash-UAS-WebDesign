@@ -6,17 +6,18 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { QRCodeCanvas } from "qrcode.react";
-import { ChevronDown, FileDown, Printer, Receipt } from "lucide-react";
+import { FileDown, Printer, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DataTable } from "@/components/tables/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { AppSettings, Payment, TransactionItem } from "@/lib/data";
-import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { paymentMethodLabels, paymentStatusLabels } from "@/lib/constants";
 
 export function PaymentManager({
@@ -199,100 +200,110 @@ export function PaymentManager({
   ];
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-      <div className="space-y-6">
-        <Card>
-          <CardHeader className="p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-3">
-              <CardTitle>Input Pembayaran</CardTitle>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setFormOpen((value) => !value)}
-                className="xl:hidden"
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <CardTitle>Riwayat Pembayaran</CardTitle>
+          <Button
+            type="button"
+            onClick={() => setFormOpen(true)}
+            disabled={!pendingTransactions.length}
+            className="w-full sm:w-auto"
+          >
+            <Receipt className="size-4" />
+            Input Pembayaran
+          </Button>
+        </CardHeader>
+        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
+          <DataTable
+            columns={columns}
+            data={data}
+            searchPlaceholder="Cari invoice, pelanggan, metode..."
+            initialSearch={initialSearch}
+            getRowId={(row) => row.id}
+            highlightedRowId={highlightedId}
+          />
+        </CardContent>
+      </Card>
+
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Input Pembayaran</DialogTitle>
+            <DialogDescription>
+              Pilih transaksi belum lunas, metode pembayaran, lalu simpan sebagai lunas.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Transaksi Belum Lunas</Label>
+              <select
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
+                value={form.transactionId}
+                onChange={(event) => {
+                  const transaction = pendingTransactions.find((item) => item.id === event.target.value);
+                  setForm({
+                    ...form,
+                    transactionId: event.target.value,
+                    amount: transaction?.total ?? 0,
+                  });
+                }}
+                required
               >
-                {formOpen ? "Sembunyikan" : "Buka Form"}
-                <ChevronDown className={cn("transition-transform", formOpen && "rotate-180")} />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className={cn("p-4 pt-0 sm:p-5 sm:pt-0", !formOpen && "hidden xl:block")}>
-            <form onSubmit={submit} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Transaksi Belum Lunas</Label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
-                  value={form.transactionId}
-                  onChange={(event) => {
-                    const transaction = pendingTransactions.find((item) => item.id === event.target.value);
-                    setForm({
-                      ...form,
-                      transactionId: event.target.value,
-                      amount: transaction?.total ?? 0,
-                    });
-                  }}
-                  required
-                >
-                  {pendingTransactions.length ? (
-                    pendingTransactions.map((transaction) => (
-                      <option key={transaction.id} value={transaction.id}>
-                        {transaction.queueNumber} - {transaction.customerName} - {formatCurrency(transaction.total)}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">Tidak ada transaksi pending</option>
-                  )}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Metode</Label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
-                  value={form.method}
-                  onChange={(event) => setForm({ ...form, method: event.target.value })}
-                >
-                  {Object.entries(paymentMethodLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
+                {pendingTransactions.length ? (
+                  pendingTransactions.map((transaction) => (
+                    <option key={transaction.id} value={transaction.id}>
+                      {transaction.queueNumber} - {transaction.customerName} - {formatCurrency(transaction.total)}
                     </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Total Otomatis</Label>
-                <Input type="number" value={form.amount} readOnly />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Input value="Lunas" readOnly />
-              </div>
-              <Button className="w-full" disabled={!pendingTransactions.length}>
+                  ))
+                ) : (
+                  <option value="">Tidak ada transaksi pending</option>
+                )}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Metode</Label>
+              <select
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
+                value={form.method}
+                onChange={(event) => setForm({ ...form, method: event.target.value })}
+              >
+                {Object.entries(paymentMethodLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Total Otomatis</Label>
+              <Input type="number" value={form.amount} readOnly />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Input value="Lunas" readOnly />
+            </div>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
+                Batal
+              </Button>
+              <Button disabled={!pendingTransactions.length}>
                 <Receipt className="size-4" />
                 Simpan Pembayaran
               </Button>
-            </form>
-          </CardContent>
-        </Card>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-        {selected ? (
-          <Card className="print:fixed print:inset-0 print:z-50 print:block print:rounded-none print:border-0 print:bg-white print:p-8 print:text-slate-950">
-            <CardHeader className="p-4 print:hidden sm:p-5">
-              <div className="flex items-center justify-between gap-3">
-                <CardTitle>Preview Invoice</CardTitle>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setInvoiceOpen((value) => !value)}
-                  className="xl:hidden"
-                >
-                  {invoiceOpen ? "Sembunyikan" : "Lihat Invoice"}
-                  <ChevronDown className={cn("transition-transform", invoiceOpen && "rotate-180")} />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className={cn("p-4 pt-0 sm:p-5 sm:pt-5", !invoiceOpen && "hidden xl:block print:block")}>
+      <Dialog open={invoiceOpen && Boolean(selected)} onOpenChange={setInvoiceOpen}>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto print:fixed print:inset-0 print:z-50 print:block print:max-h-none print:w-auto print:max-w-none print:translate-x-0 print:translate-y-0 print:rounded-none print:border-0 print:bg-white print:p-8 print:text-slate-950 sm:max-w-lg">
+          {selected ? (
+            <>
+              <DialogHeader className="print:hidden">
+                <DialogTitle>Preview Invoice</DialogTitle>
+                <DialogDescription>Invoice {selected.queueNumber}</DialogDescription>
+              </DialogHeader>
               <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-xl font-semibold">{settings.businessName}</h2>
@@ -319,26 +330,10 @@ export function PaymentManager({
                 <div className="mt-2">Scan invoice {settings.businessName}</div>
               </div>
               <p className="mt-4 break-words text-xs text-slate-500">{settings.invoiceFooter}</p>
-            </CardContent>
-          </Card>
-        ) : null}
-      </div>
-
-      <Card>
-        <CardHeader className="p-4 sm:p-5">
-          <CardTitle>Riwayat Pembayaran</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
-          <DataTable
-            columns={columns}
-            data={data}
-            searchPlaceholder="Cari invoice, pelanggan, metode..."
-            initialSearch={initialSearch}
-            getRowId={(row) => row.id}
-            highlightedRowId={highlightedId}
-          />
-        </CardContent>
-      </Card>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

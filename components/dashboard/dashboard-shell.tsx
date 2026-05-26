@@ -71,10 +71,12 @@ export function DashboardShell({
   const pathname = usePathname();
   const router = useRouter();
   const csrfFetch = useCsrfFetch();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const isDarkTheme = resolvedTheme === "dark";
 
   const visibleNav = useMemo(
     () => navItems.filter((item) => item.roles.includes(user.role)),
@@ -205,14 +207,39 @@ export function DashboardShell({
 
             <div className="ml-auto flex items-center gap-2 md:ml-0">
               <RealtimeStatus />
-              <Button variant="ghost" size="icon" aria-label="Notifikasi" className="hidden sm:inline-flex">
-                <Bell className="size-5" />
-              </Button>
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Notifikasi"
+                  onClick={() => setNotificationOpen((value) => !value)}
+                >
+                  <Bell className="size-5" />
+                </Button>
+                {notificationOpen ? (
+                  <div className="absolute right-0 top-12 z-50 w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-950">
+                    <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-900">
+                      <div className="text-sm font-semibold">Notifikasi</div>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Ringkasan status sistem saat ini.
+                      </p>
+                    </div>
+                    <div className="space-y-3 p-4 text-sm">
+                      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                        Realtime aktif untuk perubahan antrian dan pembayaran.
+                      </div>
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                        Belum ada notifikasi operasional baru.
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
                 aria-label="Toggle theme"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                onClick={() => setTheme(isDarkTheme ? "light" : "dark")}
               >
                 <Sun className="size-5 dark:hidden" />
                 <Moon className="hidden size-5 dark:block" />

@@ -2,17 +2,18 @@
 
 import { FormEvent, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronDown, KeyRound, Pencil, UserRoundPlus, X } from "lucide-react";
+import { KeyRound, Pencil, UserRoundPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DataTable } from "@/components/tables/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { User } from "@/lib/data";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 const initialForm = {
   name: "",
@@ -68,9 +69,7 @@ export function UserManager({
 
       const saved = await response.json();
       setData((items) => items.map((item) => (item.id === editingId ? saved : item)));
-      setEditingId(null);
-      setForm(initialForm);
-      setFormOpen(false);
+      resetForm();
       toast.success(form.password ? "User dan password diperbarui" : "User diperbarui");
       return;
     }
@@ -98,9 +97,14 @@ export function UserManager({
 
     const created = await response.json();
     setData((items) => items.map((item) => (item.id === optimistic.id ? created : item)));
-    setForm(initialForm);
-    setFormOpen(false);
+    resetForm();
     toast.success("User ditambahkan");
+  }
+
+  function startCreate() {
+    setEditingId(null);
+    setForm(initialForm);
+    setFormOpen(true);
   }
 
   function startEdit(user: User) {
@@ -115,7 +119,7 @@ export function UserManager({
     });
   }
 
-  function cancelEdit() {
+  function resetForm() {
     setEditingId(null);
     setForm(initialForm);
     setFormOpen(false);
@@ -134,82 +138,86 @@ export function UserManager({
   }
 
   const columns: ColumnDef<User>[] = [
-      { accessorKey: "name", header: "Nama" },
-      { accessorKey: "email", header: "Email" },
-      {
-        accessorKey: "role",
-        header: "Role",
-        cell: ({ row }) => <Badge>{row.original.role === "admin" ? "Admin" : "Petugas"}</Badge>,
-      },
-      {
-        accessorKey: "isActive",
-        header: "Status",
-        cell: ({ row }) => (
-          <Badge variant={row.original.isActive ? "success" : "secondary"}>
-            {row.original.isActive ? "Aktif" : "Nonaktif"}
-          </Badge>
-        ),
-      },
-      {
-        accessorKey: "createdAt",
-        header: "Dibuat",
-        cell: ({ row }) => formatDate(row.original.createdAt),
-      },
-      {
-        id: "actions",
-        header: "Aksi",
-        cell: ({ row }) => (
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => startEdit(row.original)}
-              className="w-full justify-center sm:w-auto"
-            >
-              <Pencil className="size-4" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => deactivate(row.original.id)}
-              disabled={!row.original.isActive}
-              className="w-full justify-center sm:w-auto"
-            >
-              <KeyRound className="size-4" />
-              Nonaktifkan
-            </Button>
-          </div>
-        ),
-      },
+    { accessorKey: "name", header: "Nama" },
+    { accessorKey: "email", header: "Email" },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => <Badge>{row.original.role === "admin" ? "Admin" : "Petugas"}</Badge>,
+    },
+    {
+      accessorKey: "isActive",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={row.original.isActive ? "success" : "secondary"}>
+          {row.original.isActive ? "Aktif" : "Nonaktif"}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Dibuat",
+      cell: ({ row }) => formatDate(row.original.createdAt),
+    },
+    {
+      id: "actions",
+      header: "Aksi",
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => startEdit(row.original)}
+            className="w-full justify-center sm:w-auto"
+          >
+            <Pencil className="size-4" />
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => deactivate(row.original.id)}
+            disabled={!row.original.isActive}
+            className="w-full justify-center sm:w-auto"
+          >
+            <KeyRound className="size-4" />
+            Nonaktifkan
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+    <div className="space-y-6">
       <Card>
-        <CardHeader className="p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <CardTitle>{editingId ? "Edit / Reset User" : "Tambah User"}</CardTitle>
-            <div className="flex items-center gap-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setFormOpen((value) => !value)}
-                className="xl:hidden"
-              >
-                {formOpen ? "Sembunyikan" : editingId ? "Lanjut Edit" : "Buka Form"}
-                <ChevronDown className={cn("transition-transform", formOpen && "rotate-180")} />
-              </Button>
-              {editingId ? (
-                <Button type="button" variant="ghost" size="icon" onClick={cancelEdit}>
-                  <X className="size-4" />
-                </Button>
-              ) : null}
-            </div>
-          </div>
+        <CardHeader className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <CardTitle>Manajemen User</CardTitle>
+          <Button type="button" onClick={startCreate} className="w-full sm:w-auto">
+            <UserRoundPlus className="size-4" />
+            Tambah User
+          </Button>
         </CardHeader>
-        <CardContent className={cn("p-4 pt-0 sm:p-5 sm:pt-0", !formOpen && "hidden xl:block")}>
+        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
+          <DataTable
+            columns={columns}
+            data={data}
+            searchPlaceholder="Cari user atau role..."
+            initialSearch={initialSearch}
+            getRowId={(row) => row.id}
+            highlightedRowId={highlightedId}
+          />
+        </CardContent>
+      </Card>
+
+      <Dialog open={formOpen} onOpenChange={(open) => (open ? setFormOpen(true) : resetForm())}>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Edit / Reset User" : "Tambah User"}</DialogTitle>
+            <DialogDescription>
+              Atur akun dashboard, role, status aktif, dan password awal atau password baru.
+            </DialogDescription>
+          </DialogHeader>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
               <Label>Nama</Label>
@@ -243,28 +251,18 @@ export function UserManager({
               />
               User aktif
             </label>
-            <Button className="w-full">
-              <UserRoundPlus className="size-4" />
-              {editingId ? "Update User" : "Simpan User"}
-            </Button>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" onClick={resetForm}>
+                Batal
+              </Button>
+              <Button>
+                <UserRoundPlus className="size-4" />
+                {editingId ? "Update User" : "Simpan User"}
+              </Button>
+            </div>
           </form>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="p-4 sm:p-5">
-          <CardTitle>Manajemen User</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
-          <DataTable
-            columns={columns}
-            data={data}
-            searchPlaceholder="Cari user atau role..."
-            initialSearch={initialSearch}
-            getRowId={(row) => row.id}
-            highlightedRowId={highlightedId}
-          />
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

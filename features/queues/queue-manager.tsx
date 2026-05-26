@@ -3,16 +3,17 @@
 import { FormEvent, useEffect, useState } from "react";
 import Flatpickr from "react-flatpickr";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CalendarClock, CheckCircle2, ChevronDown } from "lucide-react";
+import { CalendarClock, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DataTable } from "@/components/tables/data-table";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { Customer, QueueItem, WashPackage } from "@/lib/data";
-import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { queueStatusLabels, type QueueStatus } from "@/lib/constants";
 
 const statusVariant: Record<QueueStatus, "default" | "success" | "warning" | "destructive" | "secondary"> = {
@@ -115,67 +116,85 @@ export function QueueManager({
   }
 
   const columns: ColumnDef<QueueItem>[] = [
-      { accessorKey: "queueNumber", header: "No Antrian" },
-      { accessorKey: "customerName", header: "Pelanggan" },
-      { accessorKey: "licensePlate", header: "Plat" },
-      { accessorKey: "packageName", header: "Paket" },
-      {
-        accessorKey: "scheduledAt",
-        header: "Jadwal",
-        cell: ({ row }) => formatDate(row.original.scheduledAt),
-      },
-      {
-        accessorKey: "total",
-        header: "Total",
-        cell: ({ row }) => formatCurrency(row.original.total),
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => (
-          <Badge variant={statusVariant[row.original.status]}>
-            {queueStatusLabels[row.original.status]}
-          </Badge>
-        ),
-      },
-      {
-        id: "actions",
-        header: "Update",
-        cell: ({ row }) => (
-          <select
-            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
-            value={row.original.status}
-            onChange={(event) => updateStatus(row.original.id, event.target.value as QueueItem["status"])}
-          >
-            {Object.entries(queueStatusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        ),
-      },
+    { accessorKey: "queueNumber", header: "No Antrian" },
+    { accessorKey: "customerName", header: "Pelanggan" },
+    { accessorKey: "licensePlate", header: "Plat" },
+    { accessorKey: "packageName", header: "Paket" },
+    {
+      accessorKey: "scheduledAt",
+      header: "Jadwal",
+      cell: ({ row }) => formatDate(row.original.scheduledAt),
+    },
+    {
+      accessorKey: "total",
+      header: "Total",
+      cell: ({ row }) => formatCurrency(row.original.total),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={statusVariant[row.original.status]}>
+          {queueStatusLabels[row.original.status]}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Update",
+      cell: ({ row }) => (
+        <select
+          className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
+          value={row.original.status}
+          onChange={(event) => updateStatus(row.original.id, event.target.value as QueueItem["status"])}
+        >
+          {Object.entries(queueStatusLabels).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      ),
+    },
   ];
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+    <div className="space-y-6">
       <Card>
-        <CardHeader className="p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <CardTitle>Antrian Baru</CardTitle>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setFormOpen((value) => !value)}
-              className="xl:hidden"
-            >
-              {formOpen ? "Sembunyikan" : "Buka Form"}
-              <ChevronDown className={cn("transition-transform", formOpen && "rotate-180")} />
-            </Button>
+        <CardHeader className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <CardTitle>Riwayat Antrian</CardTitle>
+            <Badge variant="success">
+              <CheckCircle2 className="mr-1 size-3" />
+              <span className="sm:hidden">Live</span>
+              <span className="hidden sm:inline">Realtime Ready</span>
+            </Badge>
           </div>
+          <Button type="button" onClick={() => setFormOpen(true)} className="w-full sm:w-auto">
+            <CalendarClock className="size-4" />
+            Tambah Antrian
+          </Button>
         </CardHeader>
-        <CardContent className={cn("p-4 pt-0 sm:p-5 sm:pt-0", !formOpen && "hidden xl:block")}>
+        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
+          <DataTable
+            columns={columns}
+            data={queues}
+            searchPlaceholder="Cari antrian, pelanggan, status..."
+            initialSearch={initialSearch}
+            getRowId={(row) => row.id}
+            highlightedRowId={highlightedId}
+          />
+        </CardContent>
+      </Card>
+
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Antrian Baru</DialogTitle>
+            <DialogDescription>
+              Pilih pelanggan, paket, dan jadwal kedatangan untuk membuat nomor antrian baru.
+            </DialogDescription>
+          </DialogHeader>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
               <Label>Pelanggan</Label>
@@ -214,35 +233,18 @@ export function QueueManager({
                 onChange={setScheduledAt}
               />
             </div>
-            <Button className="w-full">
-              <CalendarClock className="size-4" />
-              Buat Antrian
-            </Button>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
+                Batal
+              </Button>
+              <Button>
+                <CalendarClock className="size-4" />
+                Buat Antrian
+              </Button>
+            </div>
           </form>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <CardTitle>Riwayat Antrian</CardTitle>
-            <Badge variant="success">
-              <CheckCircle2 className="mr-1 size-3" />
-              <span className="sm:hidden">Live</span>
-              <span className="hidden sm:inline">Realtime Ready</span>
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
-          <DataTable
-            columns={columns}
-            data={queues}
-            searchPlaceholder="Cari antrian, pelanggan, status..."
-            initialSearch={initialSearch}
-            getRowId={(row) => row.id}
-            highlightedRowId={highlightedId}
-          />
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { DatabaseZap } from "lucide-react";
-import { APP_NAME } from "@/lib/constants";
 import { getDatabaseEnvHint } from "@/lib/runtime/database-config";
 
 export function BackendSetupNotice({
@@ -13,24 +12,24 @@ export function BackendSetupNotice({
 }) {
   const title =
     area === "dashboard"
-      ? "Dashboard belum bisa dipakai"
-      : "Booking publik belum bisa dipakai";
+      ? "Data dashboard belum bisa dimuat"
+      : "Booking publik belum bisa dimuat";
 
   const descriptions = {
     dashboard:
       issue === "missing-config"
-        ? `Route dashboard butuh koneksi database aktif. Saat ini ${getDatabaseEnvHint()} belum tersedia di environment deployment.`
-        : "Route dashboard butuh koneksi database aktif, tetapi koneksi atau query database gagal saat memuat data.",
+        ? "Server belum memiliki koneksi database, jadi data dashboard belum bisa diambil."
+        : "Koneksi atau query database gagal saat memuat data dashboard.",
     booking:
       issue === "missing-config"
-        ? `Halaman booking butuh paket dan pengaturan dari database. Saat ini ${getDatabaseEnvHint()} belum tersedia di environment deployment.`
-        : "Halaman booking butuh paket dan pengaturan dari database, tetapi koneksi atau query database gagal saat memuat data.",
+        ? "Server belum memiliki koneksi database, jadi paket booking belum bisa diambil."
+        : "Koneksi atau query database gagal saat memuat data booking.",
   };
 
   const actionText =
     issue === "missing-config"
-      ? "Setelah env diisi, jalankan migrasi atau seed yang sesuai lalu redeploy."
-      : "Periksa nilai env, status database, akses jaringan, SSL/pooling, serta migrasi atau seed yang dibutuhkan.";
+      ? "Isi env database di server, jalankan migrasi atau seed jika perlu, lalu redeploy."
+      : "Periksa status database, akses jaringan, SSL/pooling, serta migrasi atau seed yang dibutuhkan.";
 
   const wrapperClass = compact
     ? "rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-950 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100"
@@ -49,7 +48,7 @@ export function BackendSetupNotice({
           </div>
           <div className="rounded-lg border border-amber-300/70 bg-white/70 p-3 text-sm dark:border-amber-400/20 dark:bg-slate-950/30">
             <p className="font-medium">
-              {APP_NAME} memakai konfigurasi database berikut di deployment:
+              Detail teknis koneksi database:
             </p>
             <p className="mt-2 font-mono text-xs sm:text-sm">{getDatabaseEnvHint()}</p>
             <p className="mt-1 text-amber-800/90 dark:text-amber-100/85">{actionText}</p>

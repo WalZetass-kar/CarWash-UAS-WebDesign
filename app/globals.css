@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "flatpickr/dist/themes/material_blue.css";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #ffffff;
@@ -18,14 +19,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #e2e8f0;
-    --card: #0f172a;
-    --border: #1e293b;
-    --muted: #94a3b8;
-  }
+.dark {
+  --background: #020617;
+  --foreground: #e2e8f0;
+  --card: #0f172a;
+  --border: #1e293b;
+  --muted: #94a3b8;
 }
 
 * {
