@@ -5,6 +5,7 @@ import { getConfiguredDatabaseUrl, getDatabaseEnvHint } from "@/lib/runtime/data
 
 declare global {
   var cleanrideSql: postgres.Sql | undefined;
+  var cleanrideSqlConnectionString: string | undefined;
 }
 
 export function hasDatabaseConfig() {
@@ -27,17 +28,14 @@ export function getDb() {
     );
   }
 
-  const sql =
-    globalThis.cleanrideSql ??
-    postgres(connectionString, {
+  if (!globalThis.cleanrideSql || globalThis.cleanrideSqlConnectionString !== connectionString) {
+    globalThis.cleanrideSql = postgres(connectionString, {
       max: 5,
       prepare: false,
       idle_timeout: 20,
     });
-
-  if (process.env.NODE_ENV !== "production") {
-    globalThis.cleanrideSql = sql;
+    globalThis.cleanrideSqlConnectionString = connectionString;
   }
 
-  return drizzle(sql, { schema });
+  return drizzle(globalThis.cleanrideSql, { schema });
 }

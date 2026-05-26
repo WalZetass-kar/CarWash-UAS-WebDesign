@@ -36,7 +36,24 @@ export default async function BookingPage({
     );
   }
 
-  const [settings, packages] = await Promise.all([getAppSettings(), listPackages()]);
+  const data = await loadBookingData();
+  if (!data) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <div>
+            <Badge>Customer Booking</Badge>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+              Pilih paket dan booking jadwal
+            </h1>
+          </div>
+          <BackendSetupNotice area="booking" issue="connection-error" />
+        </div>
+      </main>
+    );
+  }
+
+  const [settings, packages] = data;
   const activePackages = packages.filter((item) => item.isActive);
   const selectedPackage =
     activePackages.find((item) => toPackageSlug(item.name) === params.package) ?? activePackages[0];
@@ -67,4 +84,13 @@ export default async function BookingPage({
       </div>
     </main>
   );
+}
+
+async function loadBookingData() {
+  try {
+    return await Promise.all([getAppSettings(), listPackages()]);
+  } catch (error) {
+    console.error("Failed to load booking page data", error);
+    return null;
+  }
 }

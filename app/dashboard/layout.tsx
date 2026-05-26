@@ -22,11 +22,27 @@ export default async function DashboardLayout({ children }: { children: React.Re
     );
   }
 
-  const settings = await getAppSettings();
+  const settings = await loadDashboardSettings();
+  if (!settings) {
+    return (
+      <DashboardShell user={session.user} brandName={APP_NAME}>
+        <BackendSetupNotice area="dashboard" compact issue="connection-error" />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell user={session.user} brandName={settings.businessName}>
       {children}
     </DashboardShell>
   );
+}
+
+async function loadDashboardSettings() {
+  try {
+    return await getAppSettings();
+  } catch (error) {
+    console.error("Failed to load dashboard settings", error);
+    return null;
+  }
 }
