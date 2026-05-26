@@ -48,11 +48,11 @@ export async function POST(request: NextRequest) {
     return jsonResponse({ url: data.publicUrl, path, persisted: true });
   }
 
-  const dataUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
-  return jsonResponse({
-    url: dataUrl,
-    path,
-    persisted: false,
-    message: "Mode demo: file tervalidasi, tetapi belum disimpan permanen karena Supabase belum dikonfigurasi.",
-  });
+  return jsonResponse(
+    {
+      message:
+        "Konfigurasi Supabase Storage belum lengkap. Isi NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY, lalu buat bucket public bernama cleanride.",
+    },
+    503,
+  );
 }

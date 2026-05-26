@@ -1,12 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { QRCodeCanvas } from "qrcode.react";
-import { FileDown, Printer, Receipt } from "lucide-react";
+import { ChevronDown, FileDown, Printer, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,26 +15,39 @@ import { DataTable } from "@/components/tables/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
-import type { Payment } from "@/lib/data";
-import type { TransactionItem } from "@/lib/data";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import type { AppSettings, Payment, TransactionItem } from "@/lib/data";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { paymentMethodLabels, paymentStatusLabels } from "@/lib/constants";
 
 export function PaymentManager({
   initialData,
   transactions,
+  settings,
+  initialSearch,
+  highlightedId,
+  initialTransactionId,
 }: {
   initialData: Payment[];
   transactions: TransactionItem[];
+  settings: AppSettings;
+  initialSearch?: string;
+  highlightedId?: string;
+  initialTransactionId?: string;
 }) {
   const csrfFetch = useCsrfFetch();
   const [data, setData] = useState<Payment[]>(initialData);
   const [pendingTransactions, setPendingTransactions] = useState<TransactionItem[]>(transactions);
-  const [selected, setSelected] = useState<Payment | null>(initialData[0] ?? null);
+  const [selected, setSelected] = useState<Payment | null>(
+    initialData.find((item) => item.id === highlightedId) ?? initialData[0] ?? null,
+  );
+  const [formOpen, setFormOpen] = useState(Boolean(initialTransactionId));
+  const [invoiceOpen, setInvoiceOpen] = useState(Boolean(highlightedId));
+  const selectedInitialTransaction =
+    pendingTransactions.find((item) => item.id === initialTransactionId) ?? pendingTransactions[0];
   const [form, setForm] = useState({
-    transactionId: pendingTransactions[0]?.id ?? "",
+    transactionId: selectedInitialTransaction?.id ?? "",
     method: "qris",
-    amount: pendingTransactions[0]?.total ?? 0,
+    amount: selectedInitialTransaction?.total ?? 0,
     status: "lunas",
   });
 
@@ -71,6 +84,10 @@ export function PaymentManager({
       return;
     }
 
+    const saved = await response.json();
+    setData((items) => items.map((item) => (item.id === optimistic.id ? saved : item)));
+    setSelected(saved);
+    setInvoiceOpen(true);
     setPendingTransactions((items) => {
       const next = items.filter((item) => item.id !== form.transactionId);
       setForm((current) => ({
@@ -80,27 +97,34 @@ export function PaymentManager({
       }));
       return next;
     });
+    setFormOpen(false);
     toast.success("Pembayaran tersimpan");
+    if (settings.autoPrintInvoice) {
+      printInvoice(saved);
+    }
   }
 
   function printInvoice(payment: Payment) {
     setSelected(payment);
+    setInvoiceOpen(true);
     window.setTimeout(() => window.print(), 80);
   }
 
   async function exportPdf(payment: Payment) {
     const doc = new jsPDF();
-    const qrDataUrl = await QRCode.toDataURL(invoicePayload(payment), {
+    const qrDataUrl = await QRCode.toDataURL(invoicePayload(payment, settings.businessName), {
       margin: 1,
       width: 140,
     });
     doc.setFontSize(18);
-    doc.text("CleanRide Car Wash", 14, 18);
+    doc.text(settings.businessName, 14, 18);
     doc.setFontSize(11);
     doc.text(`Invoice ${payment.queueNumber}`, 14, 28);
+    if (settings.businessPhone) doc.text(settings.businessPhone, 14, 34);
+    if (settings.businessAddress) doc.text(settings.businessAddress, 14, 40);
     doc.addImage(qrDataUrl, "PNG", 158, 14, 35, 35);
     autoTable(doc, {
-      startY: 38,
+      startY: settings.businessAddress || settings.businessPhone ? 48 : 38,
       head: [["Field", "Value"]],
       body: [
         ["Nama Pelanggan", payment.customerName],
@@ -110,68 +134,95 @@ export function PaymentManager({
         ["Total", formatCurrency(payment.amount)],
       ],
     });
+    if (settings.invoiceFooter) {
+      doc.setFontSize(10);
+      doc.text(settings.invoiceFooter, 14, doc.internal.pageSize.getHeight() - 14, {
+        maxWidth: 180,
+      });
+    }
     doc.save(`invoice-${payment.queueNumber}.pdf`);
   }
 
-  const columns = useMemo<ColumnDef<Payment>[]>(
-    () => [
-      { accessorKey: "queueNumber", header: "Invoice" },
-      { accessorKey: "customerName", header: "Pelanggan" },
-      {
-        accessorKey: "method",
-        header: "Metode",
-        cell: ({ row }) => paymentMethodLabels[row.original.method],
-      },
-      {
-        accessorKey: "amount",
-        header: "Total",
-        cell: ({ row }) => formatCurrency(row.original.amount),
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => (
-          <Badge variant={row.original.status === "lunas" ? "success" : "warning"}>
-            {paymentStatusLabels[row.original.status]}
-          </Badge>
-        ),
-      },
-      {
-        accessorKey: "createdAt",
-        header: "Tanggal",
-        cell: ({ row }) => formatDate(row.original.createdAt),
-      },
-      {
-        id: "actions",
-        header: "Invoice",
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => printInvoice(row.original)}>
-              <Printer className="size-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => exportPdf(row.original)}>
-              <FileDown className="size-4" />
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    [],
-  );
+  const columns: ColumnDef<Payment>[] = [
+    { accessorKey: "queueNumber", header: "Invoice" },
+    { accessorKey: "customerName", header: "Pelanggan" },
+    {
+      accessorKey: "method",
+      header: "Metode",
+      cell: ({ row }) => paymentMethodLabels[row.original.method],
+    },
+    {
+      accessorKey: "amount",
+      header: "Total",
+      cell: ({ row }) => formatCurrency(row.original.amount),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={row.original.status === "lunas" ? "success" : "warning"}>
+          {paymentStatusLabels[row.original.status]}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Tanggal",
+      cell: ({ row }) => formatDate(row.original.createdAt),
+    },
+    {
+      id: "actions",
+      header: "Invoice",
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => printInvoice(row.original)}
+            className="w-full justify-center sm:w-auto"
+          >
+            <Printer className="size-4" />
+            Print
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportPdf(row.original)}
+            className="w-full justify-center sm:w-auto"
+          >
+            <FileDown className="size-4" />
+            PDF
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
       <div className="space-y-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Input Pembayaran</CardTitle>
+          <CardHeader className="p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>Input Pembayaran</CardTitle>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setFormOpen((value) => !value)}
+                className="xl:hidden"
+              >
+                {formOpen ? "Sembunyikan" : "Buka Form"}
+                <ChevronDown className={cn("transition-transform", formOpen && "rotate-180")} />
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className={cn("p-4 pt-0 sm:p-5 sm:pt-0", !formOpen && "hidden xl:block")}>
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Transaksi Belum Lunas</Label>
                 <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                   value={form.transactionId}
                   onChange={(event) => {
                     const transaction = pendingTransactions.find((item) => item.id === event.target.value);
@@ -197,7 +248,7 @@ export function PaymentManager({
               <div className="space-y-2">
                 <Label>Metode</Label>
                 <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                   value={form.method}
                   onChange={(event) => setForm({ ...form, method: event.target.value })}
                 >
@@ -214,17 +265,7 @@ export function PaymentManager({
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
-                  value={form.status}
-                  onChange={(event) => setForm({ ...form, status: event.target.value })}
-                >
-                  {Object.entries(paymentStatusLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                <Input value="Lunas" readOnly />
               </div>
               <Button className="w-full" disabled={!pendingTransactions.length}>
                 <Receipt className="size-4" />
@@ -236,50 +277,75 @@ export function PaymentManager({
 
         {selected ? (
           <Card className="print:fixed print:inset-0 print:z-50 print:block print:rounded-none print:border-0 print:bg-white print:p-8 print:text-slate-950">
-            <CardContent className="pt-5">
-              <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+            <CardHeader className="p-4 print:hidden sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle>Preview Invoice</CardTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setInvoiceOpen((value) => !value)}
+                  className="xl:hidden"
+                >
+                  {invoiceOpen ? "Sembunyikan" : "Lihat Invoice"}
+                  <ChevronDown className={cn("transition-transform", invoiceOpen && "rotate-180")} />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className={cn("p-4 pt-0 sm:p-5 sm:pt-5", !invoiceOpen && "hidden xl:block print:block")}>
+              <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">CleanRide Car Wash</h2>
+                  <h2 className="text-xl font-semibold">{settings.businessName}</h2>
                   <p className="text-sm text-slate-500">Invoice {selected.queueNumber}</p>
+                  <p className="mt-1 text-xs text-slate-500">{settings.businessPhone}</p>
+                  <p className="text-xs text-slate-500">{settings.businessAddress}</p>
                 </div>
                 <div className="grid size-14 place-items-center rounded-lg bg-cyan-600 text-white">CR</div>
               </div>
               <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span>Pelanggan</span><strong>{selected.customerName}</strong></div>
-                <div className="flex justify-between"><span>Tanggal</span><strong>{formatDate(selected.createdAt)}</strong></div>
-                <div className="flex justify-between"><span>Metode</span><strong>{paymentMethodLabels[selected.method]}</strong></div>
-                <div className="flex justify-between"><span>Status</span><strong>{paymentStatusLabels[selected.status]}</strong></div>
-                <div className="flex justify-between border-t border-slate-200 pt-3 text-base"><span>Total</span><strong>{formatCurrency(selected.amount)}</strong></div>
+                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Pelanggan</span><strong className="break-words sm:text-right">{selected.customerName}</strong></div>
+                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Tanggal</span><strong className="break-words sm:text-right">{formatDate(selected.createdAt)}</strong></div>
+                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Metode</span><strong className="break-words sm:text-right">{paymentMethodLabels[selected.method]}</strong></div>
+                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Status</span><strong className="break-words sm:text-right">{paymentStatusLabels[selected.status]}</strong></div>
+                <div className="grid gap-1 border-t border-slate-200 pt-3 text-base sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Total</span><strong className="break-words sm:text-right">{formatCurrency(selected.amount)}</strong></div>
               </div>
               <div className="mt-5 rounded-lg border border-slate-200 p-3 text-center font-mono text-xs">
                 <QRCodeCanvas
-                  value={invoicePayload(selected)}
+                  value={invoicePayload(selected, settings.businessName)}
                   size={112}
                   includeMargin
                   className="mx-auto"
                 />
-                <div className="mt-2">Scan invoice CleanRide</div>
+                <div className="mt-2">Scan invoice {settings.businessName}</div>
               </div>
+              <p className="mt-4 break-words text-xs text-slate-500">{settings.invoiceFooter}</p>
             </CardContent>
           </Card>
         ) : null}
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-5">
           <CardTitle>Riwayat Pembayaran</CardTitle>
         </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={data} searchPlaceholder="Cari invoice, pelanggan, metode..." />
+        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
+          <DataTable
+            columns={columns}
+            data={data}
+            searchPlaceholder="Cari invoice, pelanggan, metode..."
+            initialSearch={initialSearch}
+            getRowId={(row) => row.id}
+            highlightedRowId={highlightedId}
+          />
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function invoicePayload(payment: Payment) {
+function invoicePayload(payment: Payment, businessName: string) {
   return JSON.stringify({
-    brand: "CleanRide Car Wash",
+    brand: businessName,
     invoice: payment.queueNumber,
     customer: payment.customerName,
     method: payment.method,

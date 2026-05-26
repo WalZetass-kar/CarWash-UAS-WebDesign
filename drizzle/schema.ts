@@ -136,10 +136,23 @@ export const payments = pgTable(
     paidAt: timestamp("paid_at", { withTimezone: true }),
   },
   (table) => [
-    index("payments_transaction_idx").on(table.transactionId),
+    uniqueIndex("payments_transaction_unique").on(table.transactionId),
     index("payments_method_idx").on(table.method),
   ],
 );
+
+export const appSettings = pgTable("app_settings", {
+  id: varchar("id", { length: 40 }).primaryKey(),
+  businessName: varchar("business_name", { length: 160 }).notNull(),
+  businessPhone: varchar("business_phone", { length: 40 }).notNull().default(""),
+  businessAddress: text("business_address").notNull().default(""),
+  queueSlotCapacity: integer("queue_slot_capacity").notNull().default(4),
+  reportDefaultRangeDays: integer("report_default_range_days").notNull().default(30),
+  autoPrintInvoice: boolean("auto_print_invoice").notNull().default(false),
+  invoiceFooter: text("invoice_footer").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const activityLogs = pgTable(
   "activity_logs",
@@ -232,6 +245,8 @@ export type Transaction = typeof transactions.$inferSelect;
 export type NewTransaction = typeof transactions.$inferInsert;
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
+export type AppSettings = typeof appSettings.$inferSelect;
+export type NewAppSettings = typeof appSettings.$inferInsert;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
 
@@ -242,6 +257,7 @@ export const schema = {
   queues,
   transactions,
   payments,
+  appSettings,
   activityLogs,
   usersRelations,
   customersRelations,

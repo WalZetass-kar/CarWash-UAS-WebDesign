@@ -1,14 +1,16 @@
+import { connection } from "next/server";
 import { Banknote, Car, PackageCheck, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getDashboardData } from "@/services/dashboard";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { MonthlyLineChart, PaymentPieChart, WeeklyBarChart } from "@/features/dashboard/charts";
 
 export default async function DashboardPage() {
+  await connection();
   const data = await getDashboardData();
-  const paid = data.payments.filter((payment) => payment.status === "lunas").length;
-  const unpaid = data.payments.filter((payment) => payment.status === "belum_bayar").length;
+  const paid = data.metrics.paidTransactions;
+  const unpaid = data.metrics.unpaidTransactions;
 
   const cards = [
     {
@@ -47,7 +49,7 @@ export default async function DashboardPage() {
             Pantau pendapatan, antrian, pembayaran, dan performa paket pencucian.
           </p>
         </div>
-        <div className="rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800 dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200">
+        <div className="w-full rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800 md:w-auto dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200">
           Paket populer: <span className="font-semibold">{data.metrics.popularPackage}</span>
         </div>
       </div>
@@ -55,10 +57,10 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((item) => (
           <Card key={item.title}>
-            <CardContent className="flex items-center justify-between pt-5">
+            <CardContent className="flex items-start justify-between gap-4 pt-5">
               <div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">{item.title}</p>
-                <p className="mt-2 text-2xl font-semibold">{item.value}</p>
+                <p className="mt-2 break-words text-2xl font-semibold">{item.value}</p>
               </div>
               <div className="grid size-11 place-items-center rounded-lg bg-slate-100 dark:bg-slate-900">
                 <item.icon className={`size-5 ${item.tone}`} />
@@ -103,8 +105,12 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="space-y-3">
               {data.activity.map((activity) => (
-                <div key={activity} className="rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
-                  {activity}
+                <div
+                  key={activity.id}
+                  className="rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800"
+                >
+                  <div className="break-words">{activity.message}</div>
+                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatDate(activity.createdAt)}</div>
                 </div>
               ))}
             </div>

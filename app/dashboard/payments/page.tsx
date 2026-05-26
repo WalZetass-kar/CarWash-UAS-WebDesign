@@ -1,16 +1,25 @@
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { PaymentManager } from "@/features/payments/payment-manager";
 import { listPayments } from "@/services/payments";
+import { getAppSettings } from "@/services/settings";
 import { listTransactions } from "@/services/transactions";
 
 export const metadata = {
   title: "Pembayaran",
 };
 
-export default async function PaymentsPage() {
-  const [payments, transactions] = await Promise.all([
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; highlight?: string; transactionId?: string }>;
+}) {
+  await connection();
+  const params = await searchParams;
+  const [payments, transactions, settings] = await Promise.all([
     listPayments(),
     listTransactions("", "belum_bayar"),
+    getAppSettings(),
   ]);
 
   return (
@@ -25,6 +34,10 @@ export default async function PaymentsPage() {
       <PaymentManager
         initialData={JSON.parse(JSON.stringify(payments))}
         transactions={JSON.parse(JSON.stringify(transactions))}
+        settings={JSON.parse(JSON.stringify(settings))}
+        initialSearch={params.query ?? ""}
+        highlightedId={params.highlight ?? ""}
+        initialTransactionId={params.transactionId ?? ""}
       />
     </div>
   );

@@ -30,15 +30,22 @@ export async function POST(request: NextRequest) {
     return jsonResponse({ message: "Validasi antrian gagal", errors: parsed.error.flatten() }, 422);
   }
 
-  const queue = await createQueue(parsed.data, session.user.id);
-  await logActivity({
-    userId: session.user.id,
-    action: "create",
-    entity: "queues",
-    entityId: queue.id,
-    ipAddress: getClientIp(request.headers),
-    userAgent: request.headers.get("user-agent"),
-  });
+  try {
+    const queue = await createQueue(parsed.data, session.user.id);
+    await logActivity({
+      userId: session.user.id,
+      action: "create",
+      entity: "queues",
+      entityId: queue.id,
+      ipAddress: getClientIp(request.headers),
+      userAgent: request.headers.get("user-agent"),
+    });
 
-  return jsonResponse(queue, 201);
+    return jsonResponse(queue, 201);
+  } catch (error) {
+    return jsonResponse(
+      { message: error instanceof Error ? error.message : "Gagal membuat antrian" },
+      422,
+    );
+  }
 }

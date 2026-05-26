@@ -3,33 +3,24 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
   adminOnlyPrefixes,
+  APP_TIME_ZONE,
   CSRF_COOKIE,
   protectedPrefixes,
   SESSION_COOKIE,
 } from "@/lib/constants";
+import { shouldUseSecureTransport } from "@/lib/runtime/app-origin";
+import { getJwtSecret } from "@/lib/auth/jwt-secret";
 import { securityHeaders } from "@/lib/security/headers";
-
-function getTodayKey() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Jakarta",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-
-  return `${parts.find((part) => part.type === "year")?.value}-${parts.find((part) => part.type === "month")?.value}-${parts.find((part) => part.type === "day")?.value}`;
-}
+import { getTodayKey } from "@/lib/utils";
 
 async function readSession(token?: string) {
   if (!token) return null;
 
+  const secret = getJwtSecret();
   try {
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET || "cleanride-development-secret-change-in-production",
-    );
     const { payload } = await jwtVerify(token, secret);
     const user = payload.user as { role?: string } | undefined;
-    if (!user?.role || payload.sessionDate !== getTodayKey()) return null;
+    if (!user?.role || payload.sessionDate !== getTodayKey(APP_TIME_ZONE)) return null;
     return { user };
   } catch {
     return null;
@@ -49,6 +40,12 @@ function matches(pathname: string, prefixes: string[]) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isApiRequest = pathname === "/api" || pathname.startsWith("/api/");
+
+  if (isApiRequest) {
+    return applyHeaders(NextResponse.next());
+  }
+
   const session = await readSession(request.cookies.get(SESSION_COOKIE)?.value);
   const isProtected = matches(pathname, protectedPrefixes);
   const isAdminOnly = matches(pathname, adminOnlyPrefixes);
@@ -79,7 +76,7 @@ export async function proxy(request: NextRequest) {
   if (!request.cookies.get(CSRF_COOKIE)?.value) {
     response.cookies.set(CSRF_COOKIE, crypto.randomUUID(), {
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: shouldUseSecureTransport(request),
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60,

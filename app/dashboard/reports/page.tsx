@@ -1,15 +1,18 @@
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { ReportManager } from "@/features/reports/report-manager";
 import { requireRole } from "@/lib/auth/session";
 import { getDashboardData } from "@/services/dashboard";
+import { getReportData } from "@/services/reports";
 
 export const metadata = {
   title: "Laporan Transaksi",
 };
 
 export default async function ReportsPage() {
+  await connection();
   await requireRole(["admin"]);
-  const data = await getDashboardData();
+  const [data, reportData] = await Promise.all([getDashboardData(), getReportData()]);
 
   return (
     <div className="space-y-6">
@@ -21,9 +24,11 @@ export default async function ReportsPage() {
         </p>
       </div>
       <ReportManager
-        payments={JSON.parse(JSON.stringify(data.payments))}
+        rows={JSON.parse(JSON.stringify(reportData.rows))}
         monthlyRevenue={data.monthlyRevenue}
         popularPackage={data.metrics.popularPackage}
+        businessName={data.settings.businessName}
+        defaultRangeDays={data.settings.reportDefaultRangeDays}
       />
     </div>
   );

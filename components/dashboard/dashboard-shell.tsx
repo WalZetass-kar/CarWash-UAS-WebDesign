@@ -14,6 +14,7 @@ import {
   Menu,
   Moon,
   PackageCheck,
+  Power,
   Search,
   Settings,
   Sun,
@@ -59,9 +60,11 @@ type SearchResult = {
 
 export function DashboardShell({
   user,
+  brandName,
   children,
 }: {
   user: SessionUser;
+  brandName: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -98,13 +101,13 @@ export function DashboardShell({
   }
 
   const sidebar = (
-    <aside className="flex h-full w-72 flex-col border-r border-slate-200 bg-white/88 p-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/88">
+    <aside className="flex h-full w-[86vw] max-w-72 flex-col overflow-y-auto border-r border-slate-200 bg-white/88 p-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/88">
       <div className="flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
           <span className="grid size-9 place-items-center rounded-lg bg-cyan-600 text-white">
             <Car className="size-5" />
           </span>
-          CleanRide
+          {brandName}
         </Link>
         <button
           className="grid size-9 place-items-center rounded-lg hover:bg-slate-100 lg:hidden dark:hover:bg-slate-900"
@@ -164,56 +167,63 @@ export function DashboardShell({
 
       <div className="lg:pl-72">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/82 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/82">
-          <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
-            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
+          <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
+            <Button variant="ghost" size="icon" className="shrink-0 lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu className="size-5" />
             </Button>
 
-            <div className="relative max-w-xl flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Cari pelanggan, transaksi, antrian, user..."
-                className="pl-9"
-              />
-              {results.length > 0 ? (
-                <div className="absolute left-0 right-0 top-12 z-50 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-950">
-                  {results.map((result) => (
-                    <Link
-                      key={`${result.type}-${result.title}`}
-                      href={result.href}
-                      className="block border-b border-slate-100 px-4 py-3 text-sm hover:bg-slate-50 dark:border-slate-900 dark:hover:bg-slate-900"
-                      onClick={() => {
-                        setQuery("");
-                        setResults([]);
-                      }}
-                    >
-                      <div className="font-semibold">{result.title}</div>
-                      <div className="mt-1 text-xs text-slate-500">{result.type} - {result.description}</div>
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
+            <div className="order-3 w-full md:order-none md:max-w-xl md:flex-1">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Cari data operasional..."
+                  className="pl-9"
+                />
+                {results.length > 0 ? (
+                  <div className="absolute left-0 right-0 top-12 z-50 max-h-[min(60vh,420px)] overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-950">
+                    {results.map((result) => (
+                      <Link
+                        key={`${result.type}-${result.title}`}
+                        href={result.href}
+                        className="block border-b border-slate-100 px-4 py-3 text-sm hover:bg-slate-50 dark:border-slate-900 dark:hover:bg-slate-900"
+                        onClick={() => {
+                          setQuery("");
+                          setResults([]);
+                        }}
+                      >
+                        <div className="font-semibold">{result.title}</div>
+                        <div className="mt-1 text-xs text-slate-500">{result.type} - {result.description}</div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </div>
 
-            <RealtimeStatus />
-            <Button variant="ghost" size="icon" aria-label="Notifikasi">
-              <Bell className="size-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Toggle theme"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            >
-              <Sun className="size-5 dark:hidden" />
-              <Moon className="hidden size-5 dark:block" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={logout} className="hidden sm:inline-flex">
-              <LogOut className="size-4" />
-              Logout
-            </Button>
+            <div className="ml-auto flex items-center gap-2 md:ml-0">
+              <RealtimeStatus />
+              <Button variant="ghost" size="icon" aria-label="Notifikasi" className="hidden sm:inline-flex">
+                <Bell className="size-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Toggle theme"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                <Sun className="size-5 dark:hidden" />
+                <Moon className="hidden size-5 dark:block" />
+              </Button>
+              <Button variant="outline" size="icon" onClick={logout} className="sm:hidden" aria-label="Logout">
+                <Power className="size-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={logout} className="hidden sm:inline-flex">
+                <LogOut className="size-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </header>
 

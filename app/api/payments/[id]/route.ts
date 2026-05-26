@@ -22,15 +22,22 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const payment = await updatePayment(id, parsed.data);
-  await logActivity({
-    userId: session.user.id,
-    action: "update",
-    entity: "payments",
-    entityId: id,
-    ipAddress: getClientIp(request.headers),
-    userAgent: request.headers.get("user-agent"),
-  });
+  try {
+    const payment = await updatePayment(id, parsed.data);
+    await logActivity({
+      userId: session.user.id,
+      action: "update",
+      entity: "payments",
+      entityId: id,
+      ipAddress: getClientIp(request.headers),
+      userAgent: request.headers.get("user-agent"),
+    });
 
-  return jsonResponse(payment);
+    return jsonResponse(payment);
+  } catch (error) {
+    return jsonResponse(
+      { message: error instanceof Error ? error.message : "Gagal memperbarui pembayaran" },
+      422,
+    );
+  }
 }

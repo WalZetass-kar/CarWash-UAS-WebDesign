@@ -1,21 +1,16 @@
 import { eq, isNull } from "drizzle-orm";
-import { demoUsers } from "@/lib/constants";
-import { getDb, hasDatabaseConfig } from "@/drizzle/db";
+import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDemoState, toPublicUser } from "@/lib/demo-store";
 import { users } from "@/drizzle/schema";
 import { verifyPassword } from "@/lib/auth/password";
-
-const demoPasswords: Record<string, string> = {
-  "admin@cleanride.my.id": "admin123",
-  "petugas@cleanride.my.id": "petugas123",
-};
 
 export async function authenticateUser(email: string, password: string) {
   const normalizedEmail = email.toLowerCase();
 
-  if (!hasDatabaseConfig()) {
-    const user = demoUsers.find((item) => item.email === normalizedEmail);
-    if (!user || demoPasswords[normalizedEmail] !== password || !user.isActive) return null;
-    return user;
+  if (shouldUseDemoData()) {
+    const user = getDemoState().users.find((item) => item.email === normalizedEmail);
+    if (!user || user.password !== password || !user.isActive) return null;
+    return toPublicUser(user);
   }
 
   const db = getDb();

@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { PackageManager } from "@/features/packages/package-manager";
 import { requireSession } from "@/lib/auth/session";
@@ -7,8 +8,14 @@ export const metadata = {
   title: "Paket Pencucian",
 };
 
-export default async function PackagesPage() {
+export default async function PackagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; highlight?: string }>;
+}) {
+  await connection();
   const session = await requireSession();
+  const params = await searchParams;
   const packages = JSON.parse(JSON.stringify(await listPackages()));
 
   return (
@@ -20,7 +27,12 @@ export default async function PackagesPage() {
           Admin dapat mengelola paket, harga, estimasi waktu, dan status aktif.
         </p>
       </div>
-      <PackageManager initialData={packages} role={session.user.role} />
+      <PackageManager
+        initialData={packages}
+        role={session.user.role}
+        initialSearch={params.query ?? ""}
+        highlightedId={params.highlight ?? ""}
+      />
     </div>
   );
 }

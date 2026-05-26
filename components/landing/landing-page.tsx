@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, type Variants } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -33,12 +33,14 @@ const navItems = [
 
 const packages = [
   {
+    slug: "express-wash",
     name: "Express Wash",
     price: 35000,
     time: "25 menit",
     items: ["Snow wash", "Bilas tekanan tinggi", "Lap microfiber"],
   },
   {
+    slug: "premium-gloss",
     name: "Premium Gloss",
     price: 85000,
     time: "55 menit",
@@ -46,6 +48,7 @@ const packages = [
     featured: true,
   },
   {
+    slug: "detailing-care",
     name: "Detailing Care",
     price: 175000,
     time: "120 menit",
@@ -64,7 +67,7 @@ function MotionSection({ children, className, id }: { children: React.ReactNode;
     <motion.section
       id={id}
       className={className}
-      initial={{ opacity: 0, y: 40 }}
+      initial={false}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
@@ -74,7 +77,9 @@ function MotionSection({ children, className, id }: { children: React.ReactNode;
   );
 }
 
-const containerVariants = {
+const smoothEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -85,14 +90,14 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
+      ease: smoothEase,
     },
   },
 };
@@ -103,7 +108,7 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
   return (
     <motion.div
       className="overflow-hidden p-5 transition-colors duration-300 hover:bg-slate-50 dark:hover:bg-slate-900/50"
-      initial={{ opacity: 0, x: -20 }}
+      initial={false}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -173,7 +178,7 @@ export function LandingPage() {
       <motion.header 
         className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/60 backdrop-blur-xl transition-all duration-300 dark:border-slate-800/80"
         style={{ backgroundColor: headerBg }}
-        initial={{ y: -100 }}
+        initial={false}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
@@ -195,7 +200,7 @@ export function LandingPage() {
                 key={item.href} 
                 href={item.href} 
                 className="relative text-sm font-medium text-white transition-colors duration-300 hover:text-cyan-300 dark:text-slate-300 dark:hover:text-cyan-300"
-                initial={{ opacity: 0, y: -20 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
                 whileHover={{ y: -2 }}
@@ -217,7 +222,7 @@ export function LandingPage() {
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button asChild className="bg-cyan-600 text-white transition-all duration-300 hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/30">
-                <Link href="/login">
+                <Link href="/booking">
                   Booking Sekarang
                 </Link>
               </Button>
@@ -247,13 +252,13 @@ export function LandingPage() {
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className="overflow-hidden border-t border-slate-700 bg-slate-900 md:hidden dark:border-slate-800 dark:bg-slate-950"
         >
-          <div className="flex flex-col gap-2 px-4 py-4">
+          <div className="flex flex-col gap-2 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             {navItems.map((item, index) => (
               <motion.a 
                 key={item.href} 
                 href={item.href} 
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:bg-slate-800 hover:pl-5 hover:text-cyan-300 dark:text-slate-200 dark:hover:bg-slate-900"
-                initial={{ opacity: 0, x: -20 }}
+                initial={false}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => setOpen(false)}
@@ -261,8 +266,11 @@ export function LandingPage() {
                 {item.label}
               </motion.a>
             ))}
-            <Button asChild className="mt-2">
-              <Link href="/login">Booking Sekarang</Link>
+            <Button asChild variant="ghost" className="mt-2 border border-slate-700 text-white hover:bg-slate-800">
+              <Link href="/login" onClick={() => setOpen(false)}>Masuk Dashboard</Link>
+            </Button>
+            <Button asChild className="w-full">
+              <Link href="/booking">Booking Sekarang</Link>
             </Button>
           </div>
         </motion.div>
@@ -289,12 +297,12 @@ export function LandingPage() {
           <div className="relative mx-auto flex min-h-[92vh] max-w-7xl items-center px-4 pb-20 pt-12 sm:px-6 lg:px-8">
             <motion.div
               className="max-w-3xl text-white"
-              initial={{ opacity: 0, y: 50 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
             >
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={false}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
@@ -304,8 +312,8 @@ export function LandingPage() {
                 </Badge>
               </motion.div>
               <motion.h1 
-                className="max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl lg:text-6xl"
-                initial={{ opacity: 0, y: 30 }}
+                className="max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl"
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
               >
@@ -313,7 +321,7 @@ export function LandingPage() {
               </motion.h1>
               <motion.p 
                 className="mt-5 max-w-2xl text-sm leading-7 text-cyan-50/90 sm:text-base sm:leading-8 lg:text-lg"
-                initial={{ opacity: 0, y: 30 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
@@ -321,13 +329,13 @@ export function LandingPage() {
               </motion.p>
               <motion.div 
                 className="mt-8 flex flex-col gap-3 sm:flex-row"
-                initial={{ opacity: 0, y: 30 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.7 }}
               >
                 <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}>
                   <Button asChild size="lg" className="group w-full sm:w-auto shadow-xl shadow-cyan-600/30 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-600/40">
-                    <Link href="/login">
+                    <Link href="/booking">
                       Booking Sekarang 
                       <ArrowRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
                     </Link>
@@ -340,15 +348,17 @@ export function LandingPage() {
                 </motion.div>
               </motion.div>
               <motion.div 
-                className="mt-10 grid max-w-xl grid-cols-1 gap-3 text-xs sm:grid-cols-3 sm:text-sm"
+                className="mt-10 grid max-w-xl grid-cols-2 gap-3 text-xs sm:grid-cols-3 sm:text-sm"
                 variants={containerVariants}
-                initial="hidden"
+                initial={false}
                 animate="visible"
               >
                 {["Realtime Queue", "Secure Payment", "Printable Invoice"].map((item, index) => (
                   <motion.div 
                     key={item} 
-                    className="rounded-lg border border-cyan-500 bg-slate-950/90 px-3 py-3 text-center font-medium text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-cyan-400 hover:bg-slate-900 hover:shadow-lg hover:shadow-cyan-500/30 cursor-default"
+                    className={`rounded-lg border border-cyan-500 bg-slate-950/90 px-3 py-3 text-center font-medium text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-cyan-400 hover:bg-slate-900 hover:shadow-lg hover:shadow-cyan-500/30 cursor-default ${
+                      index === 2 ? "col-span-2 sm:col-span-1" : ""
+                    }`}
                     variants={itemVariants}
                     whileHover={{ y: -4 }}
                   >
@@ -363,7 +373,7 @@ export function LandingPage() {
         <MotionSection id="layanan" className="mx-auto max-w-7xl px-4 py-16 sm:py-20 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
+              initial={false}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
@@ -377,7 +387,7 @@ export function LandingPage() {
             <motion.div 
               className="grid gap-4 sm:grid-cols-2"
               variants={containerVariants}
-              initial="hidden"
+              initial={false}
               whileInView="visible"
               viewport={{ once: true }}
             >
@@ -416,7 +426,7 @@ export function LandingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <motion.div 
               className="max-w-2xl"
-              initial={{ opacity: 0, y: 30 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
@@ -427,11 +437,11 @@ export function LandingPage() {
             <motion.div 
               className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
               variants={containerVariants}
-              initial="hidden"
+              initial={false}
               whileInView="visible"
               viewport={{ once: true }}
             >
-              {packages.map((item, index) => (
+              {packages.map((item) => (
                 <motion.div
                   key={item.name}
                   variants={itemVariants}
@@ -446,7 +456,7 @@ export function LandingPage() {
                     <CardContent className="pt-6">
                       {item.featured ? (
                         <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
+                          initial={false}
                           whileInView={{ scale: 1, opacity: 1 }}
                           transition={{ duration: 0.5 }}
                         >
@@ -463,7 +473,7 @@ export function LandingPage() {
                           <motion.li 
                             key={feature} 
                             className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
-                            initial={{ opacity: 0, x: -20 }}
+                            initial={false}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.1, duration: 0.5 }}
@@ -475,7 +485,7 @@ export function LandingPage() {
                       </ul>
                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <Button asChild className="mt-6 w-full transition-all duration-300 hover:shadow-lg hover:shadow-cyan-600/30">
-                          <Link href="/login">Pilih Paket</Link>
+                          <Link href={`/booking?package=${item.slug}`}>Pilih Paket</Link>
                         </Button>
                       </motion.div>
                     </CardContent>
@@ -490,7 +500,7 @@ export function LandingPage() {
           <motion.div 
             className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
             variants={containerVariants}
-            initial="hidden"
+            initial={false}
             whileInView="visible"
             viewport={{ once: true }}
           >
@@ -508,7 +518,7 @@ export function LandingPage() {
               >
                 <motion.div 
                   className="text-2xl font-semibold text-cyan-700 transition-all duration-300 group-hover:scale-110 sm:text-3xl dark:text-cyan-300"
-                  initial={{ scale: 0 }}
+                  initial={false}
                   whileInView={{ scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
@@ -530,7 +540,7 @@ export function LandingPage() {
             ].map(([name, text], index) => (
               <motion.div
                 key={name}
-                initial={{ opacity: 0, y: 30 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15, duration: 0.6 }}
@@ -540,7 +550,7 @@ export function LandingPage() {
                   <CardContent className="pt-6">
                     <motion.div 
                       className="mb-4 flex gap-1 text-amber-300"
-                      initial={{ opacity: 0, scale: 0.5 }}
+                      initial={false}
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.15 + 0.3, duration: 0.5 }}
@@ -548,7 +558,7 @@ export function LandingPage() {
                       {Array.from({ length: 5 }).map((_, starIndex) => (
                         <motion.div
                           key={starIndex}
-                          initial={{ opacity: 0, rotate: -180 }}
+                          initial={false}
                           whileInView={{ opacity: 1, rotate: 0 }}
                           viewport={{ once: true }}
                           transition={{ delay: index * 0.15 + starIndex * 0.05, duration: 0.4 }}
@@ -570,7 +580,7 @@ export function LandingPage() {
         <MotionSection id="gallery" className="mx-auto max-w-7xl px-4 py-16 sm:py-20 sm:px-6 lg:px-8">
           <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={false}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
@@ -583,7 +593,7 @@ export function LandingPage() {
           <motion.div 
             className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
             variants={containerVariants}
-            initial="hidden"
+            initial={false}
             whileInView="visible"
             viewport={{ once: true }}
           >
@@ -595,9 +605,9 @@ export function LandingPage() {
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
-          <motion.div
-            className="absolute inset-0 z-10 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none"
-          />
+                <motion.div
+                  className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100"
+                />
                 <Image
                   src={src}
                   alt={`Gallery CleanRide ${index + 1}`}
@@ -606,7 +616,7 @@ export function LandingPage() {
                   className="object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
                 />
                 <motion.div
-                  className="absolute bottom-4 left-4 z-20 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  className="absolute bottom-4 left-4 z-20 text-white opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100"
                   initial={{ y: 20 }}
                   whileHover={{ y: 0 }}
                 >
@@ -620,7 +630,7 @@ export function LandingPage() {
         <MotionSection id="faq" className="bg-white py-16 sm:py-20 dark:bg-slate-900/40">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
@@ -630,13 +640,13 @@ export function LandingPage() {
             </motion.div>
             <motion.div 
               className="mt-8 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-950"
-              initial={{ opacity: 0, y: 30 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               {[
-                ["Apakah bisa booking online?", "Bisa. CTA akan membawa pengguna ke login dashboard untuk input booking dan antrian."],
+                ["Apakah bisa booking online?", "Bisa. Pengunjung publik dapat memilih paket dan membuat booking tanpa login dari halaman booking."],
                 ["Apakah status antrian realtime?", "Ya. Aplikasi sudah menyiapkan Supabase Realtime untuk sinkronisasi antrian dan transaksi."],
                 ["Apakah laporan bisa diekspor?", "Admin dapat ekspor CSV dan PDF dari halaman laporan."],
               ].map(([question, answer], index) => (
@@ -649,14 +659,14 @@ export function LandingPage() {
 
       <motion.footer 
         className="border-t border-slate-200 bg-slate-950 py-10 text-white dark:border-slate-800"
-        initial={{ opacity: 0 }}
+        initial={false}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.7 }}
       >
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-4 sm:px-6 md:flex-row md:items-center lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-4 text-center sm:px-6 md:flex-row md:items-center md:text-left lg:px-8">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={false}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
@@ -676,8 +686,8 @@ export function LandingPage() {
             <p className="mt-2 text-sm text-slate-400">Premium car wash management for Web Design UAS project.</p>
           </motion.div>
           <motion.div 
-            className="text-sm text-slate-400"
-            initial={{ opacity: 0, x: 30 }}
+            className="text-sm text-slate-400 md:text-right"
+            initial={false}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}

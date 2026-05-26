@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/drizzle/db";
 import {
   activityLogs,
+  appSettings,
   customers,
   payments,
   queues,
@@ -16,6 +17,7 @@ import {
   demoPayments,
   demoQueues,
   demoTransactions,
+  defaultAppSettings,
 } from "@/lib/data";
 import { demoUsers } from "@/lib/constants";
 
@@ -160,6 +162,17 @@ async function main() {
     });
 
   await db
+    .insert(appSettings)
+    .values(defaultAppSettings)
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        ...defaultAppSettings,
+        updatedAt: new Date(),
+      },
+    });
+
+  await db
     .insert(activityLogs)
     .values([
       {
@@ -173,7 +186,7 @@ async function main() {
     ])
     .onConflictDoNothing();
 
-  console.log("Seed CleanRide selesai. Data relasional, transaksi, dan akun demo siap.");
+  console.log("Seed CleanRide selesai. Data relasional, transaksi, dan akun seed awal siap.");
 }
 
 main()

@@ -1,16 +1,12 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { customers, queues, transactions, washPackages } from "@/drizzle/schema";
-import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import {
-  demoTransactions,
-  type PaymentStatus,
-  type TransactionItem,
-} from "@/lib/data";
-
-let memoryTransactions: TransactionItem[] = [...demoTransactions];
+import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDemoState } from "@/lib/demo-store";
+import { type PaymentStatus, type TransactionItem } from "@/lib/data";
 
 export async function listTransactions(query = "", status?: PaymentStatus | null) {
-  if (!hasDatabaseConfig()) {
+  if (shouldUseDemoData()) {
+    const { transactions: memoryTransactions } = getDemoState();
     const normalized = query.toLowerCase();
     return memoryTransactions.filter((item) => {
       const matchesQuery = [
@@ -58,26 +54,50 @@ export async function listTransactions(query = "", status?: PaymentStatus | null
 }
 
 export async function getTransactionById(id: string) {
-  if (!hasDatabaseConfig()) {
-    return memoryTransactions.find((item) => item.id === id) ?? null;
+  if (shouldUseDemoData()) {
+    return getDemoState().transactions.find((item) => item.id === id) ?? null;
   }
 
-  const [transaction] = await listTransactions(id);
+  const [transaction] = await getDb()
+    .select({
+      id: transactions.id,
+      queueId: transactions.queueId,
+      queueNumber: queues.queueNumber,
+      customerId: transactions.customerId,
+      customerName: customers.name,
+      packageId: transactions.packageId,
+      packageName: washPackages.name,
+      total: transactions.total,
+      status: transactions.status,
+      createdAt: transactions.createdAt,
+    })
+    .from(transactions)
+    .innerJoin(queues, eq(transactions.queueId, queues.id))
+    .innerJoin(customers, eq(transactions.customerId, customers.id))
+    .innerJoin(washPackages, eq(transactions.packageId, washPackages.id))
+    .where(and(eq(transactions.id, id), isNull(transactions.deletedAt)));
   return transaction ?? null;
 }
 
+export function createMemoryTransaction(transaction: TransactionItem) {
+  const state = getDemoState();
+  state.transactions = [transaction, ...state.transactions];
+  return transaction;
+}
+
 export async function updateTransactionPaymentStatus(id: string, status: PaymentStatus) {
-  if (!hasDatabaseConfig()) {
-    memoryTransactions = memoryTransactions.map((item) =>
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    state.transactions = state.transactions.map((item) =>
       item.id === id ? { ...item, status } : item,
     );
-    return memoryTransactions.find((item) => item.id === id) ?? null;
+    return state.transactions.find((item) => item.id === id) ?? null;
   }
 
   const [updated] = await getDb()
     .update(transactions)
     .set({ status, updatedAt: new Date() })
-    .where(eq(transactions.id, id))
+    .where(and(eq(transactions.id, id), isNull(transactions.deletedAt)))
     .returning();
   return updated ?? null;
 }

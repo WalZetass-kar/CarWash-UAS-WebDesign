@@ -19,10 +19,25 @@ Aplikasi web fullstack modern untuk Projek UAS Mata Kuliah Web Design. CleanRide
 ```bash
 npm install
 cp .env.example .env.local
+npm run env:check
 npm run dev
 ```
 
 Buka `http://localhost:3000`.
+
+Jika filesystem lokal terasa lambat saat `next dev` default, jalankan fallback webpack:
+
+```bash
+npm run dev:webpack
+```
+
+Untuk preview production lokal dengan konfigurasi yang sama seperti deploy, gunakan:
+
+```bash
+npm run env:check
+npm run build
+npm run start
+```
 
 ## Setup Supabase
 
@@ -37,7 +52,7 @@ npm run db:push
 npm run db:seed
 ```
 
-Alternatif manual: copy SQL dari `drizzle/0001_initial.sql` ke Supabase SQL Editor.
+Alternatif manual: jalankan SQL dari `drizzle/0001_initial.sql` lalu `drizzle/0002_settings_and_payment_integrity.sql` di Supabase SQL Editor.
 
 Untuk upload gallery production, buat bucket Supabase Storage public bernama `cleanride`. API upload akan menyimpan file ke path `gallery/...` bila `SUPABASE_SERVICE_ROLE_KEY` tersedia.
 
@@ -51,12 +66,12 @@ npm run db:push
 npm run db:seed
 ```
 
-## Akun Demo
+## Akun Seed Awal
 
 - Admin: `admin@cleanride.my.id` / `admin123`
 - Petugas: `petugas@cleanride.my.id` / `petugas123`
 
-Jika `DATABASE_URL` belum diisi, aplikasi tetap berjalan memakai data demo in-memory agar presentasi lokal tidak terblokir.
+Data akun di atas berasal dari proses seed database. Aplikasi tidak lagi fallback ke data in-memory pada mode normal.
 
 ## Struktur Database
 
@@ -77,7 +92,7 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - `features`: modul auth, customer, package, queue, payment, report
 - `hooks`: client hooks seperti CSRF fetch
 - `lib`: auth, security, constants, utils, Supabase clients
-- `services`: data access layer Drizzle + fallback demo
+- `services`: data access layer Drizzle + orchestration logic
 - `schemas`: validasi Zod
 - `drizzle`: schema, config, migration SQL, seeder
 - `actions`, `api`, `middleware`: folder pendukung sesuai requirement
@@ -95,10 +110,13 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - Pembayaran memilih transaksi pending dari data antrian/transaksi, bukan input ID manual
 - Supabase Realtime untuk queues dan payments
 - Dashboard auto-refresh saat event realtime queues/payments masuk
+- Dashboard analytics mingguan/bulanan dan aktivitas terbaru dihitung dari data nyata, bukan dummy statis
 - TanStack Table untuk search, sorting, pagination
 - Chart.js bar, line, pie chart
 - Invoice printable dan export PDF dengan QR invoice real
 - Export laporan CSV/PDF, termasuk PDF server-side dari `/api/reports?format=pdf`
+- Global search deep-link ke record terkait di halaman pelanggan, paket, antrian, pembayaran, dan user
+- Halaman Settings admin menyimpan nama bisnis, alamat, telepon, default range laporan, auto print invoice, dan kapasitas antrian per jam
 - Activity log server-side
 - Zod validation, DOMPurify sanitization, bcryptjs password hash
 - CSRF protection, login rate limiting, security headers
@@ -115,6 +133,8 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 
 Build command: `npm run build`
 
-## Catatan Presentasi
+## Catatan Deploy
 
-Mode demo bisa dipakai tanpa Supabase untuk menunjukkan UI dan alur aplikasi. Untuk penyimpanan production, isi env Supabase dan jalankan Drizzle push/seed.
+Project ini sekarang diposisikan untuk mode online/persisten. Isi seluruh env, jalankan `npm run db:push`, lanjut `npm run db:seed`, lalu build dan start seperti environment deploy.
+
+`ENABLE_DEMO_MODE` hanya disediakan untuk pengujian internal lokal dan test suite, bukan untuk deployment produksi.

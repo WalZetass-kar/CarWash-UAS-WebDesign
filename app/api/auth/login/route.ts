@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     email: user.email,
     role: user.role,
   });
-  await setSessionCookie(token);
+  await setSessionCookie(token, request);
 
   await logActivity({
     userId: user.id,

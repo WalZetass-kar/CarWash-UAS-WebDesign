@@ -30,15 +30,22 @@ export async function POST(request: NextRequest) {
     return jsonResponse({ message: "Validasi pembayaran gagal", errors: parsed.error.flatten() }, 422);
   }
 
-  const payment = await createPayment(parsed.data);
-  await logActivity({
-    userId: session.user.id,
-    action: "payment",
-    entity: "payments",
-    entityId: payment.id,
-    ipAddress: getClientIp(request.headers),
-    userAgent: request.headers.get("user-agent"),
-  });
+  try {
+    const payment = await createPayment(parsed.data);
+    await logActivity({
+      userId: session.user.id,
+      action: "payment",
+      entity: "payments",
+      entityId: payment.id,
+      ipAddress: getClientIp(request.headers),
+      userAgent: request.headers.get("user-agent"),
+    });
 
-  return jsonResponse(payment, 201);
+    return jsonResponse(payment, 201);
+  } catch (error) {
+    return jsonResponse(
+      { message: error instanceof Error ? error.message : "Gagal menyimpan pembayaran" },
+      422,
+    );
+  }
 }

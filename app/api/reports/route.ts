@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { reportFilterSchema } from "@/schemas/report";
-import { getDashboardData } from "@/services/dashboard";
 import { requireApiRole } from "@/app/api/_utils";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { getReportData } from "@/services/reports";
 
 export async function GET(request: NextRequest) {
   const { response } = await requireApiRole(request, ["admin"]);
@@ -20,30 +20,28 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Filter laporan tidak valid" }, { status: 422 });
   }
 
-  const data = await getDashboardData();
-  const filteredPayments = data.payments.filter((payment) => {
-    const date = new Date(payment.createdAt);
-    const afterFrom = parsed.data.from ? date >= parsed.data.from : true;
-    const beforeTo = parsed.data.to ? date <= parsed.data.to : true;
-    return afterFrom && beforeTo;
-  });
-  const totalIncome = filteredPayments
-    .filter((payment) => payment.status === "lunas")
-    .reduce((sum, payment) => sum + Number(payment.amount), 0);
-  const rows = filteredPayments.map((payment) => ({
-    tanggal: payment.createdAt,
-    pelanggan: payment.customerName,
-    antrian: payment.queueNumber,
-    metode: payment.method,
-    status: payment.status,
-    total: payment.amount,
+  const { rows, totalIncome, settings } = await getReportData(parsed.data);
+  const popularPackage =
+    Object.entries(rows.reduce<Record<string, number>>((acc, row) => {
+      acc[row.packageName] = (acc[row.packageName] ?? 0) + 1;
+      return acc;
+    }, {})).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "-";
+  const exportRows = rows.map((row) => ({
+    tanggal: row.createdAt,
+    pelanggan: row.customerName,
+    antrian: row.queueNumber,
+    metode: row.method ?? "-",
+    status: row.status,
+    total: row.total,
   }));
 
   if (parsed.data.format === "csv") {
-    const header = Object.keys(rows[0] ?? { tanggal: "", pelanggan: "", antrian: "", metode: "", status: "", total: "" });
+    const header = Object.keys(
+      exportRows[0] ?? { tanggal: "", pelanggan: "", antrian: "", metode: "", status: "", total: "" },
+    );
     const csv = [
       header.join(","),
-      ...rows.map((row) =>
+      ...exportRows.map((row) =>
         header
           .map((key) => `"${String(row[key as keyof typeof row] ?? "").replaceAll('"', '""')}"`)
           .join(","),
@@ -61,20 +59,20 @@ export async function GET(request: NextRequest) {
   if (parsed.data.format === "pdf") {
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text("Laporan Transaksi CleanRide", 14, 18);
+    doc.text(`Laporan Transaksi ${settings.businessName}`, 14, 18);
     doc.setFontSize(11);
     doc.text(`Total pemasukan: ${formatCurrency(totalIncome)}`, 14, 28);
-    doc.text(`Paket populer: ${data.metrics.popularPackage}`, 14, 35);
+    doc.text(`Paket populer: ${popularPackage}`, 14, 35);
     autoTable(doc, {
       startY: 44,
       head: [["Tanggal", "Pelanggan", "Invoice", "Metode", "Status", "Total"]],
-      body: filteredPayments.map((payment) => [
-        formatDate(payment.createdAt),
-        payment.customerName,
-        payment.queueNumber,
-        payment.method,
-        payment.status,
-        formatCurrency(payment.amount),
+      body: rows.map((row) => [
+        formatDate(row.createdAt),
+        row.customerName,
+        row.queueNumber,
+        row.method ?? "-",
+        row.status,
+        formatCurrency(row.total),
       ]),
     });
 
@@ -87,7 +85,11 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({
-    metrics: { ...data.metrics, revenueFiltered: totalIncome },
-    rows,
+    metrics: {
+      revenueFiltered: totalIncome,
+      transactionCount: rows.length,
+      popularPackage,
+    },
+    rows: exportRows,
   });
 }

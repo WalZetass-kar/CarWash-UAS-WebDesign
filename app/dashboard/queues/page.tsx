@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { QueueManager } from "@/features/queues/queue-manager";
 import { listCustomers } from "@/services/customers";
@@ -8,7 +9,13 @@ export const metadata = {
   title: "Antrian Pencucian",
 };
 
-export default async function QueuesPage() {
+export default async function QueuesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; highlight?: string }>;
+}) {
+  await connection();
+  const params = await searchParams;
   const [queues, customers, packages] = await Promise.all([listQueues(), listCustomers(), listPackages()]);
 
   return (
@@ -24,6 +31,8 @@ export default async function QueuesPage() {
         initialQueues={JSON.parse(JSON.stringify(queues))}
         customers={JSON.parse(JSON.stringify(customers))}
         packages={JSON.parse(JSON.stringify(packages))}
+        initialSearch={params.query ?? ""}
+        highlightedId={params.highlight ?? ""}
       />
     </div>
   );

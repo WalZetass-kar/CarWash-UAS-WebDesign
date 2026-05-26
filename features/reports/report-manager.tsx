@@ -8,31 +8,38 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/tables/data-table";
 import { Badge } from "@/components/ui/badge";
-import type { Payment } from "@/lib/data";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import type { ReportRow } from "@/lib/data";
+import { formatCurrency, formatDate, formatDateInput } from "@/lib/utils";
 import { paymentMethodLabels, paymentStatusLabels } from "@/lib/constants";
 import { MonthlyLineChart, PaymentPieChart } from "@/features/dashboard/charts";
 
 export function ReportManager({
-  payments,
+  rows,
   monthlyRevenue,
   popularPackage,
+  businessName,
+  defaultRangeDays,
 }: {
-  payments: Payment[];
+  rows: ReportRow[];
   monthlyRevenue: Array<{ month: string; revenue: number }>;
   popularPackage: string;
+  businessName: string;
+  defaultRangeDays: number;
 }) {
-  const [range, setRange] = useState<Date[]>([]);
+  const [range, setRange] = useState<Date[]>(() => buildDefaultRange(defaultRangeDays));
   const filtered = useMemo(() => {
-    if (range.length < 2) return payments;
+    if (range.length < 2) return rows;
     const [from, to] = range;
-    return payments.filter((payment) => {
-      const date = new Date(payment.createdAt);
-      return date >= from && date <= to;
+    const fromKey = formatDateInput(from);
+    const toKey = formatDateInput(to);
+
+    return rows.filter((row) => {
+      const dateKey = formatDateInput(row.createdAt);
+      return dateKey >= fromKey && dateKey <= toKey;
     });
-  }, [payments, range]);
-  const paid = filtered.filter((payment) => payment.status === "lunas");
-  const total = paid.reduce((sum, payment) => sum + Number(payment.amount), 0);
+  }, [rows, range]);
+  const paid = filtered.filter((row) => row.status === "lunas");
+  const total = paid.reduce((sum, row) => sum + Number(row.total), 0);
 
   function exportCsv() {
     window.location.href = `/api/reports?format=csv${buildRangeParams(range)}`;
@@ -42,14 +49,15 @@ export function ReportManager({
     window.location.href = `/api/reports?format=pdf${buildRangeParams(range)}`;
   }
 
-  const columns = useMemo<ColumnDef<Payment>[]>(
+  const columns = useMemo<ColumnDef<ReportRow>[]>(
     () => [
       { accessorKey: "queueNumber", header: "Invoice" },
       { accessorKey: "customerName", header: "Pelanggan" },
+      { accessorKey: "packageName", header: "Paket" },
       {
         accessorKey: "method",
         header: "Metode",
-        cell: ({ row }) => paymentMethodLabels[row.original.method],
+        cell: ({ row }) => (row.original.method ? paymentMethodLabels[row.original.method] : "-"),
       },
       {
         accessorKey: "status",
@@ -57,9 +65,9 @@ export function ReportManager({
         cell: ({ row }) => paymentStatusLabels[row.original.status],
       },
       {
-        accessorKey: "amount",
+        accessorKey: "total",
         header: "Total",
-        cell: ({ row }) => formatCurrency(row.original.amount),
+        cell: ({ row }) => formatCurrency(row.original.total),
       },
       {
         accessorKey: "createdAt",
@@ -97,19 +105,19 @@ export function ReportManager({
         <CardHeader>
           <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
             <CardTitle>Filter & Export</CardTitle>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Flatpickr
-                className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:w-auto sm:text-sm"
                 value={range}
                 options={{ mode: "range", dateFormat: "Y-m-d" }}
                 onChange={setRange}
                 placeholder="Filter tanggal"
               />
-              <Button variant="outline" onClick={exportCsv}>
+              <Button variant="outline" onClick={exportCsv} className="w-full sm:w-auto sm:flex-none">
                 <Download className="size-4" />
                 CSV
               </Button>
-              <Button onClick={exportPdf}>
+              <Button onClick={exportPdf} className="w-full sm:w-auto sm:flex-none">
                 <FileDown className="size-4" />
                 PDF
               </Button>
@@ -124,7 +132,7 @@ export function ReportManager({
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Pendapatan Bulanan</CardTitle>
+            <CardTitle>Pendapatan Bulanan {businessName}</CardTitle>
           </CardHeader>
           <CardContent>
             <MonthlyLineChart data={monthlyRevenue} />
@@ -149,5 +157,12 @@ export function ReportManager({
 function buildRangeParams(range: Date[]) {
   if (range.length < 2) return "";
   const [from, to] = range;
-  return `&from=${from.toISOString()}&to=${to.toISOString()}`;
+  return `&from=${formatDateInput(from)}&to=${formatDateInput(to)}`;
+}
+
+function buildDefaultRange(defaultRangeDays: number) {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - (defaultRangeDays - 1));
+  return [start, end];
 }

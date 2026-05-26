@@ -32,7 +32,7 @@ export function GalleryUpload() {
     }
 
     setPreview(payload.url);
-    toast.success(payload.persisted ? "Gambar gallery tersimpan" : "Gambar tervalidasi dalam mode demo");
+    toast.success("Gambar gallery tersimpan");
   }
 
   return (

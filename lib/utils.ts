@@ -23,6 +23,7 @@ export function formatDate(value: Date | string | null | undefined) {
   return new Intl.DateTimeFormat("id-ID", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "Asia/Jakarta",
   }).format(date);
 }
 
@@ -47,6 +48,102 @@ export function getTodayKey(timeZone = "Asia/Jakarta") {
   const day = parts.find((part) => part.type === "day")?.value;
 
   return `${year}-${month}-${day}`;
+}
+
+export function getDateKey(value: Date | string | null | undefined, timeZone = "Asia/Jakarta") {
+  if (!value) return null;
+
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return null;
+
+  return getDateParts(date, timeZone).dateKey;
+}
+
+export function getMonthKey(value: Date | string | null | undefined, timeZone = "Asia/Jakarta") {
+  if (!value) return null;
+
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return null;
+
+  const parts = getDateParts(date, timeZone);
+  return `${parts.year}-${parts.month}`;
+}
+
+export function getHourKey(value: Date | string | null | undefined, timeZone = "Asia/Jakarta") {
+  if (!value) return null;
+
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return null;
+
+  const parts = getDateParts(date, timeZone);
+  return `${parts.dateKey} ${parts.hour}`;
+}
+
+export function formatDateInput(value: Date | string, timeZone = "Asia/Jakarta") {
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return "";
+
+  return getDateParts(date, timeZone).dateKey;
+}
+
+export function getLastDays(count: number, timeZone = "Asia/Jakarta") {
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (count - index - 1));
+
+    return {
+      date,
+      key: getTodayKeyForDate(date, timeZone),
+      label: new Intl.DateTimeFormat("id-ID", {
+        weekday: "short",
+        timeZone,
+      }).format(date),
+    };
+  });
+}
+
+export function getLastMonths(count: number, timeZone = "Asia/Jakarta") {
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - (count - index - 1));
+
+    return {
+      date,
+      key: getMonthKey(date, timeZone) ?? "",
+      label: new Intl.DateTimeFormat("id-ID", {
+        month: "short",
+        timeZone,
+      }).format(date),
+    };
+  });
+}
+
+function getTodayKeyForDate(date: Date, timeZone: string) {
+  return getDateParts(date, timeZone).dateKey;
+}
+
+function getDateParts(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === "year")?.value ?? "0000";
+  const month = parts.find((part) => part.type === "month")?.value ?? "00";
+  const day = parts.find((part) => part.type === "day")?.value ?? "00";
+  const hour = parts.find((part) => part.type === "hour")?.value ?? "00";
+
+  return {
+    year,
+    month,
+    day,
+    hour,
+    dateKey: `${year}-${month}-${day}`,
+  };
 }
 
 export function getClientIp(headers: Headers) {

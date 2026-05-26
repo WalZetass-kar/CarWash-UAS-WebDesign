@@ -4,6 +4,7 @@ import {
   BarElement,
   CategoryScale,
   Chart as ChartJS,
+  type ChartOptions,
   Legend,
   LinearScale,
   LineElement,
@@ -15,15 +16,15 @@ import { Bar, Line, Pie } from "react-chartjs-2";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Tooltip, Legend);
 
-const options = {
+const sharedCartesianOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: {
-      labels: {
-        usePointStyle: true,
-        boxHeight: 8,
-      },
+      display: false,
+    },
+    tooltip: {
+      displayColors: false,
     },
   },
   scales: {
@@ -32,10 +33,44 @@ const options = {
       grid: {
         color: "rgba(148, 163, 184, 0.18)",
       },
+      ticks: {
+        font: {
+          size: 11,
+        },
+      },
     },
     x: {
       grid: {
         display: false,
+      },
+      ticks: {
+        autoSkipPadding: 12,
+        maxRotation: 0,
+        minRotation: 0,
+        font: {
+          size: 11,
+        },
+      },
+    },
+  },
+};
+
+const barOptions: ChartOptions<"bar"> = sharedCartesianOptions;
+const lineOptions: ChartOptions<"line"> = sharedCartesianOptions;
+
+const pieOptions: ChartOptions<"pie"> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: "bottom",
+      labels: {
+        usePointStyle: true,
+        boxHeight: 8,
+        padding: 16,
+        font: {
+          size: 11,
+        },
       },
     },
   },
@@ -43,9 +78,9 @@ const options = {
 
 export function WeeklyBarChart({ data }: { data: Array<{ day: string; revenue: number; transactions: number }> }) {
   return (
-    <div className="h-72">
+    <div className="h-60 sm:h-72">
       <Bar
-        options={options}
+        options={barOptions}
         data={{
           labels: data.map((item) => item.day),
           datasets: [
@@ -54,6 +89,7 @@ export function WeeklyBarChart({ data }: { data: Array<{ day: string; revenue: n
               data: data.map((item) => item.transactions),
               backgroundColor: "rgba(8, 145, 178, 0.75)",
               borderRadius: 6,
+              maxBarThickness: 36,
             },
           ],
         }}
@@ -64,9 +100,9 @@ export function WeeklyBarChart({ data }: { data: Array<{ day: string; revenue: n
 
 export function MonthlyLineChart({ data }: { data: Array<{ month: string; revenue: number }> }) {
   return (
-    <div className="h-72">
+    <div className="h-60 sm:h-72">
       <Line
-        options={options}
+        options={lineOptions}
         data={{
           labels: data.map((item) => item.month),
           datasets: [
@@ -76,7 +112,10 @@ export function MonthlyLineChart({ data }: { data: Array<{ month: string; revenu
               borderColor: "rgb(8, 145, 178)",
               backgroundColor: "rgba(8, 145, 178, 0.18)",
               pointBackgroundColor: "rgb(15, 76, 129)",
+              pointRadius: 3,
+              pointHoverRadius: 5,
               tension: 0.35,
+              fill: true,
             },
           ],
         }}
@@ -87,8 +126,9 @@ export function MonthlyLineChart({ data }: { data: Array<{ month: string; revenu
 
 export function PaymentPieChart({ paid, unpaid }: { paid: number; unpaid: number }) {
   return (
-    <div className="h-72">
+    <div className="h-60 sm:h-72">
       <Pie
+        options={pieOptions}
         data={{
           labels: ["Lunas", "Belum Bayar"],
           datasets: [

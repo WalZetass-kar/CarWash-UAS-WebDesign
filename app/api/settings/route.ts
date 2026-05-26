@@ -1,0 +1,39 @@
+import { NextRequest } from "next/server";
+import { jsonResponse, rejectInvalidCsrf, requireApiRole } from "@/app/api/_utils";
+import { appSettingsSchema } from "@/schemas/settings";
+import { sanitizeObject } from "@/lib/security/sanitize";
+import { getClientIp } from "@/lib/utils";
+import { logActivity } from "@/services/activity";
+import { getAppSettings, updateAppSettings } from "@/services/settings";
+
+export async function GET(request: NextRequest) {
+  const { response } = await requireApiRole(request, ["admin"]);
+  if (response) return response;
+
+  return jsonResponse(await getAppSettings());
+}
+
+export async function PUT(request: NextRequest) {
+  const csrfResponse = rejectInvalidCsrf(request);
+  if (csrfResponse) return csrfResponse;
+
+  const { session, response } = await requireApiRole(request, ["admin"]);
+  if (response || !session) return response;
+
+  const parsed = appSettingsSchema.safeParse(sanitizeObject(await request.json()));
+  if (!parsed.success) {
+    return jsonResponse({ message: "Validasi pengaturan gagal", errors: parsed.error.flatten() }, 422);
+  }
+
+  const settings = await updateAppSettings(parsed.data);
+  await logActivity({
+    userId: session.user.id,
+    action: "update",
+    entity: "settings",
+    entityId: settings.id,
+    ipAddress: getClientIp(request.headers),
+    userAgent: request.headers.get("user-agent"),
+  });
+
+  return jsonResponse(settings);
+}

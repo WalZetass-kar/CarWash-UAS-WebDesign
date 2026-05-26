@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Flatpickr from "react-flatpickr";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CalendarClock, CheckCircle2 } from "lucide-react";
+import { CalendarClock, CheckCircle2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { DataTable } from "@/components/tables/data-table";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { Customer, QueueItem, WashPackage } from "@/lib/data";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { queueStatusLabels } from "@/lib/constants";
 
 const statusVariant = {
@@ -26,16 +26,21 @@ export function QueueManager({
   initialQueues,
   customers,
   packages,
+  initialSearch,
+  highlightedId,
 }: {
   initialQueues: QueueItem[];
   customers: Customer[];
   packages: WashPackage[];
+  initialSearch?: string;
+  highlightedId?: string;
 }) {
   const csrfFetch = useCsrfFetch();
   const [queues, setQueues] = useState<QueueItem[]>(initialQueues);
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
   const [packageId, setPackageId] = useState(packages[0]?.id ?? "");
   const [scheduledAt, setScheduledAt] = useState<Date[]>([new Date()]);
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     const refresh = async () => {
@@ -86,6 +91,7 @@ export function QueueManager({
       return;
     }
 
+    setFormOpen(false);
     toast.success("Antrian dibuat");
   }
 
@@ -133,7 +139,7 @@ export function QueueManager({
         header: "Update",
         cell: ({ row }) => (
           <select
-            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-slate-800 dark:bg-slate-950"
+            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
             value={row.original.status}
             onChange={(event) => updateStatus(row.original.id, event.target.value as QueueItem["status"])}
           >
@@ -150,15 +156,27 @@ export function QueueManager({
   return (
     <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
       <Card>
-        <CardHeader>
-          <CardTitle>Antrian Baru</CardTitle>
+        <CardHeader className="p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>Antrian Baru</CardTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setFormOpen((value) => !value)}
+              className="xl:hidden"
+            >
+              {formOpen ? "Sembunyikan" : "Buka Form"}
+              <ChevronDown className={cn("transition-transform", formOpen && "rotate-180")} />
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={cn("p-4 pt-0 sm:p-5 sm:pt-0", !formOpen && "hidden xl:block")}>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
               <Label>Pelanggan</Label>
               <select
-                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                 value={customerId}
                 onChange={(event) => setCustomerId(event.target.value)}
               >
@@ -172,7 +190,7 @@ export function QueueManager({
             <div className="space-y-2">
               <Label>Paket</Label>
               <select
-                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                 value={packageId}
                 onChange={(event) => setPackageId(event.target.value)}
               >
@@ -186,7 +204,7 @@ export function QueueManager({
             <div className="space-y-2">
               <Label>Tanggal & jam</Label>
               <Flatpickr
-                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                 value={scheduledAt}
                 options={{ enableTime: true, dateFormat: "Y-m-d H:i", time_24hr: true }}
                 onChange={setScheduledAt}
@@ -200,17 +218,25 @@ export function QueueManager({
         </CardContent>
       </Card>
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <CardTitle>Riwayat Antrian</CardTitle>
             <Badge variant="success">
               <CheckCircle2 className="mr-1 size-3" />
-              Realtime Ready
+              <span className="sm:hidden">Live</span>
+              <span className="hidden sm:inline">Realtime Ready</span>
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={queues} searchPlaceholder="Cari antrian, pelanggan, status..." />
+        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
+          <DataTable
+            columns={columns}
+            data={queues}
+            searchPlaceholder="Cari antrian, pelanggan, status..."
+            initialSearch={initialSearch}
+            getRowId={(row) => row.id}
+            highlightedRowId={highlightedId}
+          />
         </CardContent>
       </Card>
     </div>

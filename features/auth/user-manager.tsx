@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { KeyRound, Pencil, UserRoundPlus, X } from "lucide-react";
+import { ChevronDown, KeyRound, Pencil, UserRoundPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { User } from "@/lib/data";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 const initialForm = {
   name: "",
@@ -22,11 +22,20 @@ const initialForm = {
   isActive: true,
 };
 
-export function UserManager({ initialData }: { initialData: User[] }) {
+export function UserManager({
+  initialData,
+  initialSearch,
+  highlightedId,
+}: {
+  initialData: User[];
+  initialSearch?: string;
+  highlightedId?: string;
+}) {
   const csrfFetch = useCsrfFetch();
   const [data, setData] = useState<User[]>(initialData);
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,6 +70,7 @@ export function UserManager({ initialData }: { initialData: User[] }) {
       setData((items) => items.map((item) => (item.id === editingId ? saved : item)));
       setEditingId(null);
       setForm(initialForm);
+      setFormOpen(false);
       toast.success(form.password ? "User dan password diperbarui" : "User diperbarui");
       return;
     }
@@ -89,10 +99,12 @@ export function UserManager({ initialData }: { initialData: User[] }) {
     const created = await response.json();
     setData((items) => items.map((item) => (item.id === optimistic.id ? created : item)));
     setForm(initialForm);
+    setFormOpen(false);
     toast.success("User ditambahkan");
   }
 
   function startEdit(user: User) {
+    setFormOpen(true);
     setEditingId(user.id);
     setForm({
       name: user.name,
@@ -106,6 +118,7 @@ export function UserManager({ initialData }: { initialData: User[] }) {
   function cancelEdit() {
     setEditingId(null);
     setForm(initialForm);
+    setFormOpen(false);
   }
 
   async function deactivate(id: string) {
@@ -146,12 +159,23 @@ export function UserManager({ initialData }: { initialData: User[] }) {
         id: "actions",
         header: "Aksi",
         cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => startEdit(row.original)}>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => startEdit(row.original)}
+              className="w-full justify-center sm:w-auto"
+            >
               <Pencil className="size-4" />
               Edit
             </Button>
-            <Button variant="outline" size="sm" onClick={() => deactivate(row.original.id)} disabled={!row.original.isActive}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => deactivate(row.original.id)}
+              disabled={!row.original.isActive}
+              className="w-full justify-center sm:w-auto"
+            >
               <KeyRound className="size-4" />
               Nonaktifkan
             </Button>
@@ -163,17 +187,29 @@ export function UserManager({ initialData }: { initialData: User[] }) {
   return (
     <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <CardTitle>{editingId ? "Edit / Reset User" : "Tambah User"}</CardTitle>
-            {editingId ? (
-              <Button type="button" variant="ghost" size="icon" onClick={cancelEdit}>
-                <X className="size-4" />
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setFormOpen((value) => !value)}
+                className="xl:hidden"
+              >
+                {formOpen ? "Sembunyikan" : editingId ? "Lanjut Edit" : "Buka Form"}
+                <ChevronDown className={cn("transition-transform", formOpen && "rotate-180")} />
               </Button>
-            ) : null}
+              {editingId ? (
+                <Button type="button" variant="ghost" size="icon" onClick={cancelEdit}>
+                  <X className="size-4" />
+                </Button>
+              ) : null}
+            </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={cn("p-4 pt-0 sm:p-5 sm:pt-0", !formOpen && "hidden xl:block")}>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
               <Label>Nama</Label>
@@ -190,7 +226,7 @@ export function UserManager({ initialData }: { initialData: User[] }) {
             <div className="space-y-2">
               <Label>Role</Label>
               <select
-                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                 value={form.role}
                 onChange={(event) => setForm({ ...form, role: event.target.value })}
               >
@@ -203,6 +239,7 @@ export function UserManager({ initialData }: { initialData: User[] }) {
                 type="checkbox"
                 checked={form.isActive}
                 onChange={(event) => setForm({ ...form, isActive: event.target.checked })}
+                className="size-4 shrink-0"
               />
               User aktif
             </label>
@@ -214,11 +251,18 @@ export function UserManager({ initialData }: { initialData: User[] }) {
         </CardContent>
       </Card>
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-5">
           <CardTitle>Manajemen User</CardTitle>
         </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={data} searchPlaceholder="Cari user atau role..." />
+        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
+          <DataTable
+            columns={columns}
+            data={data}
+            searchPlaceholder="Cari user atau role..."
+            initialSearch={initialSearch}
+            getRowId={(row) => row.id}
+            highlightedRowId={highlightedId}
+          />
         </CardContent>
       </Card>
     </div>

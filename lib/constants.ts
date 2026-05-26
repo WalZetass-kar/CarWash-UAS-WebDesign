@@ -1,6 +1,7 @@
 export const APP_NAME = "CleanRide Car Wash";
 export const APP_DESCRIPTION =
   "Aplikasi fullstack modern untuk booking, antrian, pembayaran, dan laporan operasional car wash.";
+export const APP_TIME_ZONE = "Asia/Jakarta";
 
 export const SESSION_COOKIE = "cleanride_session";
 export const CSRF_COOKIE = "cleanride_csrf";
@@ -42,6 +43,7 @@ export const protectedPrefixes = [
   "/api/packages",
   "/api/queues",
   "/api/payments",
+  "/api/settings",
   "/api/transactions",
   "/api/reports",
   "/api/search",
@@ -49,7 +51,12 @@ export const protectedPrefixes = [
   "/api/uploads",
 ];
 
-export const adminOnlyPrefixes = ["/dashboard/users", "/dashboard/settings", "/api/users"];
+export const adminOnlyPrefixes = [
+  "/dashboard/users",
+  "/dashboard/settings",
+  "/api/settings",
+  "/api/users",
+];
 
 export const demoUsers = [
   {

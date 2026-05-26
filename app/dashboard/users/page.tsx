@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { UserManager } from "@/features/auth/user-manager";
 import { requireRole } from "@/lib/auth/session";
@@ -7,8 +8,14 @@ export const metadata = {
   title: "Manajemen User",
 };
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; highlight?: string }>;
+}) {
+  await connection();
   await requireRole(["admin"]);
+  const params = await searchParams;
   const users = JSON.parse(JSON.stringify(await listUsers()));
 
   return (
@@ -20,7 +27,11 @@ export default async function UsersPage() {
           Tambah user, atur role, nonaktifkan user, reset password, search, sorting, dan pagination.
         </p>
       </div>
-      <UserManager initialData={users} />
+      <UserManager
+        initialData={users}
+        initialSearch={params.query ?? ""}
+        highlightedId={params.highlight ?? ""}
+      />
     </div>
   );
 }

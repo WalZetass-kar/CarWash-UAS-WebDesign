@@ -67,6 +67,23 @@ export type Payment = {
   createdAt: string;
 };
 
+export type ActivityFeedItem = {
+  id: string;
+  message: string;
+  createdAt: string;
+};
+
+export type AppSettings = {
+  id: string;
+  businessName: string;
+  businessPhone: string;
+  businessAddress: string;
+  queueSlotCapacity: number;
+  reportDefaultRangeDays: number;
+  autoPrintInvoice: boolean;
+  invoiceFooter: string;
+};
+
 export type TransactionItem = {
   id: string;
   queueId: string;
@@ -77,6 +94,19 @@ export type TransactionItem = {
   packageName: string;
   total: number;
   status: PaymentStatus;
+  createdAt: string;
+};
+
+export type ReportRow = {
+  id: string;
+  transactionId: string;
+  paymentId?: string | null;
+  queueNumber: string;
+  customerName: string;
+  packageName: string;
+  method: PaymentMethod | null;
+  status: PaymentStatus;
+  total: number;
   createdAt: string;
 };
 
@@ -284,29 +314,18 @@ export const demoPayments: Payment[] = [
     paidAt: iso(0, 10, 20),
     createdAt: iso(0, 10, 20),
   },
-  {
-    id: "40000000-0000-4000-8000-000000000002",
-    transactionId: "50000000-0000-4000-8000-000000000002",
-    queueNumber: "CR-002",
-    customerName: demoCustomers[1].name,
-    method: "transfer",
-    amount: demoPackages[2].price,
-    status: "belum_bayar",
-    paidAt: null,
-    createdAt: iso(0, 10, 30),
-  },
-  {
-    id: "40000000-0000-4000-8000-000000000003",
-    transactionId: "50000000-0000-4000-8000-000000000003",
-    queueNumber: "CR-003",
-    customerName: demoCustomers[2].name,
-    method: "tunai",
-    amount: demoPackages[3].price,
-    status: "belum_bayar",
-    paidAt: null,
-    createdAt: iso(0, 10, 45),
-  },
 ];
+
+export const defaultAppSettings: AppSettings = {
+  id: "default",
+  businessName: "CleanRide Car Wash",
+  businessPhone: "0812-3456-7890",
+  businessAddress: "Jl. Cuci Kilat No. 88, Jakarta",
+  queueSlotCapacity: 4,
+  reportDefaultRangeDays: 30,
+  autoPrintInvoice: false,
+  invoiceFooter: "Terima kasih telah mempercayakan kendaraan Anda kepada CleanRide.",
+};
 
 export const weeklyRevenue = [
   { day: "Sen", revenue: 275000, transactions: 5 },

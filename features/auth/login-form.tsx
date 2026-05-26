@@ -11,12 +11,16 @@ import { Label } from "@/components/ui/label";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 
+const showSeedCredentials = process.env.NODE_ENV !== "production";
+const seedAdminEmail = "admin@cleanride.my.id";
+const seedAdminPassword = "admin123";
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const csrfFetch = useCsrfFetch();
-  const [email, setEmail] = useState("admin@cleanride.my.id");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState(showSeedCredentials ? seedAdminEmail : "");
+  const [password, setPassword] = useState(showSeedCredentials ? seedAdminPassword : "");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -42,14 +46,16 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-lg border border-white/60 bg-white/90 p-6 shadow-2xl shadow-cyan-950/12 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
-      <div className="mb-8 text-center">
+    <div className="mx-auto w-full max-w-md rounded-2xl border border-white/60 bg-white/90 p-5 shadow-2xl shadow-cyan-950/12 backdrop-blur sm:p-6 dark:border-slate-800 dark:bg-slate-950/90">
+      <div className="mb-6 text-center sm:mb-8">
         <Link href="/" className="mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-cyan-600 text-white">
           <Car className="size-6" />
         </Link>
         <h1 className="text-2xl font-semibold">Masuk Dashboard</h1>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          Gunakan akun demo admin atau petugas untuk presentasi.
+          {showSeedCredentials
+            ? "Gunakan akun seed awal admin atau petugas untuk setup lokal."
+            : "Masukkan email dan password akun operasional."}
         </p>
       </div>
 
@@ -99,14 +105,18 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <div className="mt-6 grid gap-2 rounded-lg bg-slate-50 p-4 text-xs text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-        <div>
-          <span className="font-semibold">Admin:</span> admin@cleanride.my.id / admin123
+      {showSeedCredentials ? (
+        <div className="mt-6 grid gap-2 rounded-lg bg-slate-50 p-4 text-xs text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+          <div>
+            <span className="font-semibold">Admin:</span>{" "}
+            <span className="break-all">admin@cleanride.my.id / admin123</span>
+          </div>
+          <div>
+            <span className="font-semibold">Petugas:</span>{" "}
+            <span className="break-all">petugas@cleanride.my.id / petugas123</span>
+          </div>
         </div>
-        <div>
-          <span className="font-semibold">Petugas:</span> petugas@cleanride.my.id / petugas123
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 }

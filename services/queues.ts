@@ -1,17 +1,29 @@
-import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
+import { and, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import { customers, queues, transactions, washPackages } from "@/drizzle/schema";
-import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import { demoQueues, demoPackages, demoCustomers, type QueueItem } from "@/lib/data";
+import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDemoState } from "@/lib/demo-store";
+import { type QueueItem } from "@/lib/data";
+import { getHourKey } from "@/lib/utils";
 import type { QueueInput, QueueStatusInput } from "@/schemas/queue";
-
-let memoryQueues: QueueItem[] = [...demoQueues];
+import { getAppSettings } from "@/services/settings";
+import { createMemoryTransaction } from "@/services/transactions";
 
 function nextQueueNumber(count: number) {
   return `CR-${String(count + 1).padStart(3, "0")}`;
 }
 
+function isUniqueViolation(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "23505"
+  );
+}
+
 export async function listQueues(query = "", status?: string | null) {
-  if (!hasDatabaseConfig()) {
+  if (shouldUseDemoData()) {
+    const { queues: memoryQueues } = getDemoState();
     const normalized = query.toLowerCase();
     return memoryQueues.filter((item) => {
       const matchesQuery = [item.queueNumber, item.customerName, item.packageName, item.licensePlate]
@@ -58,9 +70,32 @@ export async function listQueues(query = "", status?: string | null) {
 }
 
 export async function createQueue(input: QueueInput, createdBy?: string) {
-  if (!hasDatabaseConfig()) {
-    const customer = demoCustomers.find((item) => item.id === input.customerId) ?? demoCustomers[0];
-    const washPackage = demoPackages.find((item) => item.id === input.packageId) ?? demoPackages[0];
+  const settings = await getAppSettings();
+  const requestedHourKey = getHourKey(input.scheduledAt);
+  if (!requestedHourKey) {
+    throw new Error("Jadwal antrian tidak valid.");
+  }
+
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    const memoryQueues = state.queues;
+    const queuesInSlot = memoryQueues.filter(
+      (item) => item.status !== "dibatalkan" && getHourKey(item.scheduledAt) === requestedHourKey,
+    );
+    if (queuesInSlot.length >= settings.queueSlotCapacity) {
+      throw new Error("Slot jadwal pada jam tersebut sudah penuh.");
+    }
+
+    const customer = state.customers.find((item) => item.id === input.customerId);
+    if (!customer) {
+      throw new Error("Pelanggan tidak ditemukan.");
+    }
+
+    const washPackage = state.packages.find((item) => item.id === input.packageId && item.isActive);
+    if (!washPackage) {
+      throw new Error("Paket tidak ditemukan atau tidak aktif.");
+    }
+
     const queue: QueueItem = {
       id: crypto.randomUUID(),
       queueNumber: nextQueueNumber(memoryQueues.length),
@@ -74,50 +109,99 @@ export async function createQueue(input: QueueInput, createdBy?: string) {
       total: washPackage.price,
       createdAt: new Date().toISOString(),
     };
-    memoryQueues = [queue, ...memoryQueues];
+    state.queues = [queue, ...memoryQueues];
+    createMemoryTransaction({
+      id: crypto.randomUUID(),
+      queueId: queue.id,
+      queueNumber: queue.queueNumber,
+      customerId: customer.id,
+      customerName: customer.name,
+      packageId: washPackage.id,
+      packageName: washPackage.name,
+      total: washPackage.price,
+      status: "belum_bayar",
+      createdAt: queue.createdAt,
+    });
     return queue;
   }
 
   const db = getDb();
-  const [washPackage] = await db
-    .select()
-    .from(washPackages)
-    .where(and(eq(washPackages.id, input.packageId), isNull(washPackages.deletedAt)));
-  if (!washPackage) throw new Error("Paket tidak ditemukan.");
-
-  const countRows = await db.select({ id: queues.id }).from(queues);
-  const [created] = await db
-    .insert(queues)
-    .values({
-      queueNumber: nextQueueNumber(countRows.length),
-      customerId: input.customerId,
-      packageId: input.packageId,
-      scheduledAt: input.scheduledAt,
-      status: input.status,
-      notes: input.notes,
+  const existingQueues = await db
+    .select({
+      scheduledAt: queues.scheduledAt,
+      status: queues.status,
     })
-    .returning();
+    .from(queues)
+    .where(isNull(queues.deletedAt));
+  const queuesInSlot = existingQueues.filter(
+    (item) => item.status !== "dibatalkan" && getHourKey(item.scheduledAt) === requestedHourKey,
+  );
+  if (queuesInSlot.length >= settings.queueSlotCapacity) {
+    throw new Error("Slot jadwal pada jam tersebut sudah penuh.");
+  }
 
-  await db.insert(transactions).values({
-    queueId: created.id,
-    customerId: input.customerId,
-    packageId: input.packageId,
-    subtotal: washPackage.price,
-    discount: 0,
-    total: washPackage.price,
-    status: "belum_bayar",
-    createdBy,
-  });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await db.transaction(async (tx) => {
+        const [washPackage] = await tx
+          .select()
+          .from(washPackages)
+          .where(
+            and(
+              eq(washPackages.id, input.packageId),
+              eq(washPackages.isActive, true),
+              isNull(washPackages.deletedAt),
+            ),
+          );
+        if (!washPackage) throw new Error("Paket tidak ditemukan atau tidak aktif.");
 
-  return created;
+        const [numberRow] = await tx
+          .select({
+            nextNumber: sql<number>`coalesce(max((regexp_replace(${queues.queueNumber}, '[^0-9]', '', 'g'))::integer), 0) + 1`,
+          })
+          .from(queues);
+        const queueNumber = nextQueueNumber(Number(numberRow?.nextNumber ?? 1) - 1);
+        const [created] = await tx
+          .insert(queues)
+          .values({
+            queueNumber,
+            customerId: input.customerId,
+            packageId: input.packageId,
+            scheduledAt: input.scheduledAt,
+            status: input.status,
+            notes: input.notes,
+          })
+          .returning();
+
+        await tx.insert(transactions).values({
+          queueId: created.id,
+          customerId: input.customerId,
+          packageId: input.packageId,
+          subtotal: washPackage.price,
+          discount: 0,
+          total: washPackage.price,
+          status: "belum_bayar",
+          createdBy,
+        });
+
+        return created;
+      });
+    } catch (error) {
+      if (attempt < 2 && isUniqueViolation(error)) continue;
+      throw error;
+    }
+  }
+
+  throw new Error("Gagal membuat nomor antrian.");
 }
 
 export async function updateQueueStatus(id: string, input: QueueStatusInput) {
-  if (!hasDatabaseConfig()) {
-    memoryQueues = memoryQueues.map((item) =>
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    state.queues = state.queues.map((item) =>
       item.id === id ? { ...item, status: input.status } : item,
     );
-    return memoryQueues.find((item) => item.id === id) ?? null;
+    return state.queues.find((item) => item.id === id) ?? null;
   }
 
   const [updated] = await getDb()
@@ -129,8 +213,9 @@ export async function updateQueueStatus(id: string, input: QueueStatusInput) {
 }
 
 export async function deleteQueue(id: string) {
-  if (!hasDatabaseConfig()) {
-    memoryQueues = memoryQueues.filter((item) => item.id !== id);
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    state.queues = state.queues.filter((item) => item.id !== id);
     return true;
   }
 

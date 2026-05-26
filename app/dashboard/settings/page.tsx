@@ -1,14 +1,19 @@
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GalleryUpload } from "@/features/dashboard/gallery-upload";
+import { SettingsManager } from "@/features/settings/settings-manager";
 import { requireRole } from "@/lib/auth/session";
+import { getAppSettings } from "@/services/settings";
 
 export const metadata = {
   title: "Pengaturan",
 };
 
 export default async function SettingsPage() {
+  await connection();
   await requireRole(["admin"]);
+  const settings = await getAppSettings();
 
   return (
     <div className="space-y-6">
@@ -20,6 +25,9 @@ export default async function SettingsPage() {
         </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
+        <div className="lg:col-span-2">
+          <SettingsManager initialSettings={JSON.parse(JSON.stringify(settings))} />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Keamanan</CardTitle>
@@ -36,8 +44,8 @@ export default async function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
             <p>Supabase Realtime tersambung ke tabel queues dan payments.</p>
-            <p>Dashboard akan memakai mode demo bila environment Supabase belum diisi.</p>
-            <p>Preferensi dark mode tersimpan via next-themes localStorage.</p>
+            <p>Slot antrian saat ini dibatasi {settings.queueSlotCapacity} kendaraan per jam.</p>
+            <p>Invoice otomatis: {settings.autoPrintInvoice ? "aktif" : "manual"}.</p>
           </CardContent>
         </Card>
         <Card>

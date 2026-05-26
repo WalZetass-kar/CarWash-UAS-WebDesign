@@ -19,6 +19,6 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  await clearSessionCookie();
+  await clearSessionCookie(request);
   return jsonResponse({ message: "Logout berhasil" });
 }

@@ -1,13 +1,13 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { customers } from "@/drizzle/schema";
-import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import { demoCustomers, type Customer } from "@/lib/data";
+import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDemoState } from "@/lib/demo-store";
+import { type Customer } from "@/lib/data";
 import type { CustomerInput } from "@/schemas/customer";
 
-let memoryCustomers: Customer[] = [...demoCustomers];
-
 export async function listCustomers(query = "") {
-  if (!hasDatabaseConfig()) {
+  if (shouldUseDemoData()) {
+    const { customers: memoryCustomers } = getDemoState();
     const normalized = query.toLowerCase();
     return memoryCustomers.filter((customer) =>
       [customer.name, customer.phone, customer.licensePlate, customer.vehicleType]
@@ -33,14 +33,15 @@ export async function listCustomers(query = "") {
 }
 
 export async function createCustomer(input: CustomerInput) {
-  if (!hasDatabaseConfig()) {
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
     const customer: Customer = {
       id: crypto.randomUUID(),
       ...input,
       notes: input.notes,
       createdAt: new Date().toISOString(),
     };
-    memoryCustomers = [customer, ...memoryCustomers];
+    state.customers = [customer, ...state.customers];
     return customer;
   }
 
@@ -52,11 +53,12 @@ export async function createCustomer(input: CustomerInput) {
 }
 
 export async function updateCustomer(id: string, input: CustomerInput) {
-  if (!hasDatabaseConfig()) {
-    memoryCustomers = memoryCustomers.map((customer) =>
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    state.customers = state.customers.map((customer) =>
       customer.id === id ? { ...customer, ...input, notes: input.notes } : customer,
     );
-    return memoryCustomers.find((customer) => customer.id === id) ?? null;
+    return state.customers.find((customer) => customer.id === id) ?? null;
   }
 
   const [updated] = await getDb()
@@ -68,8 +70,9 @@ export async function updateCustomer(id: string, input: CustomerInput) {
 }
 
 export async function deleteCustomer(id: string) {
-  if (!hasDatabaseConfig()) {
-    memoryCustomers = memoryCustomers.filter((customer) => customer.id !== id);
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    state.customers = state.customers.filter((customer) => customer.id !== id);
     return true;
   }
 

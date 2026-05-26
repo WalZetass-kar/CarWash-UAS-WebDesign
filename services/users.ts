@@ -1,18 +1,14 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { users } from "@/drizzle/schema";
-import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import { demoUsers } from "@/lib/constants";
+import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDemoState, toPublicUser } from "@/lib/demo-store";
 import type { User } from "@/lib/data";
 import type { UserFormInput } from "@/schemas/auth";
 import { hashPassword } from "@/lib/auth/password";
 
-let memoryUsers: User[] = demoUsers.map((user) => ({
-  ...user,
-  createdAt: new Date().toISOString(),
-}));
-
 export async function listUsers(query = "", role?: string | null) {
-  if (!hasDatabaseConfig()) {
+  if (shouldUseDemoData()) {
+    const memoryUsers = getDemoState().users.map(toPublicUser);
     const normalized = query.toLowerCase();
     return memoryUsers.filter((item) => {
       const matchesQuery = [item.name, item.email, item.role].join(" ").toLowerCase().includes(normalized);
@@ -44,16 +40,23 @@ export async function listUsers(query = "", role?: string | null) {
 export async function createUser(input: UserFormInput) {
   if (!input.password) throw new Error("Password wajib diisi.");
 
-  if (!hasDatabaseConfig()) {
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
     const user: User = {
       id: crypto.randomUUID(),
       name: input.name,
-      email: input.email,
+      email: input.email.toLowerCase(),
       role: input.role,
       isActive: input.isActive,
       createdAt: new Date().toISOString(),
     };
-    memoryUsers = [user, ...memoryUsers];
+    state.users = [
+      {
+        ...user,
+        password: input.password,
+      },
+      ...state.users,
+    ];
     return user;
   }
 
@@ -78,19 +81,22 @@ export async function createUser(input: UserFormInput) {
 }
 
 export async function updateUser(id: string, input: UserFormInput) {
-  if (!hasDatabaseConfig()) {
-    memoryUsers = memoryUsers.map((item) =>
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    state.users = state.users.map((item) =>
       item.id === id
         ? {
             ...item,
             name: input.name,
-            email: input.email,
+            email: input.email.toLowerCase(),
             role: input.role,
             isActive: input.isActive,
+            password: input.password || item.password,
           }
         : item,
     );
-    return memoryUsers.find((item) => item.id === id) ?? null;
+    const updated = state.users.find((item) => item.id === id);
+    return updated ? toPublicUser(updated) : null;
   }
 
   const [updated] = await getDb()
@@ -116,8 +122,9 @@ export async function updateUser(id: string, input: UserFormInput) {
 }
 
 export async function deactivateUser(id: string) {
-  if (!hasDatabaseConfig()) {
-    memoryUsers = memoryUsers.map((item) =>
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    state.users = state.users.map((item) =>
       item.id === id ? { ...item, isActive: false } : item,
     );
     return true;

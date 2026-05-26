@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { CustomerManager } from "@/features/customers/customer-manager";
 import { requireSession } from "@/lib/auth/session";
@@ -7,8 +8,14 @@ export const metadata = {
   title: "Data Pelanggan",
 };
 
-export default async function CustomersPage() {
+export default async function CustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; highlight?: string }>;
+}) {
+  await connection();
   const session = await requireSession();
+  const params = await searchParams;
   const customers = JSON.parse(JSON.stringify(await listCustomers()));
 
   return (
@@ -20,7 +27,12 @@ export default async function CustomersPage() {
           Kelola pelanggan, kendaraan, catatan, pencarian, sorting, dan pagination.
         </p>
       </div>
-      <CustomerManager initialData={customers} role={session.user.role} />
+      <CustomerManager
+        initialData={customers}
+        role={session.user.role}
+        initialSearch={params.query ?? ""}
+        highlightedId={params.highlight ?? ""}
+      />
     </div>
   );
 }
