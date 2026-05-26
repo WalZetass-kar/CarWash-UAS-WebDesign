@@ -9,7 +9,7 @@ Aplikasi web fullstack modern untuk Projek UAS Mata Kuliah Web Design. CleanRide
 - Framer Motion, Flatpickr, TanStack Table, Chart.js
 - Supabase Database + Supabase Realtime
 - Drizzle ORM + Drizzle Kit
-- Zod, JWT `jose`, bcryptjs, DOMPurify
+- Zod, JWT `jose`, bcryptjs
 - HTTPOnly cookies, RBAC middleware, CSRF guard, security headers
 - PWA manifest + service worker basic cache
 - Vercel deployment ready
@@ -137,7 +137,7 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - Global search deep-link ke record terkait di halaman pelanggan, paket, antrian, pembayaran, dan user
 - Halaman Settings admin menyimpan nama bisnis, alamat, telepon, default range laporan, auto print invoice, dan kapasitas antrian per jam
 - Activity log server-side
-- Zod validation, DOMPurify sanitization, bcryptjs password hash
+- Zod validation, server-side input sanitization, bcryptjs password hash
 - CSRF protection, login rate limiting, security headers
 - Upload guard 2MB untuk jpg/jpeg/png/webp di `lib/security/upload-guard.ts` dan halaman Settings admin
 - Favicon, Open Graph image, manifest PWA, icon 192/512, dan screenshot PWA

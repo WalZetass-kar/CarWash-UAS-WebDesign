@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
+import { readJsonResponse } from "@/lib/http/read-json-response";
 
 const showSeedCredentials = process.env.NODE_ENV !== "production";
 const seedAdminEmail = "admin@cleanride.my.id";
@@ -32,7 +33,7 @@ export function LoginForm() {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
-    const payload = await response.json();
+    const payload = await readJsonResponse<{ message?: string }>(response);
     setLoading(false);
 
     if (!response.ok) {

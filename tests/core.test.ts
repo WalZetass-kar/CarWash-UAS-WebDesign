@@ -6,6 +6,7 @@ import { getJwtSecretValue } from "../lib/auth/jwt-secret";
 import { validateCsrf } from "../lib/security/csrf";
 import { APP_TIME_ZONE } from "../lib/constants";
 import { defaultAppSettings, demoCustomers, demoPackages, demoPayments, demoTransactions } from "../lib/data";
+import { sanitizeString } from "../lib/security/sanitize";
 import { getDateKey } from "../lib/utils";
 import { proxy } from "../proxy";
 import { customerSchema } from "../schemas/customer";
@@ -124,6 +125,10 @@ test("schema CRUD pelanggan menolak input tidak valid", () => {
     }).success,
     false,
   );
+});
+
+test("sanitasi string menghapus tag html dan karakter kontrol", () => {
+  assert.equal(sanitizeString("  <b>Halo</b>\u0000<script>x</script> Dunia  "), "Halo x Dunia");
 });
 
 test("queue demo membuat transaksi pending", async () => {

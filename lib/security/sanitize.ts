@@ -1,10 +1,9 @@
-import DOMPurify from "isomorphic-dompurify";
-
 export function sanitizeString(value: string) {
-  return DOMPurify.sanitize(value, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  }).trim();
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/[\u0000-\u001F\u007F]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function sanitizeObject<T extends Record<string, unknown>>(input: T): T {

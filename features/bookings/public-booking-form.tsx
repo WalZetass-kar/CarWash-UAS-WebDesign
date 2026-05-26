@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { VehicleType, WashPackage } from "@/lib/data";
+import { readJsonResponse } from "@/lib/http/read-json-response";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 type BookingSuccess = {
@@ -69,13 +70,13 @@ export function PublicBookingForm({
     });
 
     setSubmitting(false);
-    const payload = await response.json();
+    const payload = await readJsonResponse<{ message?: string; booking?: BookingSuccess }>(response);
     if (!response.ok) {
       toast.error(payload.message ?? "Gagal membuat booking");
       return;
     }
 
-    setSuccess(payload.booking as BookingSuccess);
+    setSuccess(payload.booking ?? null);
     toast.success("Booking berhasil dibuat");
   }
 
