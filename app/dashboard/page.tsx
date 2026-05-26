@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { getDashboardData } from "@/services/dashboard";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { MonthlyLineChart, PaymentPieChart, WeeklyBarChart } from "@/features/dashboard/charts";
 
 export default async function DashboardPage() {
@@ -126,7 +127,7 @@ export default async function DashboardPage() {
 
 async function loadDashboardData() {
   try {
-    return await getDashboardData();
+    return await withDatabaseRetry(() => getDashboardData());
   } catch (error) {
     console.error("Failed to load dashboard page data", error);
     return null;

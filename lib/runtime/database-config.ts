@@ -1,7 +1,7 @@
 export const DATABASE_ENV_CANDIDATES = [
   "DATABASE_URL",
-  "POSTGRES_URL_NON_POOLING",
   "POSTGRES_URL",
+  "POSTGRES_URL_NON_POOLING",
 ] as const;
 
 export function getConfiguredDatabaseUrl() {

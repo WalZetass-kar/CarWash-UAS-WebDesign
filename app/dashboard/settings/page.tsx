@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GalleryUpload } from "@/features/dashboard/gallery-upload";
 import { SettingsManager } from "@/features/settings/settings-manager";
 import { requireRole } from "@/lib/auth/session";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { getAppSettings } from "@/services/settings";
 
 export const metadata = {
@@ -65,7 +66,7 @@ export default async function SettingsPage() {
 
 async function loadSettingsData() {
   try {
-    return await getAppSettings();
+    return await withDatabaseRetry(() => getAppSettings());
   } catch (error) {
     console.error("Failed to load settings page data", error);
     return null;

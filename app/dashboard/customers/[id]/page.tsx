@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { CustomerHistoryView } from "@/features/customers/customer-history";
 import { requireRole } from "@/lib/auth/session";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { getCustomerHistory } from "@/services/customer-history";
 
 export const metadata = {
@@ -24,7 +25,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
 async function loadCustomerHistoryData(id: string) {
   try {
-    return await getCustomerHistory(id);
+    return await withDatabaseRetry(() => getCustomerHistory(id));
   } catch (error) {
     console.error("Failed to load customer history page data", error);
     return "connection-error" as const;

@@ -3,12 +3,16 @@ import { Badge } from "@/components/ui/badge";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { ReportManager } from "@/features/reports/report-manager";
 import { requireRole } from "@/lib/auth/session";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { getDashboardData } from "@/services/dashboard";
-import { getReportData } from "@/services/reports";
 
 export const metadata = {
   title: "Laporan Transaksi",
 };
+
+type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
+type DashboardPayment = DashboardData["payments"][number];
+type DashboardTransaction = DashboardData["transactions"][number];
 
 export default async function ReportsPage() {
   await connection();
@@ -16,7 +20,7 @@ export default async function ReportsPage() {
   const pageData = await loadReportsData();
   if (!pageData) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
-  const [data, reportData] = pageData;
+  const { data, reportRows } = pageData;
 
   return (
     <div className="space-y-6">
@@ -28,7 +32,7 @@ export default async function ReportsPage() {
         </p>
       </div>
       <ReportManager
-        rows={JSON.parse(JSON.stringify(reportData.rows))}
+        rows={JSON.parse(JSON.stringify(reportRows))}
         monthlyRevenue={data.monthlyRevenue}
         popularPackage={data.metrics.popularPackage}
         businessName={data.settings.businessName}
@@ -40,9 +44,40 @@ export default async function ReportsPage() {
 
 async function loadReportsData() {
   try {
-    return await Promise.all([getDashboardData(), getReportData()]);
+    return await withDatabaseRetry(async () => {
+      const data = await getDashboardData();
+      return {
+        data,
+        reportRows: buildReportRows(data.transactions, data.payments),
+      };
+    });
   } catch (error) {
     console.error("Failed to load reports page data", error);
     return null;
   }
+}
+
+function buildReportRows(transactions: DashboardTransaction[], payments: DashboardPayment[]) {
+  const paymentByTransactionId = new Map(payments.map((payment) => [payment.transactionId, payment]));
+
+  return transactions.map((transaction) => {
+    const payment = paymentByTransactionId.get(transaction.id);
+
+    return {
+      id: transaction.id,
+      transactionId: transaction.id,
+      paymentId: payment?.id ?? null,
+      queueNumber: transaction.queueNumber,
+      customerName: transaction.customerName,
+      packageName: transaction.packageName,
+      method: payment?.method ?? null,
+      status: transaction.status,
+      total: transaction.total,
+      createdAt: toIsoString(payment?.paidAt ?? payment?.createdAt ?? transaction.createdAt),
+    };
+  });
+}
+
+function toIsoString(value: Date | string) {
+  return value instanceof Date ? value.toISOString() : value;
 }

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { CustomerManager } from "@/features/customers/customer-manager";
 import { requireSession } from "@/lib/auth/session";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { listCustomers } from "@/services/customers";
 
 export const metadata = {
@@ -41,7 +42,7 @@ export default async function CustomersPage({
 
 async function loadCustomersData() {
   try {
-    return JSON.parse(JSON.stringify(await listCustomers()));
+    return JSON.parse(JSON.stringify(await withDatabaseRetry(() => listCustomers())));
   } catch (error) {
     console.error("Failed to load customers page data", error);
     return null;

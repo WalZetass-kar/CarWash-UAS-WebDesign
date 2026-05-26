@@ -10,16 +10,14 @@ import { listTransactions } from "@/services/transactions";
 import { listUsers } from "@/services/users";
 
 export async function getDashboardData() {
-  const [customers, packages, queues, payments, transactions, users, settings, activity] = await Promise.all([
-    listCustomers(),
-    listPackages(),
-    listQueues(),
-    listPayments(),
-    listTransactions(),
-    listUsers(),
-    getAppSettings(),
-    listRecentActivity(6),
-  ]);
+  const customers = await listCustomers();
+  const packages = await listPackages();
+  const queues = await listQueues();
+  const payments = await listPayments();
+  const transactions = await listTransactions();
+  const users = await listUsers();
+  const settings = await getAppSettings();
+  const activity = await listRecentActivity(6);
 
   const todayKey = getDateKey(new Date(), APP_TIME_ZONE);
   const currentMonthKey = getMonthKey(new Date(), APP_TIME_ZONE);

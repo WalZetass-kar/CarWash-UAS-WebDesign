@@ -25,7 +25,11 @@ export function getSupabaseUrl() {
 }
 
 export function getSupabaseBrowserKey() {
-  return getEnvValue(PUBLIC_SUPABASE_KEY_CANDIDATES);
+  return (
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
+    process.env.SUPABASE_ANON_KEY?.trim()
+  );
 }
 
 export function getSupabaseAdminKey() {

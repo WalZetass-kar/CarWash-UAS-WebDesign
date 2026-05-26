@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { PaymentManager } from "@/features/payments/payment-manager";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { listPayments } from "@/services/payments";
 import { getAppSettings } from "@/services/settings";
 import { listTransactions } from "@/services/transactions";
@@ -45,11 +46,12 @@ export default async function PaymentsPage({
 
 async function loadPaymentsData() {
   try {
-    return await Promise.all([
-      listPayments(),
-      listTransactions("", "belum_bayar"),
-      getAppSettings(),
-    ]);
+    return await withDatabaseRetry(async () => {
+      const payments = await listPayments();
+      const transactions = await listTransactions("", "belum_bayar");
+      const settings = await getAppSettings();
+      return [payments, transactions, settings] as const;
+    });
   } catch (error) {
     console.error("Failed to load payments page data", error);
     return null;

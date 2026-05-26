@@ -4,6 +4,7 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { requireSession } from "@/lib/auth/session";
 import { APP_NAME } from "@/lib/constants";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { getAppSettings } from "@/services/settings";
 
 export const metadata = {
@@ -40,7 +41,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
 async function loadDashboardSettings() {
   try {
-    return await getAppSettings();
+    return await withDatabaseRetry(() => getAppSettings());
   } catch (error) {
     console.error("Failed to load dashboard settings", error);
     return null;

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { UserManager } from "@/features/auth/user-manager";
 import { requireRole } from "@/lib/auth/session";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { listUsers } from "@/services/users";
 
 export const metadata = {
@@ -40,7 +41,7 @@ export default async function UsersPage({
 
 async function loadUsersData() {
   try {
-    return JSON.parse(JSON.stringify(await listUsers()));
+    return JSON.parse(JSON.stringify(await withDatabaseRetry(() => listUsers())));
   } catch (error) {
     console.error("Failed to load users page data", error);
     return null;

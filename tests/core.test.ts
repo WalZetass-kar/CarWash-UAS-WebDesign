@@ -86,7 +86,7 @@ test("service data menolak jalan tanpa database jika mode demo tidak diaktifkan"
 
   await assert.rejects(
     () => listCustomers(),
-    /DATABASE_URL, POSTGRES_URL_NON_POOLING, POSTGRES_URL wajib diatur/,
+    /DATABASE_URL, POSTGRES_URL, POSTGRES_URL_NON_POOLING wajib diatur/,
   );
 });
 

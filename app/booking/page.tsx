@@ -2,6 +2,7 @@ import { hasDatabaseConfig } from "@/drizzle/db";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { Badge } from "@/components/ui/badge";
 import { PublicBookingForm } from "@/features/bookings/public-booking-form";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { getAppSettings } from "@/services/settings";
 import { listPackages } from "@/services/packages";
 
@@ -88,7 +89,11 @@ export default async function BookingPage({
 
 async function loadBookingData() {
   try {
-    return await Promise.all([getAppSettings(), listPackages()]);
+    return await withDatabaseRetry(async () => {
+      const settings = await getAppSettings();
+      const packages = await listPackages();
+      return [settings, packages] as const;
+    });
   } catch (error) {
     console.error("Failed to load booking page data", error);
     return null;

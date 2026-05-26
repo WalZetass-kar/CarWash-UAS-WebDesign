@@ -6,11 +6,9 @@ import { getAppSettings } from "@/services/settings";
 import { listTransactions } from "@/services/transactions";
 
 export async function getReportData(filters?: { from?: string; to?: string }) {
-  const [transactions, payments, settings] = await Promise.all([
-    listTransactions(),
-    listPayments(),
-    getAppSettings(),
-  ]);
+  const transactions = await listTransactions();
+  const payments = await listPayments();
+  const settings = await getAppSettings();
   const paymentByTransactionId = new Map(payments.map((payment) => [payment.transactionId, payment]));
 
   const rows = transactions

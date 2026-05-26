@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { QueueManager } from "@/features/queues/queue-manager";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { listCustomers } from "@/services/customers";
 import { listPackages } from "@/services/packages";
 import { listQueues } from "@/services/queues";
@@ -44,7 +45,12 @@ export default async function QueuesPage({
 
 async function loadQueuesData() {
   try {
-    return await Promise.all([listQueues(), listCustomers(), listPackages()]);
+    return await withDatabaseRetry(async () => {
+      const queues = await listQueues();
+      const customers = await listCustomers();
+      const packages = await listPackages();
+      return [queues, customers, packages] as const;
+    });
   } catch (error) {
     console.error("Failed to load queues page data", error);
     return null;

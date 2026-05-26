@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { PackageManager } from "@/features/packages/package-manager";
 import { requireSession } from "@/lib/auth/session";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { listPackages } from "@/services/packages";
 
 export const metadata = {
@@ -41,7 +42,7 @@ export default async function PackagesPage({
 
 async function loadPackagesData() {
   try {
-    return JSON.parse(JSON.stringify(await listPackages()));
+    return JSON.parse(JSON.stringify(await withDatabaseRetry(() => listPackages())));
   } catch (error) {
     console.error("Failed to load packages page data", error);
     return null;
