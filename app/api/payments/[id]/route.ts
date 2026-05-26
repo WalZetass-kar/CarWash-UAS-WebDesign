@@ -13,7 +13,7 @@ export async function PUT(
   const csrfResponse = rejectInvalidCsrf(request);
   if (csrfResponse) return csrfResponse;
 
-  const { session, response } = await requireApiRole(request, ["admin", "petugas"]);
+  const { session, response } = await requireApiRole(request, ["admin", "kasir", "petugas"]);
   if (response || !session) return response;
 
   const parsed = paymentSchema.safeParse(sanitizeObject(await request.json()));

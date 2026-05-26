@@ -12,13 +12,17 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
-export const roleEnum = pgEnum("role", ["admin", "petugas"]);
+export const roleEnum = pgEnum("role", ["admin", "kasir", "staff", "petugas"]);
 export const vehicleTypeEnum = pgEnum("vehicle_type", ["mobil", "motor", "suv", "pickup", "van"]);
 export const queueStatusEnum = pgEnum("queue_status", [
   "menunggu",
-  "diproses",
+  "antrian",
+  "sedang_dicuci",
+  "interior_cleaning",
+  "finishing",
   "selesai",
   "dibatalkan",
+  "diproses",
 ]);
 export const paymentMethodEnum = pgEnum("payment_method", ["tunai", "transfer", "qris", "e-wallet"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["belum_bayar", "lunas"]);
@@ -71,6 +75,7 @@ export const washPackages = pgTable(
     description: text("description").notNull(),
     price: integer("price").notNull(),
     estimatedMinutes: integer("estimated_minutes").notNull(),
+    imageUrl: text("image_url"),
     isActive: boolean("is_active").notNull().default(true),
   },
   (table) => [index("wash_packages_active_idx").on(table.isActive)],

@@ -3,7 +3,8 @@ import type { SessionUser } from "@/lib/auth/jwt";
 export type Permission =
   | "customers:manage"
   | "packages:manage"
-  | "queues:manage"
+  | "queues:create"
+  | "queues:update-status"
   | "payments:manage"
   | "transactions:delete"
   | "reports:read"
@@ -15,7 +16,8 @@ const permissions: Record<SessionUser["role"], Permission[]> = {
   admin: [
     "customers:manage",
     "packages:manage",
-    "queues:manage",
+    "queues:create",
+    "queues:update-status",
     "payments:manage",
     "transactions:delete",
     "reports:read",
@@ -23,7 +25,9 @@ const permissions: Record<SessionUser["role"], Permission[]> = {
     "users:manage",
     "settings:manage",
   ],
-  petugas: ["customers:manage", "queues:manage", "payments:manage"],
+  kasir: ["payments:manage"],
+  staff: ["queues:update-status"],
+  petugas: ["customers:manage", "queues:create", "queues:update-status", "payments:manage"],
 };
 
 export function can(user: Pick<SessionUser, "role"> | null | undefined, permission: Permission) {

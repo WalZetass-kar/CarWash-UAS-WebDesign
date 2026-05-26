@@ -56,6 +56,45 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  if (parsed.data.format === "excel") {
+    const html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Pelanggan</th>
+            <th>Invoice</th>
+            <th>Metode</th>
+            <th>Status</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filteredPayments
+            .map(
+              (payment) => `
+                <tr>
+                  <td>${formatDate(payment.createdAt)}</td>
+                  <td>${payment.customerName}</td>
+                  <td>${payment.queueNumber}</td>
+                  <td>${payment.method}</td>
+                  <td>${payment.status}</td>
+                  <td>${payment.amount}</td>
+                </tr>`,
+            )
+            .join("")}
+        </tbody>
+      </table>
+    `;
+
+    return new NextResponse(html, {
+      headers: {
+        "Content-Type": "application/vnd.ms-excel; charset=utf-8",
+        "Content-Disposition": "attachment; filename=cleanride-report.xls",
+      },
+    });
+  }
+
   if (parsed.data.format === "pdf") {
     const doc = new jsPDF();
     doc.setFontSize(18);

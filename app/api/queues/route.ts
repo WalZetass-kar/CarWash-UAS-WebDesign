@@ -7,7 +7,7 @@ import { logActivity } from "@/services/activity";
 import { jsonResponse, rejectInvalidCsrf, requireApiRole } from "@/app/api/_utils";
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireApiRole(request, ["admin", "petugas"]);
+  const { response } = await requireApiRole(request, ["admin", "staff", "petugas"]);
   if (response) return response;
 
   return jsonResponse(

@@ -1,13 +1,13 @@
 import { NextRequest } from "next/server";
 import { globalSearch } from "@/services/search";
-import { jsonResponse, requireApiRole } from "@/app/api/_utils";
+import { getApiSession, jsonResponse } from "@/app/api/_utils";
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireApiRole(request, ["admin", "petugas"]);
-  if (response) return response;
+  const session = await getApiSession(request);
+  if (!session) return jsonResponse({ message: "Unauthenticated" }, 401);
 
   const query = request.nextUrl.searchParams.get("q") ?? "";
   if (query.length < 2) return jsonResponse([]);
 
-  return jsonResponse(await globalSearch(query));
+  return jsonResponse(await globalSearch(query, session.user.role));
 }

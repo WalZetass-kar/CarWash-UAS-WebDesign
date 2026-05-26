@@ -152,6 +152,21 @@ a, button, input, select, textarea {
   animation: gradient-shift 8s ease infinite;
 }
 
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise-in {
+  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Focus Visible Styles */
 *:focus-visible {
   outline: 2px solid #0891b2;

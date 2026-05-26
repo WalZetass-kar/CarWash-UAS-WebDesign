@@ -7,7 +7,7 @@ import { logActivity } from "@/services/activity";
 import { jsonResponse, rejectInvalidCsrf, requireApiRole } from "@/app/api/_utils";
 
 export async function GET(request: NextRequest) {
-  const { response } = await requireApiRole(request, ["admin", "petugas"]);
+  const { response } = await requireApiRole(request, ["admin", "kasir", "petugas"]);
   if (response) return response;
 
   return jsonResponse(
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   const csrfResponse = rejectInvalidCsrf(request);
   if (csrfResponse) return csrfResponse;
 
-  const { session, response } = await requireApiRole(request, ["admin", "petugas"]);
+  const { session, response } = await requireApiRole(request, ["admin", "kasir", "petugas"]);
   if (response || !session) return response;
 
   const parsed = paymentSchema.safeParse(sanitizeObject(await request.json()));
