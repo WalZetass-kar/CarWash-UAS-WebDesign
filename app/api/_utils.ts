@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasDatabaseConfig, isDemoModeEnabled } from "@/drizzle/db";
 import { SESSION_COOKIE, type Role } from "@/lib/constants";
 import { verifySession } from "@/lib/auth/jwt";
 import { validateCsrf } from "@/lib/security/csrf";
@@ -42,4 +43,18 @@ export function rejectInvalidCsrf(request: NextRequest) {
     return jsonResponse({ message: "CSRF token tidak valid" }, 403);
   }
   return null;
+}
+
+export function rejectUnavailableBackend() {
+  if (hasDatabaseConfig() || isDemoModeEnabled()) {
+    return null;
+  }
+
+  return jsonResponse(
+    {
+      message:
+        "Backend belum siap. Isi DATABASE_URL pada environment deployment, lalu redeploy aplikasi.",
+    },
+    503,
+  );
 }

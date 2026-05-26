@@ -7,11 +7,14 @@ import { getClientIp } from "@/lib/utils";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { sanitizeObject } from "@/lib/security/sanitize";
 import { logActivity } from "@/services/activity";
-import { jsonResponse, rejectInvalidCsrf } from "@/app/api/_utils";
+import { jsonResponse, rejectInvalidCsrf, rejectUnavailableBackend } from "@/app/api/_utils";
 
 export async function POST(request: NextRequest) {
   const csrfResponse = rejectInvalidCsrf(request);
   if (csrfResponse) return csrfResponse;
+
+  const backendResponse = rejectUnavailableBackend();
+  if (backendResponse) return backendResponse;
 
   const ip = getClientIp(request.headers);
   const limit = rateLimit(`login:${ip}`, 5, 60_000);

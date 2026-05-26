@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { jsonResponse, rejectInvalidCsrf } from "@/app/api/_utils";
+import { jsonResponse, rejectInvalidCsrf, rejectUnavailableBackend } from "@/app/api/_utils";
 import { publicBookingSchema } from "@/schemas/public-booking";
 import { sanitizeObject } from "@/lib/security/sanitize";
 import { getClientIp } from "@/lib/utils";
@@ -10,6 +10,9 @@ import { createPublicBooking } from "@/services/bookings";
 export async function POST(request: NextRequest) {
   const csrfResponse = rejectInvalidCsrf(request);
   if (csrfResponse) return csrfResponse;
+
+  const backendResponse = rejectUnavailableBackend();
+  if (backendResponse) return backendResponse;
 
   const ip = getClientIp(request.headers);
   const limit = rateLimit(`public-booking:${ip}`, 8, 60_000);

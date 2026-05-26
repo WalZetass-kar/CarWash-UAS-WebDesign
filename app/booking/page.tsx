@@ -1,3 +1,5 @@
+import { hasDatabaseConfig } from "@/drizzle/db";
+import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { Badge } from "@/components/ui/badge";
 import { PublicBookingForm } from "@/features/bookings/public-booking-form";
 import { getAppSettings } from "@/services/settings";
@@ -17,6 +19,23 @@ export default async function BookingPage({
   searchParams: Promise<{ package?: string }>;
 }) {
   const params = await searchParams;
+
+  if (!hasDatabaseConfig()) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <div>
+            <Badge>Customer Booking</Badge>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+              Pilih paket dan booking jadwal
+            </h1>
+          </div>
+          <BackendSetupNotice area="booking" />
+        </div>
+      </main>
+    );
+  }
+
   const [settings, packages] = await Promise.all([getAppSettings(), listPackages()]);
   const activePackages = packages.filter((item) => item.isActive);
   const selectedPackage =
