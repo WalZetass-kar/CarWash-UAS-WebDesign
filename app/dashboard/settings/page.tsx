@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
+import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GalleryUpload } from "@/features/dashboard/gallery-upload";
 import { SettingsManager } from "@/features/settings/settings-manager";
@@ -13,7 +14,8 @@ export const metadata = {
 export default async function SettingsPage() {
   await connection();
   await requireRole(["admin"]);
-  const settings = await getAppSettings();
+  const settings = await loadSettingsData();
+  if (!settings) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
   return (
     <div className="space-y-6">
@@ -59,4 +61,13 @@ export default async function SettingsPage() {
       </div>
     </div>
   );
+}
+
+async function loadSettingsData() {
+  try {
+    return await getAppSettings();
+  } catch (error) {
+    console.error("Failed to load settings page data", error);
+    return null;
+  }
 }

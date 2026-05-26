@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
+import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { CustomerManager } from "@/features/customers/customer-manager";
 import { requireSession } from "@/lib/auth/session";
 import { listCustomers } from "@/services/customers";
@@ -16,7 +17,8 @@ export default async function CustomersPage({
   await connection();
   const session = await requireSession();
   const params = await searchParams;
-  const customers = JSON.parse(JSON.stringify(await listCustomers()));
+  const customers = await loadCustomersData();
+  if (!customers) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
   return (
     <div className="space-y-6">
@@ -35,4 +37,13 @@ export default async function CustomersPage({
       />
     </div>
   );
+}
+
+async function loadCustomersData() {
+  try {
+    return JSON.parse(JSON.stringify(await listCustomers()));
+  } catch (error) {
+    console.error("Failed to load customers page data", error);
+    return null;
+  }
 }

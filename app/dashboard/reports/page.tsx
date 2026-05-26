@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
+import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { ReportManager } from "@/features/reports/report-manager";
 import { requireRole } from "@/lib/auth/session";
 import { getDashboardData } from "@/services/dashboard";
@@ -12,7 +13,10 @@ export const metadata = {
 export default async function ReportsPage() {
   await connection();
   await requireRole(["admin"]);
-  const [data, reportData] = await Promise.all([getDashboardData(), getReportData()]);
+  const pageData = await loadReportsData();
+  if (!pageData) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
+
+  const [data, reportData] = pageData;
 
   return (
     <div className="space-y-6">
@@ -32,4 +36,13 @@ export default async function ReportsPage() {
       />
     </div>
   );
+}
+
+async function loadReportsData() {
+  try {
+    return await Promise.all([getDashboardData(), getReportData()]);
+  } catch (error) {
+    console.error("Failed to load reports page data", error);
+    return null;
+  }
 }

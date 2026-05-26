@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
+import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { PaymentManager } from "@/features/payments/payment-manager";
 import { listPayments } from "@/services/payments";
 import { getAppSettings } from "@/services/settings";
@@ -16,11 +17,10 @@ export default async function PaymentsPage({
 }) {
   await connection();
   const params = await searchParams;
-  const [payments, transactions, settings] = await Promise.all([
-    listPayments(),
-    listTransactions("", "belum_bayar"),
-    getAppSettings(),
-  ]);
+  const data = await loadPaymentsData();
+  if (!data) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
+
+  const [payments, transactions, settings] = data;
 
   return (
     <div className="space-y-6">
@@ -41,4 +41,17 @@ export default async function PaymentsPage({
       />
     </div>
   );
+}
+
+async function loadPaymentsData() {
+  try {
+    return await Promise.all([
+      listPayments(),
+      listTransactions("", "belum_bayar"),
+      getAppSettings(),
+    ]);
+  } catch (error) {
+    console.error("Failed to load payments page data", error);
+    return null;
+  }
 }

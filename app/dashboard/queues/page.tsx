@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
+import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { QueueManager } from "@/features/queues/queue-manager";
 import { listCustomers } from "@/services/customers";
 import { listPackages } from "@/services/packages";
@@ -16,7 +17,10 @@ export default async function QueuesPage({
 }) {
   await connection();
   const params = await searchParams;
-  const [queues, customers, packages] = await Promise.all([listQueues(), listCustomers(), listPackages()]);
+  const data = await loadQueuesData();
+  if (!data) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
+
+  const [queues, customers, packages] = data;
 
   return (
     <div className="space-y-6">
@@ -36,4 +40,13 @@ export default async function QueuesPage({
       />
     </div>
   );
+}
+
+async function loadQueuesData() {
+  try {
+    return await Promise.all([listQueues(), listCustomers(), listPackages()]);
+  } catch (error) {
+    console.error("Failed to load queues page data", error);
+    return null;
+  }
 }

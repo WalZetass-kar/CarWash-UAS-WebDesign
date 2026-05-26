@@ -2,13 +2,16 @@ import { connection } from "next/server";
 import { Banknote, Car, PackageCheck, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { getDashboardData } from "@/services/dashboard";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { MonthlyLineChart, PaymentPieChart, WeeklyBarChart } from "@/features/dashboard/charts";
 
 export default async function DashboardPage() {
   await connection();
-  const data = await getDashboardData();
+  const data = await loadDashboardData();
+  if (!data) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
+
   const paid = data.metrics.paidTransactions;
   const unpaid = data.metrics.unpaidTransactions;
 
@@ -119,4 +122,13 @@ export default async function DashboardPage() {
       </div>
     </div>
   );
+}
+
+async function loadDashboardData() {
+  try {
+    return await getDashboardData();
+  } catch (error) {
+    console.error("Failed to load dashboard page data", error);
+    return null;
+  }
 }
