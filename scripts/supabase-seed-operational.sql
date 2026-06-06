@@ -1,12 +1,12 @@
--- CleanRide seed operasional Supabase
+-- Kilap Kendaraan seed operasional Supabase
 -- Jalankan SETELAH scripts/supabase-bootstrap.sql
 -- Direkomendasikan untuk database baru / kosong.
 --
 -- Akun awal:
---   admin@cleanride.my.id   / admin123
---   kasir@cleanride.my.id   / kasir123
---   staff@cleanride.my.id   / staff123
---   petugas@cleanride.my.id / petugas123
+--   admin@kilapkendaraan.my.id   / admin123
+--   kasir@kilapkendaraan.my.id   / kasir123
+--   staff@kilapkendaraan.my.id   / staff123
+--   petugas@kilapkendaraan.my.id / petugas123
 
 insert into users (
   id,
@@ -22,8 +22,8 @@ insert into users (
 values
   (
     '00000000-0000-4000-8000-000000000001',
-    'Admin CleanRide',
-    'admin@cleanride.my.id',
+    'Admin Kilap Kendaraan',
+    'admin@kilapkendaraan.my.id',
     '$2b$12$bEt2IVD1ASYMEb5Lu7CPAu0Rrpf4KSmR1B3a0t5/OITLbVaxMreDW',
     'admin',
     true,
@@ -33,8 +33,8 @@ values
   ),
   (
     '00000000-0000-4000-8000-000000000003',
-    'Kasir CleanRide',
-    'kasir@cleanride.my.id',
+    'Kasir Kilap Kendaraan',
+    'kasir@kilapkendaraan.my.id',
     '$2b$12$37j7WkOyGCNlpH/b0mXoFevfY96jIW542RLKa1oHzV386972n8gYW',
     'kasir',
     true,
@@ -44,8 +44,8 @@ values
   ),
   (
     '00000000-0000-4000-8000-000000000004',
-    'Staff CleanRide',
-    'staff@cleanride.my.id',
+    'Staff Kilap Kendaraan',
+    'staff@kilapkendaraan.my.id',
     '$2b$12$UJwRsH1Jo7VrQ0j2Y93ZsOxKxKQCOCjVDltWXLOy0/IOrqdnBcfeq',
     'staff',
     true,
@@ -55,8 +55,8 @@ values
   ),
   (
     '00000000-0000-4000-8000-000000000002',
-    'Petugas CleanRide',
-    'petugas@cleanride.my.id',
+    'Petugas Kilap Kendaraan',
+    'petugas@kilapkendaraan.my.id',
     '$2b$12$aclal4r5dlJlauG1kGP8H.zKgLvQBt8j30I3t8OJtGwXsvxiwefwO',
     'petugas',
     true,
@@ -87,13 +87,13 @@ insert into app_settings (
 )
 values (
   'default',
-  'CleanRide Car Wash',
+  'Kilap Kendaraan Car Wash',
   '0812-3456-7890',
   'Jl. Cuci Kilat No. 88, Jakarta',
   4,
   30,
   false,
-  'Terima kasih telah mempercayakan kendaraan Anda kepada CleanRide.',
+  'Terima kasih telah mempercayakan kendaraan Anda kepada Kilap Kendaraan.',
   now(),
   now()
 )
@@ -482,3 +482,6 @@ set
   user_agent = excluded.user_agent,
   updated_at = now(),
   deleted_at = null;
+ull;
+ted_at = null;
+ull;

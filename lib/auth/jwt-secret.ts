@@ -1,4 +1,4 @@
-const DEVELOPMENT_JWT_SECRET = "cleanride-development-secret-change-in-production";
+const DEVELOPMENT_JWT_SECRET = "kilapkendaraan-development-secret-change-in-production";
 const MIN_JWT_SECRET_LENGTH = 32;
 
 export function getJwtSecretValue() {

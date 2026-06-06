@@ -12,7 +12,7 @@ export default function LoginPage() {
     <main className="relative grid min-h-screen place-items-center overflow-hidden px-4 py-10 sm:py-16">
       <Image
         src="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=1800&q=85"
-        alt="Area cuci mobil CleanRide"
+        alt="Area cuci mobil Kilap Kendaraan"
         fill
         priority
         sizes="100vw"

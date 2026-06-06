@@ -10,7 +10,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       defaultTheme="light"
       enableSystem
       disableTransitionOnChange
-      storageKey="cleanride-theme"
+      storageKey="kilapkendaraan-theme"
     >
       {children}
     </NextThemesProvider>

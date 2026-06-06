@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cleanride.my.id"),
+  metadataBase: new URL("https://kilapkendaraan.my.id"),
   title: {
     default: `${APP_NAME} | Premium Car Wash Management`,
     template: `%s | ${APP_NAME}`,
@@ -24,19 +24,19 @@ export const metadata: Metadata = {
   applicationName: APP_NAME,
   keywords: [
     "car wash",
-    "cleanride",
+    "kilapkendaraan",
     "dashboard admin",
     "booking cuci mobil",
     "supabase",
     "next.js",
   ],
-  authors: [{ name: "CleanRide Team" }],
-  creator: "CleanRide Team",
+  authors: [{ name: "Kilap Kendaraan Team" }],
+  creator: "Kilap Kendaraan Team",
   manifest: "/manifest.webmanifest",
   openGraph: {
     title: APP_NAME,
     description: APP_DESCRIPTION,
-    url: "https://cleanride.my.id",
+    url: "https://kilapkendaraan.my.id",
     siteName: APP_NAME,
     type: "website",
     images: [
@@ -76,6 +76,32 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
         <AppProviders>{children}</AppProviders>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "CarWash",
+              "name": APP_NAME,
+              "description": APP_DESCRIPTION,
+              "url": "https://kilapkendaraan.my.id",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Jl. Cuci Kilat No. 88",
+                "addressLocality": "Jakarta",
+                "addressRegion": "DKI Jakarta",
+                "postalCode": "12345",
+                "addressCountry": "ID"
+              },
+              "openingHoursSpecification": {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                "opens": "08:00",
+                "closes": "21:00"
+              }
+            }),
+          }}
+        />
       </body>
     </html>
   );

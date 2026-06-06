@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/dashboard", "/api"],
     },
-    sitemap: "https://cleanride.my.id/sitemap.xml",
+    sitemap: "https://kilapkendaraan.my.id/sitemap.xml",
   };
 }

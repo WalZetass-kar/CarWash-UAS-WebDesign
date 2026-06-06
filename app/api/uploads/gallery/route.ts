@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { jsonResponse, rejectInvalidCsrf, requireApiRole } from "@/app/api/_utils";
 import { validateUploadFile } from "@/lib/security/upload-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { gallery } from "@/drizzle/schema";
 
 export async function POST(request: NextRequest) {
   const csrfResponse = rejectInvalidCsrf(request);
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
   const supabase = createSupabaseAdminClient();
 
   if (supabase) {
-    const { error } = await supabase.storage.from("cleanride").upload(path, buffer, {
+    const { error } = await supabase.storage.from("kilapkendaraan").upload(path, buffer, {
       contentType: file.type,
       upsert: false,
     });
@@ -37,21 +39,33 @@ export async function POST(request: NextRequest) {
       return jsonResponse(
         {
           message:
-            "Upload Supabase gagal. Pastikan bucket public bernama cleanride sudah dibuat.",
+            "Upload Supabase gagal. Pastikan bucket public bernama kilapkendaraan sudah dibuat.",
           detail: error.message,
         },
         500,
       );
     }
 
-    const { data } = supabase.storage.from("cleanride").getPublicUrl(path);
+    const { data } = supabase.storage.from("kilapkendaraan").getPublicUrl(path);
+
+    // Save to database if not in demo mode
+    if (!shouldUseDemoData()) {
+      try {
+        await getDb().insert(gallery).values({
+          url: data.publicUrl,
+        });
+      } catch (dbError) {
+        console.error("Failed to save gallery record to DB", dbError);
+      }
+    }
+
     return jsonResponse({ url: data.publicUrl, path, persisted: true });
   }
 
   return jsonResponse(
     {
       message:
-        "Konfigurasi Supabase Storage belum lengkap. Isi NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY, lalu buat bucket public bernama cleanride.",
+        "Konfigurasi Supabase Storage belum lengkap. Isi NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY, lalu buat bucket public bernama kilapkendaraan.",
     },
     503,
   );

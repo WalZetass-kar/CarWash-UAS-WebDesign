@@ -53,8 +53,8 @@ export function QueueManager({
       const response = await fetch("/api/queues");
       if (response.ok) setQueues(await response.json());
     };
-    window.addEventListener("cleanride:queue-updated", refresh);
-    return () => window.removeEventListener("cleanride:queue-updated", refresh);
+    window.addEventListener("kilapkendaraan:queue-updated", refresh);
+    return () => window.removeEventListener("kilapkendaraan:queue-updated", refresh);
   }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -151,17 +151,33 @@ export function QueueManager({
       id: "actions",
       header: "Update",
       cell: ({ row }) => (
-        <select
-          className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
-          value={row.original.status}
-          onChange={(event) => updateStatus(row.original.id, event.target.value as QueueItem["status"])}
-        >
-          {Object.entries(queueStatusLabels).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
+            value={row.original.status}
+            onChange={(event) => updateStatus(row.original.id, event.target.value as QueueItem["status"])}
+          >
+            {Object.entries(queueStatusLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          {row.original.customerPhone && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-9 text-emerald-600 hover:text-emerald-700 dark:text-emerald-500"
+              onClick={() => {
+                const message = `Halo ${row.original.customerName}, kendaraan Anda (${row.original.licensePlate}) dengan paket ${row.original.packageName} statusnya saat ini: ${queueStatusLabels[row.original.status]}. Silakan pantau di: ${window.location.origin}/tracking`;
+                window.open(formatWhatsAppLink(row.original.customerPhone!, message), "_blank");
+              }}
+              title="Kirim notifikasi WhatsApp"
+            >
+              <MessageSquare className="size-4" />
+            </Button>
+          )}
+        </div>
       ),
     },
   ];

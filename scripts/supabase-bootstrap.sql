@@ -1,9 +1,9 @@
--- CleanRide Supabase bootstrap
+-- Kilap Kendaraan Supabase bootstrap
 -- Jalankan file ini di Supabase SQL Editor untuk membuat schema utama
 -- dan akun admin awal aplikasi.
 --
 -- Login admin default:
---   email    : admin@cleanride.my.id
+--   email    : admin@kilapkendaraan.my.id
 --   password : admin123
 --
 -- Catatan:
@@ -200,13 +200,13 @@ insert into app_settings (
 )
 values (
   'default',
-  'CleanRide Car Wash',
+  'Kilap Kendaraan Car Wash',
   '0812-3456-7890',
   'Jl. Cuci Kilat No. 88, Jakarta',
   4,
   30,
   false,
-  'Terima kasih telah mempercayakan kendaraan Anda kepada CleanRide.'
+  'Terima kasih telah mempercayakan kendaraan Anda kepada Kilap Kendaraan.'
 )
 on conflict (id) do nothing;
 
@@ -222,8 +222,8 @@ insert into users (
 )
 values (
   '00000000-0000-4000-8000-000000000001',
-  'Admin CleanRide',
-  'admin@cleanride.my.id',
+  'Admin Kilap Kendaraan',
+  'admin@kilapkendaraan.my.id',
   '$2b$12$06iTjqN6KQ6vIpSB8qZ/PuwFMkPlN7r6LOiZhfCOUEwBDhfNoVyLW',
   'admin',
   true,

@@ -35,12 +35,12 @@ INSERT INTO app_settings (
 )
 VALUES (
   'default',
-  'CleanRide Car Wash',
+  'Kilap Kendaraan Car Wash',
   '0812-3456-7890',
   'Jl. Cuci Kilat No. 88, Jakarta',
   4,
   30,
   false,
-  'Terima kasih telah mempercayakan kendaraan Anda kepada CleanRide.'
+  'Terima kasih telah mempercayakan kendaraan Anda kepada Kilap Kendaraan.'
 )
 ON CONFLICT (id) DO NOTHING;

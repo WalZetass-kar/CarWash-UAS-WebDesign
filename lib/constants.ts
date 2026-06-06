@@ -1,11 +1,11 @@
-export const APP_NAME = "CleanRide Car Wash";
+export const APP_NAME = "Kilap Kendaraan Car Wash";
 export const APP_DESCRIPTION =
   "Aplikasi fullstack modern untuk booking, antrian, pembayaran, dan laporan operasional car wash.";
 export const APP_TIME_ZONE = "Asia/Jakarta";
 
-export const SESSION_COOKIE = "cleanride_session";
-export const CSRF_COOKIE = "cleanride_csrf";
-export const THEME_COOKIE = "cleanride_theme";
+export const SESSION_COOKIE = "kilapkendaraan_session";
+export const CSRF_COOKIE = "kilapkendaraan_csrf";
+export const THEME_COOKIE = "kilapkendaraan_theme";
 
 export const roles = ["admin", "kasir", "staff", "petugas"] as const;
 export const primaryRoles = ["admin", "kasir", "staff"] as const;
@@ -90,37 +90,38 @@ export const adminOnlyPrefixes = [
 export const demoUsers = [
   {
     id: "00000000-0000-4000-8000-000000000001",
-    name: "Admin CleanRide",
-    email: "admin@cleanride.my.id",
+    name: "Admin Kilap Kendaraan",
+    email: "admin@kilapkendaraan.my.id",
     role: "admin" as const,
     isActive: true,
   },
   {
     id: "00000000-0000-4000-8000-000000000003",
-    name: "Kasir CleanRide",
-    email: "kasir@cleanride.my.id",
+    name: "Kasir Kilap Kendaraan",
+    email: "kasir@kilapkendaraan.my.id",
     role: "kasir" as const,
     isActive: true,
   },
   {
     id: "00000000-0000-4000-8000-000000000004",
-    name: "Staff CleanRide",
-    email: "staff@cleanride.my.id",
+    name: "Staff Kilap Kendaraan",
+    email: "staff@kilapkendaraan.my.id",
     role: "staff" as const,
     isActive: true,
   },
   {
     id: "00000000-0000-4000-8000-000000000002",
-    name: "Petugas CleanRide",
-    email: "petugas@cleanride.my.id",
+    name: "Petugas Kilap Kendaraan",
+    email: "petugas@kilapkendaraan.my.id",
     role: "petugas" as const,
     isActive: true,
   },
 ];
 
 export const demoUserPasswords: Record<string, string> = {
-  "admin@cleanride.my.id": "admin123",
-  "kasir@cleanride.my.id": "kasir123",
-  "staff@cleanride.my.id": "staff123",
-  "petugas@cleanride.my.id": "petugas123",
+  "admin@kilapkendaraan.my.id": "admin123",
+  "kasir@kilapkendaraan.my.id": "kasir123",
+  "staff@kilapkendaraan.my.id": "staff123",
+  "petugas@kilapkendaraan.my.id": "petugas123",
 };
+

@@ -60,6 +60,7 @@ export async function listQueues(query = "", status?: string | null) {
       customerId: queues.customerId,
       packageId: queues.packageId,
       customerName: customers.name,
+      customerPhone: customers.phone,
       packageName: washPackages.name,
       licensePlate: customers.licensePlate,
       scheduledAt: queues.scheduledAt,
@@ -73,6 +74,38 @@ export async function listQueues(query = "", status?: string | null) {
     .leftJoin(transactions, and(eq(transactions.queueId, queues.id), isNull(transactions.deletedAt)))
     .where(and(isNull(queues.deletedAt), statusFilter, searchFilter))
     .orderBy(desc(queues.createdAt));
+}
+
+export async function getQueueByPlate(plate: string) {
+  if (shouldUseDemoData()) {
+    const { queues: memoryQueues } = getDemoState();
+    return memoryQueues.find((item) => item.licensePlate.replace(/\s+/g, "").toUpperCase() === plate.replace(/\s+/g, "").toUpperCase()) ?? null;
+  }
+
+  const [row] = await getDb()
+    .select({
+      id: queues.id,
+      queueNumber: queues.queueNumber,
+      customerName: customers.name,
+      packageName: washPackages.name,
+      licensePlate: customers.licensePlate,
+      scheduledAt: queues.scheduledAt,
+      status: queues.status,
+      createdAt: queues.createdAt,
+    })
+    .from(queues)
+    .innerJoin(customers, eq(queues.customerId, customers.id))
+    .innerJoin(washPackages, eq(queues.packageId, washPackages.id))
+    .where(
+      and(
+        sql`upper(replace(${customers.licensePlate}, ' ', '')) = ${plate.replace(/\s+/g, "").toUpperCase()}`,
+        isNull(queues.deletedAt),
+      ),
+    )
+    .orderBy(desc(queues.createdAt))
+    .limit(1);
+
+  return row ?? null;
 }
 
 export async function createQueue(input: CreateQueueInput, createdBy?: string): Promise<QueueItem> {

@@ -1,7 +1,7 @@
 {
-  "name": "CleanRide Car Wash",
-  "short_name": "CleanRide",
-  "description": "Dashboard dan booking car wash modern untuk operasional CleanRide.",
+  "name": "Kilap Kendaraan Car Wash",
+  "short_name": "Kilap Kendaraan",
+  "description": "Dashboard dan booking car wash modern untuk operasional Kilap Kendaraan.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

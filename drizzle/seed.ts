@@ -185,7 +185,7 @@ async function main() {
     ])
     .onConflictDoNothing();
 
-  console.log("Seed CleanRide selesai. Data relasional, transaksi, dan akun seed awal siap.");
+  console.log("Seed Kilap Kendaraan selesai. Data relasional, transaksi, dan akun seed awal siap.");
 }
 
 main()

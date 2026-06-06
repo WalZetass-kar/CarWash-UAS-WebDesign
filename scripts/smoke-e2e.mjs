@@ -90,10 +90,10 @@ async function waitForServer() {
 async function main() {
   await waitForServer();
 
-  await expectText("/", "CleanRide");
+  await expectText("/", "Kilap Kendaraan");
   await expectText("/booking", "Booking Tanpa Login");
 
-  const csrfToken = cookies.get("cleanride_csrf");
+  const csrfToken = cookies.get("kilapkendaraan_csrf");
   if (!csrfToken) throw new Error("CSRF cookie tidak tersedia");
 
   const scheduledAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
@@ -124,7 +124,7 @@ async function main() {
       "x-csrf-token": csrfToken,
     },
     body: JSON.stringify({
-      email: "admin@cleanride.my.id",
+      email: "admin@kilapkendaraan.my.id",
       password: "admin123",
     }),
   });
@@ -160,3 +160,5 @@ try {
   }
   await new Promise((resolve) => setTimeout(resolve, 500));
 }
+
+

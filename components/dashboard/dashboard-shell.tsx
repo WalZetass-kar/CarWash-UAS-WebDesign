@@ -111,9 +111,9 @@ export function DashboardShell({
     <aside className="flex h-full w-[86vw] max-w-72 flex-col overflow-y-auto border-r border-slate-200 bg-white/88 p-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/88">
       <div className="flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-          <span className="grid size-9 place-items-center rounded-lg bg-cyan-600 text-white">
-            <Car className="size-5" />
-          </span>
+          <div className="relative grid size-9 overflow-hidden rounded-lg">
+            <Image src="/logo.png" alt="Logo" fill className="object-cover" />
+          </div>
           {brandName}
         </Link>
         <button

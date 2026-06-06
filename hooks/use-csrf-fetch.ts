@@ -9,7 +9,7 @@ function getCookie(name: string) {
 
 export function useCsrfFetch() {
   return async function csrfFetch(input: RequestInfo | URL, init: RequestInit = {}) {
-    const csrfToken = getCookie("cleanride_csrf");
+    const csrfToken = getCookie("kilapkendaraan_csrf");
     const isFormData = init.body instanceof FormData;
     return fetch(input, {
       ...init,

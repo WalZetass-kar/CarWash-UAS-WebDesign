@@ -16,12 +16,12 @@ export function RealtimeStatus() {
     if (!supabase) return;
 
     const channel = supabase
-      .channel("cleanride-dashboard")
+      .channel("kilapkendaraan-dashboard")
       .on("postgres_changes", { event: "*", schema: "public", table: "queues" }, () => {
-        window.dispatchEvent(new CustomEvent("cleanride:queue-updated"));
+        window.dispatchEvent(new CustomEvent("kilapkendaraan:queue-updated"));
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => {
-        window.dispatchEvent(new CustomEvent("cleanride:payment-updated"));
+        window.dispatchEvent(new CustomEvent("kilapkendaraan:payment-updated"));
       })
       .subscribe((status) => setConnected(status === "SUBSCRIBED"));
 

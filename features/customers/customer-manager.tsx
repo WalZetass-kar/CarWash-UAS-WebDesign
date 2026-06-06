@@ -149,6 +149,26 @@ export function CustomerManager({
       header: "Kendaraan",
       cell: ({ row }) => <Badge variant="secondary">{toTitleCase(row.original.vehicleType)}</Badge>,
     },
+    {
+      accessorKey: "visitCount",
+      header: "Kunjungan",
+      cell: ({ row }) => {
+        const count = row.original.visitCount ?? 0;
+        const isLoyalty = count > 0 && count % 9 === 0;
+        return (
+          <div className="flex flex-col gap-1">
+             <span className="text-sm font-semibold">{count}x</span>
+             {isLoyalty ? (
+               <Badge variant="success" className="text-[10px] animate-pulse">FREE NEXT!</Badge>
+             ) : (
+               <div className="h-1 w-16 bg-slate-200 rounded-full overflow-hidden dark:bg-slate-800">
+                  <div className="h-full bg-cyan-500" style={{ width: `${(count % 10) * 10}%` }} />
+               </div>
+             )}
+          </div>
+        )
+      },
+    },
     { accessorKey: "notes", header: "Catatan" },
     {
       accessorKey: "createdAt",

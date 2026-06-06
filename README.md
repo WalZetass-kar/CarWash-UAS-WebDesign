@@ -1,6 +1,6 @@
-# CleanRide Car Wash
+# Kilap Kendaraan Car Wash
 
-Aplikasi web fullstack modern untuk Projek UAS Mata Kuliah Web Design. CleanRide berisi landing page promosi, dashboard admin/petugas, CRUD operasional car wash, realtime queue, laporan, invoice, dan autentikasi JWT berbasis HTTPOnly cookies.
+Aplikasi web fullstack modern untuk Projek UAS Mata Kuliah Web Design. Kilap Kendaraan berisi landing page promosi, dashboard admin/petugas, CRUD operasional car wash, realtime queue, laporan, invoice, dan autentikasi JWT berbasis HTTPOnly cookies.
 
 ## Tech Stack
 
@@ -63,13 +63,13 @@ Alternatif manual di Supabase SQL Editor:
 1. Jalankan `scripts/supabase-bootstrap.sql`
 2. Jika ingin langsung ada data operasional contoh, jalankan `scripts/supabase-seed-operational.sql`
 3. Login dengan akun awal:
-   `admin@cleanride.my.id` / `admin123`
-   `kasir@cleanride.my.id` / `kasir123`
-   `staff@cleanride.my.id` / `staff123`
-   `petugas@cleanride.my.id` / `petugas123`
+   `admin@kilapkendaraan.my.id` / `admin123`
+   `kasir@kilapkendaraan.my.id` / `kasir123`
+   `staff@kilapkendaraan.my.id` / `staff123`
+   `petugas@kilapkendaraan.my.id` / `petugas123`
 4. Jika perlu reset ulang akun admin, jalankan `scripts/supabase-reset-admin.sql`
 
-Kalau ingin pakai password lain, generate hash bcrypt dengan:
+Kalau ingin pakai password lain, generate hash bcrypt with:
 
 ```bash
 npm run password:hash -- "password-baru"
@@ -77,7 +77,7 @@ npm run password:hash -- "password-baru"
 
 Lalu ganti nilai `password_hash` pada SQL admin.
 
-Untuk upload gallery production, buat bucket Supabase Storage public bernama `cleanride`. API upload akan menyimpan file ke path `gallery/...` bila `SUPABASE_SERVICE_ROLE_KEY` tersedia.
+Untuk upload gallery production, buat bucket Supabase Storage public bernama `kilapkendaraan`. API upload akan menyimpan file ke path `gallery/...` bila `SUPABASE_SERVICE_ROLE_KEY` tersedia.
 
 ## Drizzle ORM
 
@@ -91,10 +91,10 @@ npm run db:seed
 
 ## Akun Seed Awal
 
-- Admin: `admin@cleanride.my.id` / `admin123`
-- Kasir: `kasir@cleanride.my.id` / `kasir123`
-- Staff: `staff@cleanride.my.id` / `staff123`
-- Petugas: `petugas@cleanride.my.id` / `petugas123`
+- Admin: `admin@kilapkendaraan.my.id` / `admin123`
+- Kasir: `kasir@kilapkendaraan.my.id` / `kasir123`
+- Staff: `staff@kilapkendaraan.my.id` / `staff123`
+- Petugas: `petugas@kilapkendaraan.my.id` / `petugas123`
 
 Data akun di atas berasal dari proses seed database. Aplikasi tidak lagi fallback ke data in-memory pada mode normal.
 

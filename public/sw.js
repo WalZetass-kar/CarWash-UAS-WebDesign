@@ -1,4 +1,4 @@
-const CACHE_NAME = "cleanride-cache-v1";
+const CACHE_NAME = "kilapkendaraan-cache-v1";
 const OFFLINE_URLS = ["/", "/login", "/manifest.webmanifest", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {

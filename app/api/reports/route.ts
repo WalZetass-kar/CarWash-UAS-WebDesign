@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": "attachment; filename=cleanride-report.csv",
+        "Content-Disposition": "attachment; filename=kilapkendaraan-report.csv",
       },
     });
   }
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(Buffer.from(doc.output("arraybuffer")), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": "attachment; filename=cleanride-report.pdf",
+        "Content-Disposition": "attachment; filename=kilapkendaraan-report.pdf",
       },
     });
   }
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": "attachment; filename=cleanride-report.xlsx",
+        "Content-Disposition": "attachment; filename=kilapkendaraan-report.xlsx",
       },
     });
   }

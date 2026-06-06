@@ -29,6 +29,7 @@ export type Customer = {
   licensePlate: string;
   vehicleType: VehicleType;
   notes?: string | null;
+  visitCount?: number;
   createdAt: string;
 };
 
@@ -49,6 +50,7 @@ export type QueueItem = {
   customerId: string;
   packageId: string;
   customerName: string;
+  customerPhone?: string;
   packageName: string;
   licensePlate: string;
   scheduledAt: string;
@@ -332,13 +334,13 @@ export const demoPayments: Payment[] = [
 
 export const defaultAppSettings: AppSettings = {
   id: "default",
-  businessName: "CleanRide Car Wash",
+  businessName: "Kilap Kendaraan Car Wash",
   businessPhone: "0812-3456-7890",
   businessAddress: "Jl. Cuci Kilat No. 88, Jakarta",
   queueSlotCapacity: 4,
   reportDefaultRangeDays: 30,
   autoPrintInvoice: false,
-  invoiceFooter: "Terima kasih telah mempercayakan kendaraan Anda kepada CleanRide.",
+  invoiceFooter: "Terima kasih telah mempercayakan kendaraan Anda kepada Kilap Kendaraan.",
 };
 
 export const weeklyRevenue = [
@@ -361,7 +363,7 @@ export const monthlyRevenue = [
 ];
 
 export const demoActivity = [
-  "Admin CleanRide login ke dashboard",
+  "Admin Kilap Kendaraan login ke dashboard",
   "Status CR-002 diubah menjadi Diproses",
   "Pembayaran QRIS CR-001 ditandai Lunas",
   "Paket Premium Gloss diperbarui",

@@ -254,6 +254,28 @@ export type AppSettings = typeof appSettings.$inferSelect;
 export type NewAppSettings = typeof appSettings.$inferInsert;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
+export type GalleryItem = typeof gallery.$inferSelect;
+export type NewGalleryItem = typeof gallery.$inferInsert;
+
+export const schema = {
+  users,
+  customers,
+  washPackages,
+  queues,
+  transactions,
+  payments,
+  appSettings,
+  activityLogs,
+  gallery,
+  usersRelations,
+  customersRelations,
+  washPackagesRelations,
+  queuesRelations,
+  transactionsRelations,
+  paymentsRelations,
+  activityLogsRelations,
+};
+ypeof activityLogs.$inferInsert;
 
 export const schema = {
   users,

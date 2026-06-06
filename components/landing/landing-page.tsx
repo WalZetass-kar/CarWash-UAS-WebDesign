@@ -333,7 +333,7 @@ export function LandingPage({
           >
             <Image
               src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=1800&q=85"
-              alt="Mobil premium setelah dicuci di CleanRide"
+              alt="Mobil premium setelah dicuci di Kilap Kendaraan"
               fill
               priority
               sizes="100vw"
@@ -428,7 +428,7 @@ export function LandingPage({
               <Badge className="transition-all duration-300 hover:scale-105">About Service</Badge>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">Standar cuci kendaraan yang cepat, bersih, dan transparan.</h2>
               <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base dark:text-slate-300">
-                CleanRide menggabungkan layanan premium dengan sistem operasional digital: pelanggan bisa diproses lebih cepat, status kendaraan mudah dipantau, dan laporan langsung siap dipresentasikan.
+                Kilap Kendaraan menggabungkan layanan premium dengan sistem operasional digital: pelanggan bisa diproses lebih cepat, status kendaraan mudah dipantau, dan laporan langsung siap dipresentasikan.
               </p>
             </motion.div>
             <motion.div 
@@ -633,7 +633,7 @@ export function LandingPage({
               transition={{ duration: 0.7 }}
             >
               <Badge className="transition-all duration-300 hover:scale-105">Gallery</Badge>
-              <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">Hasil layanan CleanRide</h2>
+              <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">Hasil layanan Kilap Kendaraan</h2>
             </motion.div>
             <Skeleton className="hidden h-10 w-44 sm:block" />
           </div>
@@ -657,7 +657,7 @@ export function LandingPage({
                 />
                 <Image
                   src={src}
-                  alt={`Gallery CleanRide ${index + 1}`}
+                  alt={`Gallery Kilap Kendaraan ${index + 1}`}
                   fill
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
@@ -722,11 +722,11 @@ export function LandingPage({
               className="group flex items-center gap-2 font-semibold"
             >
               <motion.div
-                className="inline-block"
+                className="relative inline-block size-6 overflow-hidden rounded"
                 whileHover={{ rotate: 360, scale: 1.1 }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Car className="size-5 text-cyan-300 transition-colors duration-300 group-hover:text-cyan-400" />
+                <Image src="/logo.png" alt="Logo" fill className="object-cover" />
               </motion.div>
               <span className="transition-colors duration-300 group-hover:text-cyan-300">{brandName}</span>
             </motion.div>

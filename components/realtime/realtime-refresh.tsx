@@ -16,11 +16,11 @@ export function RealtimeRefresh() {
 
   useEffect(() => {
     const refresh = () => refreshRoute();
-    window.addEventListener("cleanride:queue-updated", refresh);
-    window.addEventListener("cleanride:payment-updated", refresh);
+    window.addEventListener("kilapkendaraan:queue-updated", refresh);
+    window.addEventListener("kilapkendaraan:payment-updated", refresh);
     return () => {
-      window.removeEventListener("cleanride:queue-updated", refresh);
-      window.removeEventListener("cleanride:payment-updated", refresh);
+      window.removeEventListener("kilapkendaraan:queue-updated", refresh);
+      window.removeEventListener("kilapkendaraan:payment-updated", refresh);
     };
   }, []);
 

@@ -26,8 +26,8 @@ function csrfRequest(method: string, cookieToken?: string, headerToken?: string)
     method,
     cookies: {
       get: (name: string) =>
-        name === "cleanride_csrf" && cookieToken
-          ? { name: "cleanride_csrf", value: cookieToken }
+        name === "kilapkendaraan_csrf" && cookieToken
+          ? { name: "kilapkendaraan_csrf", value: cookieToken }
           : undefined,
     },
     headers: new Headers(headerToken ? { "x-csrf-token": headerToken } : undefined),
@@ -272,23 +272,23 @@ test("user demo baru bisa login dan user nonaktif ditolak login", async () => {
 
   const createdUser = await createUser({
     name: "Operator Baru",
-    email: "operator@cleanride.my.id",
+    email: "operator@kilapkendaraan.my.id",
     password: "operator123",
     role: "petugas",
     isActive: true,
   });
 
-  const authenticatedUser = await authenticateUser("operator@cleanride.my.id", "operator123");
+  const authenticatedUser = await authenticateUser("operator@kilapkendaraan.my.id", "operator123");
   assert.equal(authenticatedUser?.id, createdUser.id);
 
-  const kasir = await authenticateUser("kasir@cleanride.my.id", "kasir123");
+  const kasir = await authenticateUser("kasir@kilapkendaraan.my.id", "kasir123");
   assert.equal(kasir?.role, "kasir");
 
-  const staff = await authenticateUser("staff@cleanride.my.id", "staff123");
+  const staff = await authenticateUser("staff@kilapkendaraan.my.id", "staff123");
   assert.equal(staff?.role, "staff");
 
   await deactivateUser(createdUser.id);
-  const rejectedUser = await authenticateUser("operator@cleanride.my.id", "operator123");
+  const rejectedUser = await authenticateUser("operator@kilapkendaraan.my.id", "operator123");
   assert.equal(rejectedUser, null);
 });
 

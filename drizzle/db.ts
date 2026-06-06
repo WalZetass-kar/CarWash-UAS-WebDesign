@@ -7,8 +7,8 @@ import { getConfiguredDatabaseUrl, getDatabaseEnvHint } from "@/lib/runtime/data
 dns.setDefaultResultOrder("ipv4first");
 
 declare global {
-  var cleanrideSql: postgres.Sql | undefined;
-  var cleanrideSqlConnectionString: string | undefined;
+  var kilapkendaraanSql: postgres.Sql | undefined;
+  var kilapkendaraanSqlConnectionString: string | undefined;
 }
 
 export function hasDatabaseConfig() {
@@ -31,29 +31,29 @@ export function getDb() {
     );
   }
 
-  if (!globalThis.cleanrideSql || globalThis.cleanrideSqlConnectionString !== connectionString) {
-    globalThis.cleanrideSql = postgres(connectionString, {
+  if (!globalThis.kilapkendaraanSql || globalThis.kilapkendaraanSqlConnectionString !== connectionString) {
+    globalThis.kilapkendaraanSql = postgres(connectionString, {
       // Supabase pooler on local/student deployments is more reliable with one reused connection.
       max: 1,
       prepare: false,
       connect_timeout: 8,
       idle_timeout: 20,
       connection: {
-        application_name: "cleanride-car-wash",
+        application_name: "kilapkendaraan-car-wash",
         statement_timeout: 15_000,
         lock_timeout: 5_000,
         idle_in_transaction_session_timeout: 15_000,
       },
     });
-    globalThis.cleanrideSqlConnectionString = connectionString;
+    globalThis.kilapkendaraanSqlConnectionString = connectionString;
   }
 
-  return drizzle(globalThis.cleanrideSql, { schema });
+  return drizzle(globalThis.kilapkendaraanSql, { schema });
 }
 
 export async function resetDbConnection() {
-  const sql = globalThis.cleanrideSql;
-  globalThis.cleanrideSql = undefined;
-  globalThis.cleanrideSqlConnectionString = undefined;
+  const sql = globalThis.kilapkendaraanSql;
+  globalThis.kilapkendaraanSql = undefined;
+  globalThis.kilapkendaraanSqlConnectionString = undefined;
   await sql?.end({ timeout: 1 }).catch(() => undefined);
 }
