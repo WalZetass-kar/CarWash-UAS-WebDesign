@@ -41,12 +41,18 @@ function matches(pathname: string, prefixes: string[]) {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isApiRequest = pathname === "/api" || pathname.startsWith("/api/");
+  const isPublicPage = pathname === "/" || pathname === "/tracking" || pathname === "/booking";
 
   if (isApiRequest) {
     return applyHeaders(NextResponse.next());
   }
 
-  const session = await readSession(request.cookies.get(SESSION_COOKIE)?.value);
+  // Optimize: Skip JWT check for public landing and tracking pages
+  let session = null;
+  if (!isPublicPage) {
+    session = await readSession(request.cookies.get(SESSION_COOKIE)?.value);
+  }
+
   const isProtected = matches(pathname, protectedPrefixes);
   const isAdminOnly = matches(pathname, adminOnlyPrefixes);
 
