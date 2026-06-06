@@ -5,6 +5,8 @@ import { reportFilterSchema } from "@/schemas/report";
 import { requireApiRole } from "@/app/api/_utils";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { getReportData } from "@/services/reports";
+import { paymentMethodLabels, paymentStatusLabels } from "@/lib/constants";
+import { createSimpleXlsxBuffer } from "@/lib/export/simple-xlsx";
 
 export async function GET(request: NextRequest) {
   const { response } = await requireApiRole(request, ["admin"]);
@@ -13,6 +15,9 @@ export async function GET(request: NextRequest) {
   const parsed = reportFilterSchema.safeParse({
     from: request.nextUrl.searchParams.get("from") || undefined,
     to: request.nextUrl.searchParams.get("to") || undefined,
+    method: request.nextUrl.searchParams.get("method") || undefined,
+    status: request.nextUrl.searchParams.get("status") || undefined,
+    packageName: request.nextUrl.searchParams.get("packageName") || undefined,
     format: request.nextUrl.searchParams.get("format") || "json",
   });
 
@@ -27,17 +32,30 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {})).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "-";
   const exportRows = rows.map((row) => ({
-    tanggal: row.createdAt,
+    tanggal: formatDate(row.createdAt),
     pelanggan: row.customerName,
     antrian: row.queueNumber,
-    metode: row.method ?? "-",
-    status: row.status,
+    paket: row.packageName,
+    metode: row.method ? paymentMethodLabels[row.method] : "-",
+    status: paymentStatusLabels[row.status],
+    subtotal: row.subtotal,
+    diskon: row.discount,
     total: row.total,
   }));
 
   if (parsed.data.format === "csv") {
     const header = Object.keys(
-      exportRows[0] ?? { tanggal: "", pelanggan: "", antrian: "", metode: "", status: "", total: "" },
+      exportRows[0] ?? {
+        tanggal: "",
+        pelanggan: "",
+        antrian: "",
+        paket: "",
+        metode: "",
+        status: "",
+        subtotal: "",
+        diskon: "",
+        total: "",
+      },
     );
     const csv = [
       header.join(","),
@@ -65,13 +83,16 @@ export async function GET(request: NextRequest) {
     doc.text(`Paket populer: ${popularPackage}`, 14, 35);
     autoTable(doc, {
       startY: 44,
-      head: [["Tanggal", "Pelanggan", "Invoice", "Metode", "Status", "Total"]],
+      head: [["Tanggal", "Pelanggan", "Invoice", "Paket", "Metode", "Status", "Subtotal", "Diskon", "Total"]],
       body: rows.map((row) => [
         formatDate(row.createdAt),
         row.customerName,
         row.queueNumber,
-        row.method ?? "-",
-        row.status,
+        row.packageName,
+        row.method ? paymentMethodLabels[row.method] : "-",
+        paymentStatusLabels[row.status],
+        formatCurrency(row.subtotal),
+        formatCurrency(row.discount),
         formatCurrency(row.total),
       ]),
     });
@@ -80,6 +101,17 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "attachment; filename=cleanride-report.pdf",
+      },
+    });
+  }
+
+  if (parsed.data.format === "xlsx") {
+    const buffer = createSimpleXlsxBuffer("Laporan", exportRows);
+
+    return new NextResponse(buffer, {
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": "attachment; filename=cleanride-report.xlsx",
       },
     });
   }

@@ -8,6 +8,7 @@ import { rateLimit } from "@/lib/security/rate-limit";
 import { sanitizeObject } from "@/lib/security/sanitize";
 import { logActivity } from "@/services/activity";
 import { jsonResponse, rejectInvalidCsrf, rejectUnavailableBackend } from "@/app/api/_utils";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 
 export async function POST(request: NextRequest) {
   const csrfResponse = rejectInvalidCsrf(request);
@@ -28,7 +29,19 @@ export async function POST(request: NextRequest) {
     return jsonResponse({ message: "Input login tidak valid", errors: parsed.error.flatten() }, 422);
   }
 
-  const user = await authenticateUser(parsed.data.email, parsed.data.password);
+  let user: Awaited<ReturnType<typeof authenticateUser>>;
+  try {
+    user = await withDatabaseRetry(() => authenticateUser(parsed.data.email, parsed.data.password));
+  } catch (error) {
+    console.error("Login database check failed", error);
+    return jsonResponse(
+      {
+        message:
+          "Koneksi database login sedang bermasalah. Periksa konfigurasi Postgres/Supabase, lalu coba lagi.",
+      },
+      503,
+    );
+  }
   if (!user) {
     return jsonResponse({ message: "Email atau password salah, atau user tidak aktif." }, 401);
   }

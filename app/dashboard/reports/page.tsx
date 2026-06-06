@@ -28,7 +28,7 @@ export default async function ReportsPage() {
         <Badge>Admin Only</Badge>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Laporan Transaksi</h1>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          Filter tanggal, total pemasukan, jumlah transaksi, paket populer, export CSV dan PDF.
+          Filter tanggal, metode, status, paket populer, export CSV, XLSX, dan PDF.
         </p>
       </div>
       <ReportManager
@@ -72,6 +72,8 @@ function buildReportRows(transactions: DashboardTransaction[], payments: Dashboa
       packageName: transaction.packageName,
       method: payment?.method ?? null,
       status: transaction.status,
+      subtotal: transaction.subtotal,
+      discount: transaction.discount,
       total: transaction.total,
       createdAt: toIsoString(payment?.paidAt ?? payment?.createdAt ?? transaction.createdAt),
     };

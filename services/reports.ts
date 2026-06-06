@@ -4,8 +4,9 @@ import { getDateKey } from "@/lib/utils";
 import { listPayments } from "@/services/payments";
 import { getAppSettings } from "@/services/settings";
 import { listTransactions } from "@/services/transactions";
+import type { ReportFilterInput } from "@/schemas/report";
 
-export async function getReportData(filters?: { from?: string; to?: string }) {
+export async function getReportData(filters?: Partial<ReportFilterInput>) {
   const transactions = await listTransactions();
   const payments = await listPayments();
   const settings = await getAppSettings();
@@ -24,11 +25,16 @@ export async function getReportData(filters?: { from?: string; to?: string }) {
         packageName: transaction.packageName,
         method: payment?.method ?? null,
         status: transaction.status,
+        subtotal: transaction.subtotal,
+        discount: transaction.discount,
         total: transaction.total,
         createdAt: toIsoString(payment?.paidAt ?? payment?.createdAt ?? transaction.createdAt),
       };
     })
-    .filter((row) => isWithinDateRange(row.createdAt, filters?.from, filters?.to));
+    .filter((row) => isWithinDateRange(row.createdAt, filters?.from, filters?.to))
+    .filter((row) => (filters?.method ? row.method === filters.method : true))
+    .filter((row) => (filters?.status ? row.status === filters.status : true))
+    .filter((row) => (filters?.packageName ? row.packageName === filters.packageName : true));
 
   const totalIncome = rows
     .filter((row) => row.status === "lunas")

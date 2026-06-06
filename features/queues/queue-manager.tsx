@@ -44,6 +44,7 @@ export function QueueManager({
   const [queues, setQueues] = useState<QueueItem[]>(initialQueues);
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
   const [packageId, setPackageId] = useState(packages[0]?.id ?? "");
+  const [discount, setDiscount] = useState(0);
   const [scheduledAt, setScheduledAt] = useState<Date[]>([new Date()]);
   const [formOpen, setFormOpen] = useState(false);
 
@@ -64,6 +65,11 @@ export function QueueManager({
       toast.error("Pelanggan dan paket wajib tersedia");
       return;
     }
+    if (discount > washPackage.price) {
+      toast.error("Diskon tidak boleh lebih besar dari harga paket");
+      return;
+    }
+    const total = washPackage.price - discount;
 
     const optimistic: QueueItem = {
       id: crypto.randomUUID(),
@@ -75,7 +81,7 @@ export function QueueManager({
       licensePlate: customer.licensePlate,
       scheduledAt: scheduledAt[0]?.toISOString() ?? new Date().toISOString(),
       status: "menunggu",
-      total: washPackage.price,
+      total,
       createdAt: new Date().toISOString(),
     };
     setQueues((items) => [optimistic, ...items]);
@@ -87,6 +93,7 @@ export function QueueManager({
         packageId,
         scheduledAt: optimistic.scheduledAt,
         status: "menunggu",
+        discount,
       }),
     });
 
@@ -97,6 +104,7 @@ export function QueueManager({
     }
 
     setFormOpen(false);
+    setDiscount(0);
     toast.success("Antrian dibuat");
   }
 
@@ -223,6 +231,27 @@ export function QueueManager({
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Diskon</Label>
+                <input
+                  type="number"
+                  min={0}
+                  max={packages.find((item) => item.id === packageId)?.price ?? undefined}
+                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
+                  value={discount}
+                  onChange={(event) => setDiscount(Math.max(0, Number(event.target.value) || 0))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Total bersih</Label>
+                <div className="grid h-10 place-items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold dark:border-slate-800 dark:bg-slate-900">
+                  {formatCurrency(
+                    Math.max(0, (packages.find((item) => item.id === packageId)?.price ?? 0) - discount),
+                  )}
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Tanggal & jam</Label>

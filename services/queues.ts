@@ -4,9 +4,14 @@ import { getDb, shouldUseDemoData } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type QueueItem } from "@/lib/data";
 import { getHourKey } from "@/lib/utils";
+import { queueStatuses } from "@/lib/constants";
 import type { QueueInput, QueueStatusInput } from "@/schemas/queue";
 import { getAppSettings } from "@/services/settings";
 import { createMemoryTransaction } from "@/services/transactions";
+
+type CreateQueueInput = Omit<QueueInput, "discount"> & {
+  discount?: number;
+};
 
 function nextQueueNumber(count: number) {
   return `CR-${String(count + 1).padStart(3, "0")}`;
@@ -36,7 +41,7 @@ export async function listQueues(query = "", status?: string | null) {
   }
 
   const statusFilter =
-    status && ["menunggu", "diproses", "selesai", "dibatalkan"].includes(status)
+    status && (queueStatuses as readonly string[]).includes(status)
       ? eq(queues.status, status as QueueStatusInput["status"])
       : undefined;
   const searchFilter = query
@@ -59,17 +64,18 @@ export async function listQueues(query = "", status?: string | null) {
       licensePlate: customers.licensePlate,
       scheduledAt: queues.scheduledAt,
       status: queues.status,
-      total: washPackages.price,
+      total: sql<number>`coalesce(${transactions.total}, ${washPackages.price})`,
       createdAt: queues.createdAt,
     })
     .from(queues)
     .innerJoin(customers, eq(queues.customerId, customers.id))
     .innerJoin(washPackages, eq(queues.packageId, washPackages.id))
+    .leftJoin(transactions, and(eq(transactions.queueId, queues.id), isNull(transactions.deletedAt)))
     .where(and(isNull(queues.deletedAt), statusFilter, searchFilter))
     .orderBy(desc(queues.createdAt));
 }
 
-export async function createQueue(input: QueueInput, createdBy?: string) {
+export async function createQueue(input: CreateQueueInput, createdBy?: string): Promise<QueueItem> {
   const settings = await getAppSettings();
   const requestedHourKey = getHourKey(input.scheduledAt);
   if (!requestedHourKey) {
@@ -95,6 +101,11 @@ export async function createQueue(input: QueueInput, createdBy?: string) {
     if (!washPackage) {
       throw new Error("Paket tidak ditemukan atau tidak aktif.");
     }
+    const discount = input.discount ?? 0;
+    if (discount > washPackage.price) {
+      throw new Error("Diskon tidak boleh lebih besar dari harga paket.");
+    }
+    const total = washPackage.price - discount;
 
     const queue: QueueItem = {
       id: crypto.randomUUID(),
@@ -106,7 +117,7 @@ export async function createQueue(input: QueueInput, createdBy?: string) {
       licensePlate: customer.licensePlate,
       scheduledAt: input.scheduledAt.toISOString(),
       status: input.status,
-      total: washPackage.price,
+      total,
       createdAt: new Date().toISOString(),
     };
     state.queues = [queue, ...memoryQueues];
@@ -118,7 +129,9 @@ export async function createQueue(input: QueueInput, createdBy?: string) {
       customerName: customer.name,
       packageId: washPackage.id,
       packageName: washPackage.name,
-      total: washPackage.price,
+      subtotal: washPackage.price,
+      discount,
+      total,
       status: "belum_bayar",
       createdAt: queue.createdAt,
     });
@@ -152,8 +165,18 @@ export async function createQueue(input: QueueInput, createdBy?: string) {
               eq(washPackages.isActive, true),
               isNull(washPackages.deletedAt),
             ),
-          );
+        );
         if (!washPackage) throw new Error("Paket tidak ditemukan atau tidak aktif.");
+        const [customer] = await tx
+          .select()
+          .from(customers)
+          .where(and(eq(customers.id, input.customerId), isNull(customers.deletedAt)));
+        if (!customer) throw new Error("Pelanggan tidak ditemukan.");
+        const discount = input.discount ?? 0;
+        if (discount > washPackage.price) {
+          throw new Error("Diskon tidak boleh lebih besar dari harga paket.");
+        }
+        const total = washPackage.price - discount;
 
         const [numberRow] = await tx
           .select({
@@ -178,13 +201,25 @@ export async function createQueue(input: QueueInput, createdBy?: string) {
           customerId: input.customerId,
           packageId: input.packageId,
           subtotal: washPackage.price,
-          discount: 0,
-          total: washPackage.price,
+          discount,
+          total,
           status: "belum_bayar",
           createdBy,
         });
 
-        return created;
+        return {
+          id: created.id,
+          queueNumber: created.queueNumber,
+          customerId: created.customerId,
+          packageId: created.packageId,
+          customerName: customer.name,
+          packageName: washPackage.name,
+          licensePlate: customer.licensePlate,
+          scheduledAt: toIsoString(created.scheduledAt),
+          status: created.status,
+          total,
+          createdAt: toIsoString(created.createdAt),
+        };
       });
     } catch (error) {
       if (attempt < 2 && isUniqueViolation(error)) continue;
@@ -193,6 +228,10 @@ export async function createQueue(input: QueueInput, createdBy?: string) {
   }
 
   throw new Error("Gagal membuat nomor antrian.");
+}
+
+function toIsoString(value: Date | string) {
+  return value instanceof Date ? value.toISOString() : value;
 }
 
 export async function updateQueueStatus(id: string, input: QueueStatusInput) {

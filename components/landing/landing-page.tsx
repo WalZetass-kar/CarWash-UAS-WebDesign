@@ -22,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { APP_NAME } from "@/lib/constants";
+import type { WashPackage } from "@/lib/data";
 import { formatCurrency } from "@/lib/utils";
 
 const navItems = [
@@ -31,7 +32,16 @@ const navItems = [
   { href: "#faq", label: "FAQ" },
 ];
 
-const packages = [
+type LandingPackageCard = {
+  slug: string;
+  name: string;
+  price: number;
+  time: string;
+  items: string[];
+  featured?: boolean;
+};
+
+const fallbackPackages: LandingPackageCard[] = [
   {
     slug: "express-wash",
     name: "Express Wash",
@@ -56,11 +66,38 @@ const packages = [
   },
 ];
 
-const gallery = [
+const fallbackGallery = [
   "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1600320254374-ce2d293c324e?auto=format&fit=crop&w=900&q=80",
 ];
+
+function packageSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function toLandingPackageCards(packages: WashPackage[]): LandingPackageCard[] {
+  if (!packages.length) return fallbackPackages;
+
+  return packages.slice(0, 6).map((item, index) => {
+    const descriptionItems = item.description
+      .split(/[,.]/)
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+
+    return {
+      slug: packageSlug(item.name),
+      name: item.name,
+      price: Number(item.price),
+      time: `${item.estimatedMinutes} menit`,
+      items: descriptionItems.length
+        ? descriptionItems
+        : [`Estimasi ${item.estimatedMinutes} menit`, "Antrian digital", "Invoice siap cetak"],
+      featured: index === 1,
+    };
+  });
+}
 
 function MotionSection({ children, className, id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (
@@ -164,7 +201,15 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
   );
 }
 
-export function LandingPage() {
+export function LandingPage({
+  brandName = APP_NAME,
+  packages = [],
+  gallery = fallbackGallery,
+}: {
+  brandName?: string;
+  packages?: WashPackage[];
+  gallery?: string[];
+}) {
   const [open, setOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const headerBg = useTransform(
@@ -172,6 +217,8 @@ export function LandingPage() {
     [0, 0.1],
     ["rgba(15, 23, 42, 0.7)", "rgba(15, 23, 42, 0.95)"]
   );
+  const packageCards = toLandingPackageCards(packages);
+  const galleryImages = gallery.length ? gallery : fallbackGallery;
 
   return (
     <div className="min-h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
@@ -191,7 +238,7 @@ export function LandingPage() {
             >
               <Car className="size-5" />
             </motion.span>
-            <span className="transition-colors duration-300 group-hover:text-cyan-300">{APP_NAME}</span>
+            <span className="transition-colors duration-300 group-hover:text-cyan-300">{brandName}</span>
           </Link>
 
           <div className="hidden items-center gap-6 lg:gap-8 md:flex">
@@ -317,7 +364,7 @@ export function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
               >
-                CleanRide Car Wash
+                {brandName}
               </motion.h1>
               <motion.p 
                 className="mt-5 max-w-2xl text-sm leading-7 text-cyan-50/90 sm:text-base sm:leading-8 lg:text-lg"
@@ -441,7 +488,7 @@ export function LandingPage() {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              {packages.map((item) => (
+              {packageCards.map((item) => (
                 <motion.div
                   key={item.name}
                   variants={itemVariants}
@@ -597,7 +644,7 @@ export function LandingPage() {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {gallery.map((src, index) => (
+            {galleryImages.map((src, index) => (
               <motion.div 
                 key={src} 
                 className="group relative aspect-[4/3] overflow-hidden rounded-lg"
@@ -648,7 +695,7 @@ export function LandingPage() {
               {[
                 ["Apakah bisa booking online?", "Bisa. Pengunjung publik dapat memilih paket dan membuat booking tanpa login dari halaman booking."],
                 ["Apakah status antrian realtime?", "Ya. Aplikasi sudah menyiapkan Supabase Realtime untuk sinkronisasi antrian dan transaksi."],
-                ["Apakah laporan bisa diekspor?", "Admin dapat ekspor CSV dan PDF dari halaman laporan."],
+                ["Apakah laporan bisa diekspor?", "Admin dapat ekspor CSV, PDF, dan XLSX dari halaman laporan."],
               ].map(([question, answer], index) => (
                 <FAQItem key={question} question={question} answer={answer} index={index} />
               ))}
@@ -681,7 +728,7 @@ export function LandingPage() {
               >
                 <Car className="size-5 text-cyan-300 transition-colors duration-300 group-hover:text-cyan-400" />
               </motion.div>
-              <span className="transition-colors duration-300 group-hover:text-cyan-300">{APP_NAME}</span>
+              <span className="transition-colors duration-300 group-hover:text-cyan-300">{brandName}</span>
             </motion.div>
             <p className="mt-2 text-sm text-slate-400">Premium car wash management for Web Design UAS project.</p>
           </motion.div>
@@ -692,7 +739,7 @@ export function LandingPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            © 2026 CleanRide. All rights reserved.
+            © 2026 {brandName}. All rights reserved.
           </motion.div>
         </div>
       </motion.footer>

@@ -59,7 +59,7 @@ export function GalleryUpload() {
       ) : null}
 
       <Button variant="outline" disabled>
-        {loading ? "Memvalidasi..." : "Guard upload aktif"}
+        {loading ? "Memvalidasi..." : "Tampil di gallery publik setelah tersimpan"}
       </Button>
     </div>
   );

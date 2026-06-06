@@ -1,4 +1,4 @@
-import { hasDatabaseConfig } from "@/drizzle/db";
+import { hasDatabaseConfig, isDemoModeEnabled } from "@/drizzle/db";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { Badge } from "@/components/ui/badge";
 import { PublicBookingForm } from "@/features/bookings/public-booking-form";
@@ -21,7 +21,7 @@ export default async function BookingPage({
 }) {
   const params = await searchParams;
 
-  if (!hasDatabaseConfig()) {
+  if (!hasDatabaseConfig() && !isDemoModeEnabled()) {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-6">

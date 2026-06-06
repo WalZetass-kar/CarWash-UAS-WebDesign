@@ -150,6 +150,29 @@ test("queue demo membuat transaksi pending", async () => {
   assert.equal(createdTransaction.total, demoPackages[0].price);
 });
 
+test("queue demo menyimpan diskon sebagai total transaksi bersih", async () => {
+  const { createQueue } = await import("../services/queues");
+  const { listTransactions } = await import("../services/transactions");
+  const discount = 5000;
+
+  const queue = await createQueue({
+    customerId: demoCustomers[0].id,
+    packageId: demoPackages[0].id,
+    scheduledAt: new Date(),
+    status: "menunggu",
+    discount,
+    notes: null,
+  });
+  const createdTransaction = (await listTransactions(queue.queueNumber)).find(
+    (transaction) => transaction.queueId === queue.id,
+  );
+
+  assert.equal(queue.total, demoPackages[0].price - discount);
+  assert.equal(createdTransaction?.subtotal, demoPackages[0].price);
+  assert.equal(createdTransaction?.discount, discount);
+  assert.equal(createdTransaction?.total, demoPackages[0].price - discount);
+});
+
 test("booking publik dapat memilih paket tanpa login", async () => {
   const { createPublicBooking } = await import("../services/bookings");
   const { listQueues } = await import("../services/queues");
@@ -258,16 +281,23 @@ test("user demo baru bisa login dan user nonaktif ditolak login", async () => {
   const authenticatedUser = await authenticateUser("operator@cleanride.my.id", "operator123");
   assert.equal(authenticatedUser?.id, createdUser.id);
 
+  const kasir = await authenticateUser("kasir@cleanride.my.id", "kasir123");
+  assert.equal(kasir?.role, "kasir");
+
+  const staff = await authenticateUser("staff@cleanride.my.id", "staff123");
+  assert.equal(staff?.role, "staff");
+
   await deactivateUser(createdUser.id);
   const rejectedUser = await authenticateUser("operator@cleanride.my.id", "operator123");
   assert.equal(rejectedUser, null);
 });
 
-test("filter export laporan menerima format json/csv/pdf dan menolak format lain", () => {
+test("filter export laporan menerima format json/csv/pdf/xlsx dan menolak format lain", () => {
   assert.equal(reportFilterSchema.safeParse({ format: "json", from: "2026-05-24", to: "2026-05-24" }).success, true);
   assert.equal(reportFilterSchema.safeParse({ format: "csv" }).success, true);
   assert.equal(reportFilterSchema.safeParse({ format: "pdf" }).success, true);
-  assert.equal(reportFilterSchema.safeParse({ format: "xlsx" }).success, false);
+  assert.equal(reportFilterSchema.safeParse({ format: "xlsx", method: "qris", status: "lunas" }).success, true);
+  assert.equal(reportFilterSchema.safeParse({ format: "xml" }).success, false);
 });
 
 test("slot antrian mengikuti kapasitas per jam dari settings", async () => {

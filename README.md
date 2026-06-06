@@ -39,6 +39,12 @@ npm run build
 npm run start
 ```
 
+Untuk smoke test production lokal setelah build:
+
+```bash
+npm run smoke:e2e
+```
+
 ## Setup Supabase
 
 1. Buat project Supabase.
@@ -123,7 +129,7 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - Login/logout JWT, HTTPOnly cookies, SameSite, route protection via Next.js Proxy atau middleware modern
 - Session otomatis tidak valid setelah pergantian tanggal pukul 00:00 Asia/Jakarta
 - RBAC admin/petugas di middleware dan API routes
-- Dashboard analytics, search global, notification shell, dark/light mode
+- Dashboard analytics, search global, notifikasi operasional nyata, dark/light mode
 - CRUD pelanggan, paket, antrian, pembayaran, user
 - Edit pelanggan, edit paket, edit/reset password user, dan nonaktifkan user
 - Pembayaran memilih transaksi pending dari data antrian/transaksi, bukan input ID manual
@@ -133,13 +139,14 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - TanStack Table untuk search, sorting, pagination
 - Chart.js bar, line, pie chart
 - Invoice printable dan export PDF dengan QR invoice real
-- Export laporan CSV/PDF, termasuk PDF server-side dari `/api/reports?format=pdf`
+- Export laporan CSV/XLSX/PDF, termasuk PDF server-side dari `/api/reports?format=pdf`
+- Filter laporan berdasarkan tanggal, metode pembayaran, status, dan paket
 - Global search deep-link ke record terkait di halaman pelanggan, paket, antrian, pembayaran, dan user
 - Halaman Settings admin menyimpan nama bisnis, alamat, telepon, default range laporan, auto print invoice, dan kapasitas antrian per jam
 - Activity log server-side
 - Zod validation, server-side input sanitization, bcryptjs password hash
 - CSRF protection, login rate limiting, security headers
-- Upload guard 2MB untuk jpg/jpeg/png/webp di `lib/security/upload-guard.ts` dan halaman Settings admin
+- Upload guard 2MB untuk jpg/jpeg/png/webp di `lib/security/upload-guard.ts`; gambar gallery publik dibaca dari Supabase Storage
 - Favicon, Open Graph image, manifest PWA, icon 192/512, dan screenshot PWA
 
 ## Deploy ke Vercel
@@ -154,6 +161,6 @@ Build command: `npm run build`
 
 ## Catatan Deploy
 
-Project ini sekarang diposisikan untuk mode online/persisten. Isi seluruh env, jalankan `npm run db:push`, lanjut `npm run db:seed`, lalu build dan start seperti environment deploy.
+Project ini sekarang diposisikan untuk mode online/persisten. Isi seluruh env, jalankan `npm run db:push`, lanjut `npm run db:seed`, lalu build dan start seperti environment deploy. `npm run env:check` memvalidasi format env, koneksi Postgres, dan keberadaan tabel inti.
 
 `ENABLE_DEMO_MODE` hanya disediakan untuk pengujian internal lokal dan test suite, bukan untuk deployment produksi.

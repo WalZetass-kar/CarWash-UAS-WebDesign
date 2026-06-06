@@ -11,6 +11,7 @@
     "password:hash": "node scripts/hash-password.mjs",
     "lint": "eslint . --cache",
     "test": "tsx tests/core.test.ts",
+    "smoke:e2e": "node scripts/smoke-e2e.mjs",
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",

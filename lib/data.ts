@@ -94,6 +94,8 @@ export type TransactionItem = {
   customerName: string;
   packageId: string;
   packageName: string;
+  subtotal: number;
+  discount: number;
   total: number;
   status: PaymentStatus;
   createdAt: string;
@@ -108,6 +110,8 @@ export type ReportRow = {
   packageName: string;
   method: PaymentMethod | null;
   status: PaymentStatus;
+  subtotal: number;
+  discount: number;
   total: number;
   createdAt: string;
 };
@@ -262,6 +266,8 @@ export const demoTransactions: TransactionItem[] = [
     customerName: demoCustomers[0].name,
     packageId: demoPackages[1].id,
     packageName: demoPackages[1].name,
+    subtotal: demoPackages[1].price,
+    discount: 0,
     total: demoPackages[1].price,
     status: "lunas",
     createdAt: iso(0, 10, 15),
@@ -274,6 +280,8 @@ export const demoTransactions: TransactionItem[] = [
     customerName: demoCustomers[1].name,
     packageId: demoPackages[2].id,
     packageName: demoPackages[2].name,
+    subtotal: demoPackages[2].price,
+    discount: 0,
     total: demoPackages[2].price,
     status: "belum_bayar",
     createdAt: iso(0, 10, 25),
@@ -286,6 +294,8 @@ export const demoTransactions: TransactionItem[] = [
     customerName: demoCustomers[2].name,
     packageId: demoPackages[3].id,
     packageName: demoPackages[3].name,
+    subtotal: demoPackages[3].price,
+    discount: 0,
     total: demoPackages[3].price,
     status: "belum_bayar",
     createdAt: iso(0, 10, 40),
@@ -298,6 +308,8 @@ export const demoTransactions: TransactionItem[] = [
     customerName: demoCustomers[3].name,
     packageId: demoPackages[0].id,
     packageName: demoPackages[0].name,
+    subtotal: demoPackages[0].price,
+    discount: 0,
     total: demoPackages[0].price,
     status: "belum_bayar",
     createdAt: iso(0, 11, 20),

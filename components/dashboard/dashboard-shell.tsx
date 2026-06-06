@@ -33,6 +33,7 @@ import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import { roleLabels } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/lib/auth/jwt";
+import type { OperationalNotification } from "@/services/notifications";
 
 type NavItem = {
   href: string;
@@ -62,10 +63,12 @@ type SearchResult = {
 export function DashboardShell({
   user,
   brandName,
+  notifications = [],
   children,
 }: {
   user: SessionUser;
   brandName: string;
+  notifications?: OperationalNotification[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -82,6 +85,7 @@ export function DashboardShell({
     () => navItems.filter((item) => item.roles.includes(user.role)),
     [user.role],
   );
+  const urgentNotifications = notifications.filter((item) => item.tone === "warning").length;
 
   useEffect(() => {
     const timeout = window.setTimeout(async () => {
@@ -212,9 +216,15 @@ export function DashboardShell({
                   variant="ghost"
                   size="icon"
                   aria-label="Notifikasi"
+                  className="relative"
                   onClick={() => setNotificationOpen((value) => !value)}
                 >
                   <Bell className="size-5" />
+                  {notifications.length ? (
+                    <span className="absolute right-1.5 top-1.5 grid min-h-4 min-w-4 place-items-center rounded-full bg-rose-600 px-1 text-[10px] font-semibold leading-none text-white">
+                      {urgentNotifications || notifications.length}
+                    </span>
+                  ) : null}
                 </Button>
                 {notificationOpen ? (
                   <div className="absolute right-0 top-12 z-50 w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-950">
@@ -224,13 +234,29 @@ export function DashboardShell({
                         Ringkasan status sistem saat ini.
                       </p>
                     </div>
-                    <div className="space-y-3 p-4 text-sm">
-                      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
-                        Realtime aktif untuk perubahan antrian dan pembayaran.
-                      </div>
-                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-                        Belum ada notifikasi operasional baru.
-                      </div>
+                    <div className="max-h-[min(60vh,420px)] space-y-3 overflow-y-auto p-4 text-sm">
+                      {notifications.length ? (
+                        notifications.map((item) => (
+                          <div
+                            key={item.id}
+                            className={cn(
+                              "rounded-lg border p-3",
+                              item.tone === "warning"
+                                ? "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100"
+                                : item.tone === "success"
+                                  ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200"
+                                  : "border-cyan-200 bg-cyan-50 text-cyan-900 dark:border-cyan-500/20 dark:bg-cyan-500/10 dark:text-cyan-100",
+                            )}
+                          >
+                            <div className="font-medium">{item.title}</div>
+                            <div className="mt-1 text-xs opacity-85">{item.description}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                          Belum ada notifikasi operasional baru.
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : null}

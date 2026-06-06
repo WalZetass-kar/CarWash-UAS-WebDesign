@@ -13,13 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { User } from "@/lib/data";
+import { roleLabels, roles, type Role } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 
 const initialForm = {
   name: "",
   email: "",
   password: "password123",
-  role: "petugas",
+  role: "petugas" as Role,
   isActive: true,
 };
 
@@ -51,7 +52,7 @@ export function UserManager({
         id: editingId,
         name: form.name,
         email: form.email,
-        role: form.role as User["role"],
+        role: form.role,
         isActive: form.isActive,
         createdAt: data.find((item) => item.id === editingId)?.createdAt ?? new Date().toISOString(),
       };
@@ -78,7 +79,7 @@ export function UserManager({
       id: crypto.randomUUID(),
       name: form.name,
       email: form.email,
-      role: form.role as User["role"],
+      role: form.role,
       isActive: form.isActive,
       createdAt: new Date().toISOString(),
     };
@@ -143,7 +144,7 @@ export function UserManager({
     {
       accessorKey: "role",
       header: "Role",
-      cell: ({ row }) => <Badge>{row.original.role === "admin" ? "Admin" : "Petugas"}</Badge>,
+      cell: ({ row }) => <Badge>{roleLabels[row.original.role]}</Badge>,
     },
     {
       accessorKey: "isActive",
@@ -236,10 +237,13 @@ export function UserManager({
               <select
                 className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                 value={form.role}
-                onChange={(event) => setForm({ ...form, role: event.target.value })}
+                onChange={(event) => setForm({ ...form, role: event.target.value as Role })}
               >
-                <option value="admin">Admin</option>
-                <option value="petugas">Petugas/Kasir</option>
+                {roles.map((role) => (
+                  <option key={role} value={role}>
+                    {roleLabels[role]}
+                  </option>
+                ))}
               </select>
             </div>
             <label className="flex items-center gap-2 text-sm">

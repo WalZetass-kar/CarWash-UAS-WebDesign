@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import { readJsonResponse } from "@/lib/http/read-json-response";
+import { demoUserPasswords, demoUsers, roleLabels } from "@/lib/constants";
 
 const showSeedCredentials = process.env.NODE_ENV !== "production";
 const seedAdminEmail = "admin@cleanride.my.id";
@@ -108,14 +109,12 @@ export function LoginForm() {
 
       {showSeedCredentials ? (
         <div className="mt-6 grid gap-2 rounded-lg bg-slate-50 p-4 text-xs text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-          <div>
-            <span className="font-semibold">Admin:</span>{" "}
-            <span className="break-all">admin@cleanride.my.id / admin123</span>
-          </div>
-          <div>
-            <span className="font-semibold">Petugas:</span>{" "}
-            <span className="break-all">petugas@cleanride.my.id / petugas123</span>
-          </div>
+          {demoUsers.map((user) => (
+            <div key={user.email}>
+              <span className="font-semibold">{roleLabels[user.role]}:</span>{" "}
+              <span className="break-all">{user.email} / {demoUserPasswords[user.email]}</span>
+            </div>
+          ))}
         </div>
       ) : null}
     </div>

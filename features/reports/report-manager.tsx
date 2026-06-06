@@ -27,26 +27,40 @@ export function ReportManager({
   defaultRangeDays: number;
 }) {
   const [range, setRange] = useState<Date[]>(() => buildDefaultRange(defaultRangeDays));
+  const [method, setMethod] = useState("");
+  const [status, setStatus] = useState("");
+  const [packageName, setPackageName] = useState("");
+  const packageOptions = useMemo(
+    () => Array.from(new Set(rows.map((row) => row.packageName))).sort(),
+    [rows],
+  );
   const filtered = useMemo(() => {
-    if (range.length < 2) return rows;
-    const [from, to] = range;
-    const fromKey = formatDateInput(from);
-    const toKey = formatDateInput(to);
-
     return rows.filter((row) => {
-      const dateKey = formatDateInput(row.createdAt);
-      return dateKey >= fromKey && dateKey <= toKey;
+      const matchesDate = (() => {
+        if (range.length < 2) return true;
+        const [from, to] = range;
+        const dateKey = formatDateInput(row.createdAt);
+        return dateKey >= formatDateInput(from) && dateKey <= formatDateInput(to);
+      })();
+      const matchesMethod = method ? row.method === method : true;
+      const matchesStatus = status ? row.status === status : true;
+      const matchesPackage = packageName ? row.packageName === packageName : true;
+      return matchesDate && matchesMethod && matchesStatus && matchesPackage;
     });
-  }, [rows, range]);
+  }, [rows, range, method, status, packageName]);
   const paid = filtered.filter((row) => row.status === "lunas");
   const total = paid.reduce((sum, row) => sum + Number(row.total), 0);
 
   function exportCsv() {
-    window.location.href = `/api/reports?format=csv${buildRangeParams(range)}`;
+    window.location.href = `/api/reports?${buildExportParams("csv", range, method, status, packageName)}`;
   }
 
   function exportPdf() {
-    window.location.href = `/api/reports?format=pdf${buildRangeParams(range)}`;
+    window.location.href = `/api/reports?${buildExportParams("pdf", range, method, status, packageName)}`;
+  }
+
+  function exportXlsx() {
+    window.location.href = `/api/reports?${buildExportParams("xlsx", range, method, status, packageName)}`;
   }
 
   const columns = useMemo<ColumnDef<ReportRow>[]>(
@@ -63,6 +77,16 @@ export function ReportManager({
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => paymentStatusLabels[row.original.status],
+      },
+      {
+        accessorKey: "subtotal",
+        header: "Subtotal",
+        cell: ({ row }) => formatCurrency(row.original.subtotal),
+      },
+      {
+        accessorKey: "discount",
+        header: "Diskon",
+        cell: ({ row }) => formatCurrency(row.original.discount),
       },
       {
         accessorKey: "total",
@@ -113,9 +137,49 @@ export function ReportManager({
                 onChange={setRange}
                 placeholder="Filter tanggal"
               />
+              <select
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:w-auto sm:text-sm"
+                value={method}
+                onChange={(event) => setMethod(event.target.value)}
+              >
+                <option value="">Semua metode</option>
+                {Object.entries(paymentMethodLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:w-auto sm:text-sm"
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+              >
+                <option value="">Semua status</option>
+                {Object.entries(paymentStatusLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:w-auto sm:text-sm"
+                value={packageName}
+                onChange={(event) => setPackageName(event.target.value)}
+              >
+                <option value="">Semua paket</option>
+                {packageOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
               <Button variant="outline" onClick={exportCsv} className="w-full sm:w-auto sm:flex-none">
                 <Download className="size-4" />
                 CSV
+              </Button>
+              <Button variant="outline" onClick={exportXlsx} className="w-full sm:w-auto sm:flex-none">
+                <Download className="size-4" />
+                XLSX
               </Button>
               <Button onClick={exportPdf} className="w-full sm:w-auto sm:flex-none">
                 <FileDown className="size-4" />
@@ -154,10 +218,23 @@ export function ReportManager({
   );
 }
 
-function buildRangeParams(range: Date[]) {
-  if (range.length < 2) return "";
-  const [from, to] = range;
-  return `&from=${formatDateInput(from)}&to=${formatDateInput(to)}`;
+function buildExportParams(
+  format: "csv" | "pdf" | "xlsx",
+  range: Date[],
+  method: string,
+  status: string,
+  packageName: string,
+) {
+  const params = new URLSearchParams({ format });
+  if (range.length >= 2) {
+    const [from, to] = range;
+    params.set("from", formatDateInput(from));
+    params.set("to", formatDateInput(to));
+  }
+  if (method) params.set("method", method);
+  if (status) params.set("status", status);
+  if (packageName) params.set("packageName", packageName);
+  return params.toString();
 }
 
 function buildDefaultRange(defaultRangeDays: number) {

@@ -1,4 +1,4 @@
-import { demoUsers } from "@/lib/constants";
+import { demoUserPasswords, demoUsers } from "@/lib/constants";
 import {
   defaultAppSettings,
   demoCustomers,
@@ -14,11 +14,6 @@ import {
   type User,
   type WashPackage,
 } from "@/lib/data";
-
-const demoPasswords: Record<string, string> = {
-  "admin@cleanride.my.id": "admin123",
-  "petugas@cleanride.my.id": "petugas123",
-};
 
 export type DemoUserRecord = User & {
   password: string;
@@ -92,7 +87,7 @@ function createInitialDemoState(): DemoState {
     users: demoUsers.map((item) => ({
       ...item,
       createdAt,
-      password: demoPasswords[item.email] ?? "admin123",
+      password: demoUserPasswords[item.email] ?? "admin123",
     })),
   };
 }

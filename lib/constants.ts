@@ -34,7 +34,7 @@ export const roleLabels: Record<(typeof roles)[number], string> = {
   admin: "Admin",
   kasir: "Kasir",
   staff: "Staff",
-  petugas: "Petugas (Legacy)",
+  petugas: "Petugas",
 };
 
 export const queueStatusLabels: Record<(typeof queueStatuses)[number], string> = {
