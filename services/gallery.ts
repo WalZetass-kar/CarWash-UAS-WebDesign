@@ -11,7 +11,7 @@ export const fallbackGalleryImages = [
 
 export async function listGalleryImages(limit = 6) {
   if (shouldUseDemoData()) {
-     return listGalleryImagesFromStorage(limit);
+    return listGalleryImagesFromStorage(limit);
   }
 
   try {
@@ -22,7 +22,7 @@ export async function listGalleryImages(limit = 6) {
       .orderBy(desc(gallery.sortOrder), desc(gallery.createdAt))
       .limit(limit);
 
-    if (rows.length > 0) {
+    if (rows && rows.length > 0) {
       return rows.map((r) => r.url);
     }
   } catch (error) {
@@ -41,7 +41,7 @@ async function listGalleryImagesFromStorage(limit: number) {
     sortBy: { column: "created_at", order: "desc" },
   });
 
-  if (error || !data?.length) return fallbackGalleryImages;
+  if (error || !data || data.length === 0) return fallbackGalleryImages;
 
   const urls = data
     .filter((item) => item.name && !item.name.endsWith("/"))
@@ -49,9 +49,9 @@ async function listGalleryImagesFromStorage(limit: number) {
       const { data: publicUrl } = supabase.storage
         .from("kilapkendaraan")
         .getPublicUrl(`gallery/${item.name}`);
-      return publicUrl.publicUrl;
+      return publicUrl?.publicUrl;
     })
-    .filter(Boolean);
+    .filter(Boolean) as string[];
 
   return urls.length ? urls : fallbackGalleryImages;
 }
