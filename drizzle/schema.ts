@@ -177,6 +177,22 @@ export const activityLogs = pgTable(
   ],
 );
 
+export const gallery = pgTable(
+  "gallery",
+  {
+    ...lifecycleColumns,
+    url: text("url").notNull(),
+    title: varchar("title", { length: 200 }),
+    description: text("description"),
+    isActive: boolean("is_active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (table) => [
+    index("gallery_active_idx").on(table.isActive),
+    index("gallery_sort_order_idx").on(table.sortOrder),
+  ],
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   transactions: many(transactions),
   activityLogs: many(activityLogs),
@@ -267,25 +283,6 @@ export const schema = {
   appSettings,
   activityLogs,
   gallery,
-  usersRelations,
-  customersRelations,
-  washPackagesRelations,
-  queuesRelations,
-  transactionsRelations,
-  paymentsRelations,
-  activityLogsRelations,
-};
-ypeof activityLogs.$inferInsert;
-
-export const schema = {
-  users,
-  customers,
-  washPackages,
-  queues,
-  transactions,
-  payments,
-  appSettings,
-  activityLogs,
   usersRelations,
   customersRelations,
   washPackagesRelations,

@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Flatpickr from "react-flatpickr";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CalendarClock, CheckCircle2 } from "lucide-react";
+import { CalendarClock, CheckCircle2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { DataTable } from "@/components/tables/data-table";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { Customer, QueueItem, WashPackage } from "@/lib/data";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, formatWhatsAppLink } from "@/lib/utils";
 import { queueStatusLabels, type QueueStatus } from "@/lib/constants";
 
 const statusVariant: Record<QueueStatus, "default" | "success" | "warning" | "destructive" | "secondary"> = {

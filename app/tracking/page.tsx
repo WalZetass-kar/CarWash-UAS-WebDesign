@@ -105,7 +105,7 @@ export default function TrackingPage() {
                   <p className="text-xs font-medium uppercase tracking-wider opacity-80">No. Antrian</p>
                   <CardTitle className="text-2xl">{result.queueNumber}</CardTitle>
                 </div>
-                <Badge variant="outline" className="border-white/40 text-white">
+                <Badge variant="secondary" className="border-white/40 text-white">
                    {result.packageName}
                 </Badge>
               </div>
