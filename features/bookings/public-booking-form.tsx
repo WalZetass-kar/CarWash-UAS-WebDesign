@@ -81,13 +81,13 @@ export function PublicBookingForm({
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-      <Card>
+    <div className="grid w-full min-w-0 gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <Card className="min-w-0">
         <CardHeader>
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+            <div className="min-w-0">
               <Badge>Publik</Badge>
-              <CardTitle className="mt-3 text-2xl">Booking Tanpa Login</CardTitle>
+              <CardTitle className="mt-3 break-words text-xl sm:text-2xl">Booking Tanpa Login</CardTitle>
             </div>
             <Button asChild variant="ghost" size="sm" className="w-full sm:w-auto">
               <Link href="/">
@@ -99,10 +99,10 @@ export function PublicBookingForm({
         </CardHeader>
         <CardContent>
           {success ? (
-            <div className="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/10">
+            <div className="min-w-0 space-y-4 rounded-xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/10">
               <div className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
-                <div>
+                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                <div className="min-w-0">
                   <h2 className="font-semibold text-emerald-800 dark:text-emerald-200">Booking berhasil dibuat</h2>
                   <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-300">
                     Simpan nomor antrian berikut untuk datang sesuai jadwal.
@@ -135,16 +135,17 @@ export function PublicBookingForm({
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Nama pelanggan</Label>
-                <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
+                <Input className="min-w-0" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
+                <div className="min-w-0 space-y-2">
                   <Label>Nomor HP</Label>
-                  <Input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} required />
+                  <Input className="min-w-0" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} required />
                 </div>
-                <div className="space-y-2">
+                <div className="min-w-0 space-y-2">
                   <Label>Plat nomor</Label>
                   <Input
+                    className="min-w-0"
                     value={form.licensePlate}
                     onChange={(event) => setForm({ ...form, licensePlate: event.target.value.toUpperCase() })}
                     required
@@ -152,10 +153,10 @@ export function PublicBookingForm({
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
+                <div className="min-w-0 space-y-2">
                   <Label>Jenis kendaraan</Label>
                   <select
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
+                    className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                     value={form.vehicleType}
                     onChange={(event) => setForm({ ...form, vehicleType: event.target.value as VehicleType })}
                   >
@@ -166,10 +167,10 @@ export function PublicBookingForm({
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
+                <div className="min-w-0 space-y-2">
                   <Label>Pilih paket</Label>
                   <select
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
+                    className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-base dark:border-slate-800 dark:bg-slate-950 sm:text-sm"
                     value={form.packageId}
                     onChange={(event) => setForm({ ...form, packageId: event.target.value })}
                     required
@@ -185,6 +186,7 @@ export function PublicBookingForm({
               <div className="space-y-2">
                 <Label>Jadwal kedatangan</Label>
                 <Input
+                  className="min-w-0"
                   type="datetime-local"
                   value={form.scheduledAt}
                   min={getMinSchedule()}
@@ -195,7 +197,7 @@ export function PublicBookingForm({
               <div className="space-y-2">
                 <Label>Catatan tambahan</Label>
                 <textarea
-                  className="min-h-24 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-base shadow-sm transition focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 sm:text-sm dark:border-slate-800 dark:bg-slate-950"
+                  className="min-h-24 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-base shadow-sm transition focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 sm:text-sm dark:border-slate-800 dark:bg-slate-950"
                   value={form.notes}
                   onChange={(event) => setForm({ ...form, notes: event.target.value })}
                   placeholder="Contoh: interior perlu vacuum ekstra"
@@ -210,23 +212,23 @@ export function PublicBookingForm({
         </CardContent>
       </Card>
 
-      <div className="space-y-6">
-        <Card>
+      <div className="min-w-0 space-y-6">
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle>{brandName}</CardTitle>
+            <CardTitle className="break-words">{brandName}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {selectedPackage ? (
-              <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4 dark:border-cyan-500/20 dark:bg-cyan-500/10">
+              <div className="min-w-0 rounded-xl border border-cyan-200 bg-cyan-50 p-4 dark:border-cyan-500/20 dark:bg-cyan-500/10">
                 <div className="font-semibold text-cyan-800 dark:text-cyan-200">{selectedPackage.name}</div>
                 <div className="mt-1 text-sm text-cyan-700 dark:text-cyan-300">
                   {selectedPackage.description}
                 </div>
-                <div className="mt-4 flex items-center justify-between text-sm">
+                <div className="mt-4 flex min-w-0 items-center justify-between gap-3 text-sm">
                   <span>Estimasi</span>
                   <strong>{selectedPackage.estimatedMinutes} menit</strong>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-sm">
+                <div className="mt-2 flex min-w-0 items-center justify-between gap-3 text-sm">
                   <span>Harga</span>
                   <strong>{formatCurrency(selectedPackage.price)}</strong>
                 </div>

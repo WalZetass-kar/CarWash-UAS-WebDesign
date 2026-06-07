@@ -23,11 +23,11 @@ export default async function BookingPage({
 
   if (!hasDatabaseConfig() && !isDemoModeEnabled()) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-6">
+      <main className="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl min-w-0 space-y-6">
           <div>
             <Badge>Customer Booking</Badge>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+            <h1 className="mt-3 max-w-3xl break-words text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
               Pilih paket dan booking jadwal
             </h1>
           </div>
@@ -40,11 +40,11 @@ export default async function BookingPage({
   const data = await loadBookingData();
   if (!data) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-6">
+      <main className="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl min-w-0 space-y-6">
           <div>
             <Badge>Customer Booking</Badge>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+            <h1 className="mt-3 max-w-3xl break-words text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
               Pilih paket dan booking jadwal
             </h1>
           </div>
@@ -60,11 +60,11 @@ export default async function BookingPage({
     activePackages.find((item) => toPackageSlug(item.name) === params.package) ?? activePackages[0];
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
+    <main className="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl min-w-0 space-y-6">
         <div>
           <Badge>Customer Booking</Badge>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+          <h1 className="mt-3 max-w-3xl break-words text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
             Pilih paket dan booking jadwal
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
