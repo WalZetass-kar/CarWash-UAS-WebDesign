@@ -5,6 +5,7 @@ import {
   CategoryScale,
   Chart as ChartJS,
   type ChartOptions,
+  Filler,
   Legend,
   LinearScale,
   LineElement,
@@ -14,7 +15,7 @@ import {
 } from "chart.js";
 import { Bar, Line, Pie } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Filler, Tooltip, Legend);
 
 const sharedCartesianOptions = {
   responsive: true,
