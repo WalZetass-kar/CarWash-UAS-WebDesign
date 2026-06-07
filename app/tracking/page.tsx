@@ -1,15 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Car, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { queueStatusLabels, type QueueStatus } from "@/lib/constants";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { readJsonResponse } from "@/lib/http/read-json-response";
+import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
+
+type QueueTrackingResult = {
+  id: string;
+  queueNumber: string;
+  customerName: string;
+  packageName: string;
+  licensePlate: string;
+  scheduledAt: string;
+  status: QueueStatus;
+  createdAt: string;
+};
 
 const statusVariant: Record<QueueStatus, "default" | "success" | "warning" | "destructive" | "secondary"> = {
   menunggu: "warning",
@@ -25,7 +37,7 @@ const statusVariant: Record<QueueStatus, "default" | "success" | "warning" | "de
 export default function TrackingPage() {
   const [plate, setPlate] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<QueueTrackingResult | null>(null);
   const [error, setError] = useState("");
 
   async function handleSearch(e: React.FormEvent) {
@@ -38,14 +50,14 @@ export default function TrackingPage() {
 
     try {
       const res = await fetch(`/api/queues/status/${encodeURIComponent(plate)}`);
-      const data = await res.json();
+      const data = await readJsonResponse<QueueTrackingResult & { message?: string }>(res);
 
       if (res.ok) {
         setResult(data);
       } else {
         setError(data.message || "Gagal mencari status kendaraan");
       }
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan koneksi");
     } finally {
       setLoading(false);
@@ -141,7 +153,7 @@ export default function TrackingPage() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Progres</p>
                 <div className="relative flex justify-between">
                   <div className="absolute top-2.5 left-0 h-0.5 w-full bg-slate-200 dark:bg-slate-800" />
-                  {["menunggu", "sedang_dicuci", "selesai"].map((s, idx) => {
+                  {(["menunggu", "sedang_dicuci", "selesai"] as const).map((s) => {
                     const isDone = ["selesai"].includes(result.status) || (result.status === "sedang_dicuci" && s === "menunggu") || s === result.status;
                     const isActive = s === result.status || (result.status === "sedang_dicuci" && s === "sedang_dicuci") || (result.status === "selesai");
                     
