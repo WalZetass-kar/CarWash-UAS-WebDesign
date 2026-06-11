@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { queueStatusLabels, type QueueStatus } from "@/lib/constants";
+import { queueStatusLabels, normalizeQueueStatus, type QueueStatus, type QueueWorkflowStatus } from "@/lib/constants";
 import { readJsonResponse } from "@/lib/http/read-json-response";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
@@ -154,13 +154,16 @@ export default function TrackingPage() {
                 <div className="relative flex justify-between">
                   <div className="absolute top-2.5 left-0 h-0.5 w-full bg-slate-200 dark:bg-slate-800" />
                   {(["menunggu", "sedang_dicuci", "selesai"] as const).map((s) => {
-                    const isDone = ["selesai"].includes(result.status) || (result.status === "sedang_dicuci" && s === "menunggu") || s === result.status;
-                    const isActive = s === result.status || (result.status === "sedang_dicuci" && s === "sedang_dicuci") || (result.status === "selesai");
-                    
+                    const normalizedStatus = normalizeQueueStatus(result.status as QueueStatus);
+                    const steps: QueueWorkflowStatus[] = ["menunggu", "sedang_dicuci", "selesai"];
+                    const currentStepIndex = steps.indexOf(normalizedStatus);
+                    const stepIndex = steps.indexOf(s);
+                    const isReached = stepIndex <= currentStepIndex;
+
                     return (
                       <div key={s} className="relative z-10 flex flex-col items-center">
                         <div className={`grid size-6 place-items-center rounded-full border-2 transition-colors ${
-                          isActive || isDone ? "bg-cyan-600 border-cyan-600 text-white" : "bg-white border-slate-300 text-slate-300 dark:bg-slate-950 dark:border-slate-700"
+                          isReached ? "bg-cyan-600 border-cyan-600 text-white" : "bg-white border-slate-300 text-slate-300 dark:bg-slate-950 dark:border-slate-700"
                         }`}>
                           <CheckCircle2 className="size-3.5" />
                         </div>

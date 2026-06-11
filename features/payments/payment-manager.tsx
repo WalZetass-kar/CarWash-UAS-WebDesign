@@ -108,7 +108,7 @@ export function PaymentManager({
   function printInvoice(payment: Payment) {
     setSelected(payment);
     setInvoiceOpen(true);
-    window.setTimeout(() => window.print(), 80);
+    window.setTimeout(() => window.print(), 400);
   }
 
   async function exportPdf(payment: Payment) {

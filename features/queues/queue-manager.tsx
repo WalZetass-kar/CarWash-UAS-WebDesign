@@ -50,8 +50,12 @@ export function QueueManager({
 
   useEffect(() => {
     const refresh = async () => {
-      const response = await fetch("/api/queues");
-      if (response.ok) setQueues(await response.json());
+      try {
+        const response = await fetch("/api/queues");
+        if (response.ok) setQueues(await response.json());
+      } catch {
+        console.error("Failed to refresh queue list");
+      }
     };
     window.addEventListener("kilapkendaraan:queue-updated", refresh);
     return () => window.removeEventListener("kilapkendaraan:queue-updated", refresh);
@@ -73,7 +77,7 @@ export function QueueManager({
 
     const optimistic: QueueItem = {
       id: crypto.randomUUID(),
-      queueNumber: `CR-${String(queues.length + 1).padStart(3, "0")}`,
+      queueNumber: "CR-...",
       customerId,
       packageId,
       customerName: customer.name,
@@ -103,6 +107,8 @@ export function QueueManager({
       return;
     }
 
+    const created: QueueItem = await response.json();
+    setQueues((items) => items.map((item) => (item.id === optimistic.id ? created : item)));
     setFormOpen(false);
     setDiscount(0);
     toast.success("Antrian dibuat");

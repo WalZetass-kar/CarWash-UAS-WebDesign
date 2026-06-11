@@ -129,6 +129,7 @@ export function CustomerManager({
   }
 
   async function remove(id: string) {
+    if (!window.confirm("Yakin ingin menghapus pelanggan ini?")) return;
     const previous = data;
     setData((items) => items.filter((item) => item.id !== id));
     const response = await csrfFetch(`/api/customers/${id}`, { method: "DELETE" });
@@ -244,7 +245,12 @@ export function CustomerManager({
             </div>
             <div className="space-y-2">
               <Label>Nomor HP</Label>
-              <Input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} required />
+              <Input
+                inputMode="tel"
+                value={form.phone}
+                onChange={(event) => setForm({ ...form, phone: event.target.value.replace(/\D/g, "") })}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label>Plat nomor</Label>

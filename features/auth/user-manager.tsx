@@ -19,7 +19,7 @@ import { formatDate } from "@/lib/utils";
 const initialForm = {
   name: "",
   email: "",
-  password: "password123",
+  password: "",
   role: "petugas" as Role,
   isActive: true,
 };

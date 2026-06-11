@@ -13,9 +13,13 @@ import { customerSchema } from "../schemas/customer";
 import { reportFilterSchema } from "../schemas/report";
 
 delete process.env.DATABASE_URL;
+delete process.env.POSTGRES_URL;
+delete process.env.POSTGRES_URL_NON_POOLING;
 
 beforeEach(async () => {
   delete process.env.DATABASE_URL;
+  delete process.env.POSTGRES_URL;
+  delete process.env.POSTGRES_URL_NON_POOLING;
   process.env.ENABLE_DEMO_MODE = "true";
   const { resetDemoState } = await import("../lib/demo-store");
   resetDemoState();

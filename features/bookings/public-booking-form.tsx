@@ -56,6 +56,13 @@ export function PublicBookingForm({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const scheduledDate = new Date(form.scheduledAt);
+    if (isNaN(scheduledDate.getTime())) {
+      toast.error("Jadwal kedatangan tidak valid");
+      return;
+    }
+
     setSubmitting(true);
 
     const response = await csrfFetch("/api/bookings", {
@@ -64,7 +71,7 @@ export function PublicBookingForm({
         ...form,
         vehicleType: form.vehicleType,
         licensePlate: form.licensePlate.toUpperCase(),
-        scheduledAt: new Date(form.scheduledAt).toISOString(),
+        scheduledAt: scheduledDate.toISOString(),
         notes: form.notes || null,
       }),
     });
@@ -140,7 +147,7 @@ export function PublicBookingForm({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="min-w-0 space-y-2">
                   <Label>Nomor HP</Label>
-                  <Input className="min-w-0" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} required />
+                  <Input inputMode="tel" className="min-w-0" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value.replace(/\D/g, "") })} required />
                 </div>
                 <div className="min-w-0 space-y-2">
                   <Label>Plat nomor</Label>

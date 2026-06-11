@@ -57,14 +57,14 @@ export async function GET(request: NextRequest) {
         total: "",
       },
     );
-    const csv = [
+    const csv = `\uFEFF${[
       header.join(","),
       ...exportRows.map((row) =>
         header
           .map((key) => `"${String(row[key as keyof typeof row] ?? "").replaceAll('"', '""')}"`)
           .join(","),
       ),
-    ].join("\n");
+    ].join("\n")}`;
 
     return new NextResponse(csv, {
       headers: {

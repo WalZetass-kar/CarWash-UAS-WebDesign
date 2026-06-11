@@ -98,6 +98,7 @@ export function PackageManager({
   }
 
   async function remove(id: string) {
+    if (!window.confirm("Yakin ingin menghapus paket ini?")) return;
     const previous = data;
     setData((items) => items.filter((item) => item.id !== id));
     const response = await csrfFetch(`/api/packages/${id}`, { method: "DELETE" });
@@ -246,11 +247,11 @@ export function PackageManager({
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Harga</Label>
-                <Input type="number" value={form.price} onChange={(event) => setForm({ ...form, price: Number(event.target.value) })} disabled={role !== "admin"} required />
+                <Input type="number" min={0} value={form.price} onChange={(event) => setForm({ ...form, price: Math.max(0, Number(event.target.value)) })} disabled={role !== "admin"} required />
               </div>
               <div className="space-y-2">
                 <Label>Menit</Label>
-                <Input type="number" value={form.estimatedMinutes} onChange={(event) => setForm({ ...form, estimatedMinutes: Number(event.target.value) })} disabled={role !== "admin"} required />
+                <Input type="number" min={1} value={form.estimatedMinutes} onChange={(event) => setForm({ ...form, estimatedMinutes: Math.max(1, Number(event.target.value)) })} disabled={role !== "admin"} required />
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm">
