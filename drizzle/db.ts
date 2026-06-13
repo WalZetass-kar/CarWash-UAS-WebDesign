@@ -36,7 +36,7 @@ export function getDb() {
       // Supabase pooler on local/student deployments is more reliable with one reused connection.
       max: 1,
       prepare: false,
-      connect_timeout: 5,
+      connect_timeout: 10,
       idle_timeout: 15,
       connection: {
         application_name: "kilapkendaraan-car-wash",
