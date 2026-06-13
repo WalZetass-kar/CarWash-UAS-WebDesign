@@ -177,6 +177,21 @@ test("queue demo menyimpan diskon sebagai total transaksi bersih", async () => {
   assert.equal(createdTransaction?.total, demoPackages[0].price - discount);
 });
 
+test("reset data demo membersihkan gallery urls dan melaporkan jumlah file gallery", async () => {
+  const { getDemoState, resetDemoState } = await import("../lib/demo-store");
+  const { resetOperationalData } = await import("../services/settings");
+
+  resetDemoState();
+  const state = getDemoState();
+  state.galleryUrls = ["data:image/png;base64,one", "data:image/png;base64,two"];
+
+  const result = await resetOperationalData();
+
+  assert.equal(result.gallery, 2);
+  assert.equal(result.galleryStorage, 2);
+  assert.equal(getDemoState().galleryUrls.length, 0);
+});
+
 test("booking publik dapat memilih paket tanpa login", async () => {
   const { createPublicBooking } = await import("../services/bookings");
   const { listQueues } = await import("../services/queues");

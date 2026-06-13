@@ -41,22 +41,71 @@ async function listGalleryImagesFromStorage(limit: number) {
   const supabase = createSupabaseAdminClient();
   if (!supabase) return fallbackGalleryImages;
 
-  const { data, error } = await supabase.storage.from("kilapkendaraan").list("gallery", {
-    limit,
-    sortBy: { column: "created_at", order: "desc" },
-  });
+  const objectNames = await listGalleryStorageObjectNames(supabase, limit, limit);
+  if (!objectNames.length) return fallbackGalleryImages;
 
-  if (error || !data || data.length === 0) return fallbackGalleryImages;
-
-  const urls = data
-    .filter((item) => item.name && !item.name.endsWith("/"))
-    .map((item) => {
+  const urls = objectNames.slice(0, limit)
+    .map((name) => {
       const { data: publicUrl } = supabase.storage
         .from("kilapkendaraan")
-        .getPublicUrl(`gallery/${item.name}`);
+        .getPublicUrl(`gallery/${name}`);
       return publicUrl?.publicUrl;
     })
     .filter(Boolean) as string[];
 
   return urls.length ? urls : fallbackGalleryImages;
+}
+
+export async function deleteAllGalleryStorageObjects() {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return 0;
+
+  const objectNames = await listGalleryStorageObjectNames(supabase, 1_000);
+  if (!objectNames.length) return 0;
+
+  const { error } = await supabase.storage.from("kilapkendaraan").remove(
+    objectNames.map((name) => `gallery/${name}`),
+  );
+
+  if (error) {
+    throw new Error(`Gagal menghapus file gallery dari storage: ${error.message}`);
+  }
+
+  return objectNames.length;
+}
+
+async function listGalleryStorageObjectNames(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  pageSize: number,
+  maxItems = Number.POSITIVE_INFINITY,
+) {
+  const objectNames: string[] = [];
+  let offset = 0;
+
+  while (objectNames.length < maxItems) {
+    const limit = Math.min(pageSize, maxItems - objectNames.length);
+    const { data, error } = await supabase.storage.from("kilapkendaraan").list("gallery", {
+      limit,
+      offset,
+      sortBy: { column: "created_at", order: "desc" },
+    });
+
+    if (error) {
+      throw new Error(`Gagal membaca file gallery dari storage: ${error.message}`);
+    }
+
+    const names = (data ?? [])
+      .filter((item) => item.name && !item.name.endsWith("/"))
+      .map((item) => item.name);
+
+    objectNames.push(...names);
+
+    if (!data || data.length < limit) {
+      break;
+    }
+
+    offset += data.length;
+  }
+
+  return Array.from(new Set(objectNames)).slice(0, maxItems);
 }

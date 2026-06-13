@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "yww"
+      "yww",
+      "Bash(cd /home/walzetass-kar/Documents/ProjectIhwal/CarWash-UAS-WebDesign && git --no-pager status)",
+      "Bash(cd /home/walzetass-kar/Documents/ProjectIhwal/CarWash-UAS-WebDesign && git --no-pager diff)",
+      "Bash(cd /home/walzetass-kar/Documents/ProjectIhwal/CarWash-UAS-WebDesign && git --no-pager log --oneline -5)",
+      "Bash(cd /home/walzetass-kar/Documents/ProjectIhwal/CarWash-UAS-WebDesign && git add drizzle/db.ts drizzle/seed.ts features/auth/login-form.tsx lib/runtime/database-retry.ts && git commit -m \"$\\(cat <<'EOF'\nfix: improve login reliability and database resilience\n\n- Add try-catch-finally to login form to handle network errors gracefully\n- Reduce database retry attempts from 5 to 3 to prevent excessive hang time\n- Reduce database connect_timeout from 8s to 5s and idle_timeout from 20s to 15s\n- Make demo mode take priority when ENABLE_DEMO_MODE is explicitly enabled\n- Fix seed script @next/env import and use upsert for user seeding\nEOF\n\\)\" && git --no-pager status)",
+      "Bash(lsof -ti :3000 2>/dev/null | xargs kill -9 2>/dev/null; lsof -ti :3001 2>/dev/null | xargs kill -9 2>/dev/null; sleep 2\ncd /home/walzetass-kar/Documents/ProjectIhwal/CarWash-UAS-WebDesign && npm run dev 2>&1 &\nsleep 12\necho \"=== Server ready ===\")",
+      "Bash(kill -9 24783 2>/dev/null; sleep 2; lsof -ti :3000 2>/dev/null | xargs kill -9 2>/dev/null; sleep 2\ncd /home/walzetass-kar/Documents/ProjectIhwal/CarWash-UAS-WebDesign && npm run dev 2>&1 &\nsleep 12\necho \"=== Ready ===\")"
     ]
   }
 }

@@ -36,7 +36,7 @@ export function DangerZone() {
 
     const d = payload.deleted;
     toast.success(
-      `Data berhasil dihapus: ${d.customers} pelanggan, ${d.queues} antrian, ${d.transactions} transaksi, ${d.payments} pembayaran, ${d.activityLogs} log, ${d.gallery} gallery.`
+      `Data berhasil dihapus: ${d.customers} pelanggan, ${d.queues} antrian, ${d.transactions} transaksi, ${d.payments} pembayaran, ${d.activityLogs} log, ${d.gallery} entri gallery, ${d.galleryStorage ?? 0} file storage gallery.`
     );
     router.refresh();
   }
@@ -51,8 +51,8 @@ export function DangerZone() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Hapus semua data operasional: pelanggan, antrian, transaksi, pembayaran, log aktivitas, dan gallery.
-          Data user, paket cuci, dan pengaturan tidak akan terpengaruh.
+          Hapus semua data operasional: pelanggan, antrian, transaksi, pembayaran, log aktivitas, gallery,
+          dan file storage gallery. Data user, paket cuci, dan pengaturan tidak akan terpengaruh.
         </p>
         {confirming ? (
           <div className="rounded-lg border border-red-300 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/30">

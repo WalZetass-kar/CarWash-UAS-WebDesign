@@ -12,6 +12,7 @@ import { getDb, shouldUseDemoData } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { defaultAppSettings } from "@/lib/data";
 import type { AppSettingsInput } from "@/schemas/settings";
+import { deleteAllGalleryStorageObjects } from "@/services/gallery";
 
 export async function getAppSettings() {
   if (shouldUseDemoData()) {
@@ -74,6 +75,7 @@ export async function resetOperationalData() {
       customers: state.customers.length,
       activityLogs: state.activityLogs.length,
       gallery: state.galleryUrls.length,
+      galleryStorage: state.galleryUrls.length,
     };
     state.payments = [];
     state.transactions = [];
@@ -85,6 +87,7 @@ export async function resetOperationalData() {
   }
 
   const db = getDb();
+  const galleryStorage = await deleteAllGalleryStorageObjects();
   const result = await db.transaction(async (tx) => {
     const p = await tx.delete(payments).returning({ id: payments.id });
     const t = await tx.delete(transactions).returning({ id: transactions.id });
@@ -99,6 +102,7 @@ export async function resetOperationalData() {
       customers: c.length,
       activityLogs: a.length,
       gallery: g.length,
+      galleryStorage,
     };
   });
 

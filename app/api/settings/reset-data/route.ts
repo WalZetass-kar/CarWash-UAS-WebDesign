@@ -4,6 +4,7 @@ import { jsonResponse, rejectInvalidCsrf, requireApiRole } from "@/app/api/_util
 import { resetOperationalData } from "@/services/settings";
 import { logActivity } from "@/services/activity";
 import { getClientIp } from "@/lib/utils";
+import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 
 export async function POST(request: NextRequest) {
   const csrfResponse = rejectInvalidCsrf(request);
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
   if (response || !session) return response;
 
   try {
-    const result = await resetOperationalData();
+    const result = await withDatabaseRetry(() => resetOperationalData());
     revalidateTag("landing-settings", "max");
     revalidateTag("landing-packages", "max");
     revalidateTag("gallery-images-6", "max");
