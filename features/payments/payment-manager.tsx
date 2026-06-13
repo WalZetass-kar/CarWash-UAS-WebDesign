@@ -3,7 +3,6 @@
 import { FormEvent, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { QRCodeCanvas } from "qrcode.react";
 import { FileDown, Printer, Receipt } from "lucide-react";
@@ -17,12 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import type { AppSettings, Payment, TransactionItem } from "@/lib/data";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, toTitleCase } from "@/lib/utils";
 import { paymentMethodLabels, paymentStatusLabels } from "@/lib/constants";
 
 export function PaymentManager({
   initialData,
   transactions,
+  allTransactions,
   settings,
   initialSearch,
   highlightedId,
@@ -30,6 +30,7 @@ export function PaymentManager({
 }: {
   initialData: Payment[];
   transactions: TransactionItem[];
+  allTransactions: TransactionItem[];
   settings: AppSettings;
   initialSearch?: string;
   highlightedId?: string;
@@ -112,36 +113,116 @@ export function PaymentManager({
   }
 
   async function exportPdf(payment: Payment) {
-    const doc = new jsPDF();
-    const qrDataUrl = await QRCode.toDataURL(invoicePayload(payment, settings.businessName), {
-      margin: 1,
-      width: 140,
-    });
-    doc.setFontSize(18);
-    doc.text(settings.businessName, 14, 18);
+    const width = 80;
+    const doc = new jsPDF({ unit: "mm", format: [width, 160] });
+    const margin = 5;
+    const contentWidth = width - margin * 2;
+    const txn = allTransactions.find((t) => t.id === payment.transactionId);
+    let y = margin;
+
+    doc.setFont("courier", "bold");
     doc.setFontSize(11);
-    doc.text(`Invoice ${payment.queueNumber}`, 14, 28);
-    if (settings.businessPhone) doc.text(settings.businessPhone, 14, 34);
-    if (settings.businessAddress) doc.text(settings.businessAddress, 14, 40);
-    doc.addImage(qrDataUrl, "PNG", 158, 14, 35, 35);
-    autoTable(doc, {
-      startY: settings.businessAddress || settings.businessPhone ? 48 : 38,
-      head: [["Field", "Value"]],
-      body: [
-        ["Nama Pelanggan", payment.customerName],
-        ["Tanggal", formatDate(payment.createdAt)],
-        ["Metode", paymentMethodLabels[payment.method]],
-        ["Status", paymentStatusLabels[payment.status]],
-        ["Total", formatCurrency(payment.amount)],
-      ],
-    });
-    if (settings.invoiceFooter) {
-      doc.setFontSize(10);
-      doc.text(settings.invoiceFooter, 14, doc.internal.pageSize.getHeight() - 14, {
-        maxWidth: 180,
-      });
+    doc.text(settings.businessName, width / 2, y, { align: "center" });
+    y += 4;
+
+    doc.setFont("courier", "normal");
+    doc.setFontSize(7);
+    if (settings.businessPhone) {
+      doc.text(settings.businessPhone, width / 2, y, { align: "center" });
+      y += 3;
     }
-    doc.save(`invoice-${payment.queueNumber}.pdf`);
+    if (settings.businessAddress) {
+      doc.text(settings.businessAddress, width / 2, y, { align: "center", maxWidth: contentWidth });
+      y += 3;
+    }
+
+    y += 1;
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(margin, y, width - margin, y);
+    y += 3;
+
+    doc.setFontSize(7);
+    const row = (label: string, value: string) => {
+      doc.text(label, margin, y);
+      doc.text(value, width - margin, y, { align: "right", maxWidth: contentWidth - 25 });
+      y += 3;
+    };
+
+    row("No", payment.queueNumber);
+    row("Tgl", formatDate(payment.paidAt ?? payment.createdAt));
+
+    y += 1;
+    doc.line(margin, y, width - margin, y);
+    y += 3;
+
+    row("Pelanggan", payment.customerName);
+    if (txn) {
+      row("Plat", txn.licensePlate);
+      row("Kendaraan", toTitleCase(txn.vehicleType));
+    }
+
+    y += 1;
+    doc.line(margin, y, width - margin, y);
+    y += 3;
+
+    if (txn) {
+      row("Paket", txn.packageName);
+      y += 1;
+      doc.line(margin, y, width - margin, y);
+      y += 3;
+      row("Subtotal", formatCurrency(txn.subtotal));
+      if (txn.discount > 0) {
+        row("Diskon", "-" + formatCurrency(txn.discount));
+      }
+    }
+
+    doc.setFont("courier", "bold");
+    doc.setFontSize(9);
+    doc.text("TOTAL", margin, y);
+    doc.text(formatCurrency(payment.amount), width - margin, y, { align: "right" });
+    y += 3;
+
+    doc.setFont("courier", "normal");
+    doc.setFontSize(7);
+    y += 1;
+    doc.line(margin, y, width - margin, y);
+    y += 3;
+
+    row("Metode", paymentMethodLabels[payment.method]);
+    row("Status", paymentStatusLabels[payment.status]);
+
+    y += 1;
+    doc.line(margin, y, width - margin, y);
+    y += 3;
+
+    try {
+      const qrDataUrl = await QRCode.toDataURL(invoicePayload(payment, settings.businessName), {
+        margin: 0,
+        width: 120,
+      });
+      const qrSize = 22;
+      doc.addImage(qrDataUrl, "PNG", (width - qrSize) / 2, y, qrSize, qrSize);
+      y += qrSize + 3;
+    } catch {
+      // QR generation failed, skip
+    }
+
+    doc.line(margin, y, width - margin, y);
+    y += 3;
+
+    if (settings.invoiceFooter) {
+      doc.setFontSize(6);
+      const lines = doc.splitTextToSize(settings.invoiceFooter, contentWidth);
+      for (const line of lines) {
+        doc.text(line, width / 2, y, { align: "center" });
+        y += 2.5;
+      }
+    }
+
+    const pageHeight = y + margin;
+    const finalDoc = new jsPDF({ unit: "mm", format: [width, pageHeight] });
+    finalDoc.addImage(doc.output("datauristring"), "PNG", 0, 0, width, 160);
+    finalDoc.save(`struk-${payment.queueNumber}.pdf`);
   }
 
   const columns: ColumnDef<Payment>[] = [
@@ -297,41 +378,104 @@ export function PaymentManager({
       </Dialog>
 
       <Dialog open={invoiceOpen && Boolean(selected)} onOpenChange={setInvoiceOpen}>
-        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto print:fixed print:inset-0 print:z-50 print:block print:max-h-none print:w-auto print:max-w-none print:translate-x-0 print:translate-y-0 print:rounded-none print:border-0 print:bg-white print:p-8 print:text-slate-950 sm:max-w-lg">
-          {selected ? (
-            <>
-              <DialogHeader className="print:hidden">
-                <DialogTitle>Preview Invoice</DialogTitle>
-                <DialogDescription>Invoice {selected.queueNumber}</DialogDescription>
-              </DialogHeader>
-              <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold">{settings.businessName}</h2>
-                  <p className="text-sm text-slate-500">Invoice {selected.queueNumber}</p>
-                  <p className="mt-1 text-xs text-slate-500">{settings.businessPhone}</p>
-                  <p className="text-xs text-slate-500">{settings.businessAddress}</p>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto p-0 sm:max-w-sm print:fixed print:inset-0 print:z-50 print:block print:max-h-none print:w-auto print:max-w-none print:translate-x-0 print:translate-y-0 print:rounded-none print:border-0 print:bg-white print:p-0">
+          {selected ? (() => {
+            const txn = allTransactions.find((t) => t.id === selected.transactionId);
+            return (
+              <>
+                <DialogHeader className="print:hidden p-4 pb-0">
+                  <DialogTitle>Preview Struk</DialogTitle>
+                  <DialogDescription>Struk {selected.queueNumber}</DialogDescription>
+                </DialogHeader>
+                <div className="receipt-struk mx-auto w-[300px] bg-white p-5 font-mono text-[12px] leading-relaxed text-black print:w-full print:max-w-[80mm] print:p-3">
+                  <div className="text-center">
+                    <div className="text-[14px] font-bold tracking-wide">{settings.businessName}</div>
+                    {settings.businessPhone ? <div>{settings.businessPhone}</div> : null}
+                    {settings.businessAddress ? <div className="mt-0.5">{settings.businessAddress}</div> : null}
+                  </div>
+
+                  <div className="my-2 border-t border-dashed border-black" />
+
+                  <div className="space-y-0.5">
+                    <div className="flex justify-between"><span>No</span><span>: {selected.queueNumber}</span></div>
+                    <div className="flex justify-between"><span>Tgl</span><span>: {formatDate(selected.paidAt ?? selected.createdAt)}</span></div>
+                  </div>
+
+                  <div className="my-2 border-t border-dashed border-black" />
+
+                  <div className="space-y-0.5">
+                    <div className="flex justify-between"><span>Pelanggan</span><span>: {selected.customerName}</span></div>
+                    {txn ? (
+                      <>
+                        <div className="flex justify-between"><span>Plat</span><span>: {txn.licensePlate}</span></div>
+                        <div className="flex justify-between"><span>Kendaraan</span><span>: {toTitleCase(txn.vehicleType)}</span></div>
+                      </>
+                    ) : null}
+                  </div>
+
+                  <div className="my-2 border-t border-dashed border-black" />
+
+                  {txn ? (
+                    <div className="space-y-0.5">
+                      <div className="flex justify-between"><span>Paket</span><span>: {txn.packageName}</span></div>
+                    </div>
+                  ) : null}
+
+                  <div className="my-2 border-t border-dashed border-black" />
+
+                  <div className="space-y-0.5">
+                    {txn ? (
+                      <>
+                        <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(txn.subtotal)}</span></div>
+                        {txn.discount > 0 ? (
+                          <div className="flex justify-between"><span>Diskon</span><span>-{formatCurrency(txn.discount)}</span></div>
+                        ) : null}
+                      </>
+                    ) : null}
+                    <div className="flex justify-between border-t border-black pt-1 font-bold text-[13px]">
+                      <span>TOTAL</span>
+                      <span>{formatCurrency(selected.amount)}</span>
+                    </div>
+                  </div>
+
+                  <div className="my-2 border-t border-dashed border-black" />
+
+                  <div className="space-y-0.5">
+                    <div className="flex justify-between"><span>Metode</span><span>: {paymentMethodLabels[selected.method]}</span></div>
+                    <div className="flex justify-between"><span>Status</span><span>: {paymentStatusLabels[selected.status]}</span></div>
+                  </div>
+
+                  <div className="my-2 border-t border-dashed border-black" />
+
+                  <div className="flex justify-center">
+                    <QRCodeCanvas
+                      value={invoicePayload(selected, settings.businessName)}
+                      size={96}
+                      includeMargin={false}
+                    />
+                  </div>
+
+                  <div className="my-2 border-t border-dashed border-black" />
+
+                  {settings.invoiceFooter ? (
+                    <div className="text-center">{settings.invoiceFooter}</div>
+                  ) : null}
                 </div>
-                <div className="grid size-14 place-items-center rounded-lg bg-cyan-600 text-white">CR</div>
-              </div>
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Pelanggan</span><strong className="break-words sm:text-right">{selected.customerName}</strong></div>
-                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Tanggal</span><strong className="break-words sm:text-right">{formatDate(selected.createdAt)}</strong></div>
-                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Metode</span><strong className="break-words sm:text-right">{paymentMethodLabels[selected.method]}</strong></div>
-                <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Status</span><strong className="break-words sm:text-right">{paymentStatusLabels[selected.status]}</strong></div>
-                <div className="grid gap-1 border-t border-slate-200 pt-3 text-base sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4"><span>Total</span><strong className="break-words sm:text-right">{formatCurrency(selected.amount)}</strong></div>
-              </div>
-              <div className="mt-5 rounded-lg border border-slate-200 p-3 text-center font-mono text-xs">
-                <QRCodeCanvas
-                  value={invoicePayload(selected, settings.businessName)}
-                  size={112}
-                  includeMargin
-                  className="mx-auto"
-                />
-                <div className="mt-2">Scan invoice {settings.businessName}</div>
-              </div>
-              <p className="mt-4 break-words text-xs text-slate-500">{settings.invoiceFooter}</p>
-            </>
-          ) : null}
+                <div className="print:hidden p-4 pt-0">
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => printInvoice(selected)} className="flex-1">
+                      <Printer className="size-4" />
+                      Print
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => exportPdf(selected)} className="flex-1">
+                      <FileDown className="size-4" />
+                      PDF
+                    </Button>
+                  </div>
+                </div>
+              </>
+            );
+          })() : null}
         </DialogContent>
       </Dialog>
     </div>

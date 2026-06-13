@@ -96,6 +96,8 @@ export type TransactionItem = {
   customerName: string;
   packageId: string;
   packageName: string;
+  licensePlate: string;
+  vehicleType: VehicleType;
   subtotal: number;
   discount: number;
   total: number;
@@ -266,6 +268,8 @@ export const demoTransactions: TransactionItem[] = [
     queueNumber: demoQueues[0].queueNumber,
     customerId: demoCustomers[0].id,
     customerName: demoCustomers[0].name,
+    licensePlate: demoCustomers[0].licensePlate,
+    vehicleType: demoCustomers[0].vehicleType,
     packageId: demoPackages[1].id,
     packageName: demoPackages[1].name,
     subtotal: demoPackages[1].price,
@@ -280,6 +284,8 @@ export const demoTransactions: TransactionItem[] = [
     queueNumber: demoQueues[1].queueNumber,
     customerId: demoCustomers[1].id,
     customerName: demoCustomers[1].name,
+    licensePlate: demoCustomers[1].licensePlate,
+    vehicleType: demoCustomers[1].vehicleType,
     packageId: demoPackages[2].id,
     packageName: demoPackages[2].name,
     subtotal: demoPackages[2].price,
@@ -294,6 +300,8 @@ export const demoTransactions: TransactionItem[] = [
     queueNumber: demoQueues[2].queueNumber,
     customerId: demoCustomers[2].id,
     customerName: demoCustomers[2].name,
+    licensePlate: demoCustomers[2].licensePlate,
+    vehicleType: demoCustomers[2].vehicleType,
     packageId: demoPackages[3].id,
     packageName: demoPackages[3].name,
     subtotal: demoPackages[3].price,
@@ -308,6 +316,8 @@ export const demoTransactions: TransactionItem[] = [
     queueNumber: demoQueues[3].queueNumber,
     customerId: demoCustomers[3].id,
     customerName: demoCustomers[3].name,
+    licensePlate: demoCustomers[3].licensePlate,
+    vehicleType: demoCustomers[3].vehicleType,
     packageId: demoPackages[0].id,
     packageName: demoPackages[0].name,
     subtotal: demoPackages[0].price,

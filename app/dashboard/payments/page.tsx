@@ -21,7 +21,7 @@ export default async function PaymentsPage({
   const data = await loadPaymentsData();
   if (!data) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
-  const [payments, transactions, settings] = data;
+  const [payments, transactions, allTransactions, settings] = data;
 
   return (
     <div className="space-y-6">
@@ -35,6 +35,7 @@ export default async function PaymentsPage({
       <PaymentManager
         initialData={JSON.parse(JSON.stringify(payments))}
         transactions={JSON.parse(JSON.stringify(transactions))}
+        allTransactions={JSON.parse(JSON.stringify(allTransactions))}
         settings={JSON.parse(JSON.stringify(settings))}
         initialSearch={params.query ?? ""}
         highlightedId={params.highlight ?? ""}
@@ -49,8 +50,9 @@ async function loadPaymentsData() {
     return await withDatabaseRetry(async () => {
       const payments = await listPayments();
       const transactions = await listTransactions("", "belum_bayar");
+      const allTransactions = await listTransactions();
       const settings = await getAppSettings();
-      return [payments, transactions, settings] as const;
+      return [payments, transactions, allTransactions, settings] as const;
     });
   } catch (error) {
     console.error("Failed to load payments page data", error);

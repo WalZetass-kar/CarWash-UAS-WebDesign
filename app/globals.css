@@ -184,10 +184,23 @@ a, button, input, select, textarea {
     background: white !important;
     color: #0f172a !important;
   }
-  
+
   * {
     animation: none !important;
     transition: none !important;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 2mm;
+  }
+
+  .receipt-struk {
+    width: 100% !important;
+    max-width: 76mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 11px !important;
   }
 }
 

@@ -160,6 +160,8 @@ export async function createQueue(input: CreateQueueInput, createdBy?: string): 
       queueNumber: queue.queueNumber,
       customerId: customer.id,
       customerName: customer.name,
+      licensePlate: customer.licensePlate,
+      vehicleType: customer.vehicleType,
       packageId: washPackage.id,
       packageName: washPackage.name,
       subtotal: washPackage.price,
