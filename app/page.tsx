@@ -1,5 +1,4 @@
 import { connection } from "next/server";
-import { unstable_cache } from "next/cache";
 import { hasDatabaseConfig, isDemoModeEnabled } from "@/drizzle/db";
 import { LandingPage } from "@/components/landing/landing-page";
 import { defaultAppSettings, demoPackages } from "@/lib/data";
@@ -10,8 +9,7 @@ import { getAppSettings } from "@/services/settings";
 
 export default async function Home() {
   await connection();
-  
-  // Parallel fetching to reduce wait time
+
   const [settings, packages, gallery] = await Promise.all([
     loadLandingSettings(),
     loadLandingPackages(),
@@ -28,35 +26,23 @@ export default async function Home() {
 }
 
 async function loadLandingSettings() {
-  return unstable_cache(
-    async () => {
-      if (!hasDatabaseConfig() && !isDemoModeEnabled()) return defaultAppSettings;
+  if (!hasDatabaseConfig() && !isDemoModeEnabled()) return defaultAppSettings;
 
-      try {
-        return await withDatabaseRetry(() => getAppSettings(), 2);
-      } catch (error) {
-        console.error("Failed to load landing settings", error);
-        return defaultAppSettings;
-      }
-    },
-    ["landing-settings"],
-    { revalidate: 3600 },
-  )();
+  try {
+    return await withDatabaseRetry(() => getAppSettings(), 2);
+  } catch (error) {
+    console.error("Failed to load landing settings", error);
+    return defaultAppSettings;
+  }
 }
 
 async function loadLandingPackages() {
-  return unstable_cache(
-    async () => {
-      if (!hasDatabaseConfig() && !isDemoModeEnabled()) return demoPackages;
+  if (!hasDatabaseConfig() && !isDemoModeEnabled()) return demoPackages;
 
-      try {
-        return await withDatabaseRetry(() => listPackages(), 2);
-      } catch (error) {
-        console.error("Failed to load landing packages", error);
-        return demoPackages;
-      }
-    },
-    ["landing-packages"],
-    { revalidate: 3600 },
-  )();
+  try {
+    return await withDatabaseRetry(() => listPackages(), 2);
+  } catch (error) {
+    console.error("Failed to load landing packages", error);
+    return demoPackages;
+  }
 }

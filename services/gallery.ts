@@ -1,5 +1,4 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
 import { gallery } from "@/drizzle/schema";
 import { getDb, shouldUseDemoData } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
@@ -12,36 +11,30 @@ export const fallbackGalleryImages = [
 ];
 
 export async function listGalleryImages(limit = 6) {
-  return unstable_cache(
-    async () => {
-      if (shouldUseDemoData()) {
-        const state = getDemoState();
-        if (state.galleryUrls.length > 0) {
-          return state.galleryUrls.slice(0, limit);
-        }
-        return listGalleryImagesFromStorage(limit);
-      }
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    if (state.galleryUrls.length > 0) {
+      return state.galleryUrls.slice(0, limit);
+    }
+    return listGalleryImagesFromStorage(limit);
+  }
 
-      try {
-        const rows = await getDb()
-          .select({ url: gallery.url })
-          .from(gallery)
-          .where(and(eq(gallery.isActive, true), isNull(gallery.deletedAt)))
-          .orderBy(desc(gallery.sortOrder), desc(gallery.createdAt))
-          .limit(limit);
+  try {
+    const rows = await getDb()
+      .select({ url: gallery.url })
+      .from(gallery)
+      .where(and(eq(gallery.isActive, true), isNull(gallery.deletedAt)))
+      .orderBy(desc(gallery.sortOrder), desc(gallery.createdAt))
+      .limit(limit);
 
-        if (rows && rows.length > 0) {
-          return rows.map((r) => r.url);
-        }
-      } catch (error) {
-        console.error("Failed to list gallery from DB, falling back to storage", error);
-      }
+    if (rows && rows.length > 0) {
+      return rows.map((r) => r.url);
+    }
+  } catch (error) {
+    console.error("Failed to list gallery from DB, falling back to storage", error);
+  }
 
-      return listGalleryImagesFromStorage(limit);
-    },
-    [`gallery-images-${limit}`],
-    { revalidate: 3600 },
-  )();
+  return listGalleryImagesFromStorage(limit);
 }
 
 async function listGalleryImagesFromStorage(limit: number) {
