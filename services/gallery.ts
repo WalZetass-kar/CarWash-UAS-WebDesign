@@ -4,12 +4,6 @@ import { getDb, shouldUseDemoData } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
-export const fallbackGalleryImages = [
-  "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1600320254374-ce2d293c324e?auto=format&fit=crop&w=900&q=80",
-];
-
 export async function listGalleryImages(limit = 6) {
   if (shouldUseDemoData()) {
     const state = getDemoState();
@@ -39,10 +33,10 @@ export async function listGalleryImages(limit = 6) {
 
 async function listGalleryImagesFromStorage(limit: number) {
   const supabase = createSupabaseAdminClient();
-  if (!supabase) return fallbackGalleryImages;
+  if (!supabase) return [];
 
   const objectNames = await listGalleryStorageObjectNames(supabase, limit, limit);
-  if (!objectNames.length) return fallbackGalleryImages;
+  if (!objectNames.length) return [];
 
   const urls = objectNames.slice(0, limit)
     .map((name) => {
@@ -53,7 +47,7 @@ async function listGalleryImagesFromStorage(limit: number) {
     })
     .filter(Boolean) as string[];
 
-  return urls.length ? urls : fallbackGalleryImages;
+  return urls;
 }
 
 export async function deleteAllGalleryStorageObjects() {

@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { APP_NAME } from "@/lib/constants";
 import type { WashPackage } from "@/lib/data";
 import { formatCurrency } from "@/lib/utils";
@@ -64,12 +65,6 @@ const fallbackPackages: LandingPackageCard[] = [
     time: "120 menit",
     items: ["Deep clean", "Coating ringan", "Finishing premium"],
   },
-];
-
-const fallbackGallery = [
-  "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1600320254374-ce2d293c324e?auto=format&fit=crop&w=900&q=80",
 ];
 
 function packageSlug(name: string) {
@@ -204,7 +199,7 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
 export function LandingPage({
   brandName = APP_NAME,
   packages = [],
-  gallery = fallbackGallery,
+  gallery = [],
 }: {
   brandName?: string;
   packages?: WashPackage[];
@@ -218,7 +213,7 @@ export function LandingPage({
     ["rgba(15, 23, 42, 0.7)", "rgba(15, 23, 42, 0.95)"]
   );
   const packageCards = toLandingPackageCards(packages);
-  const galleryImages = gallery.length ? gallery : fallbackGallery;
+  const galleryImages = gallery;
 
   return (
     <div className="min-h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
@@ -629,41 +624,49 @@ export function LandingPage({
             </motion.div>
             <Skeleton className="hidden h-10 w-44 sm:block" />
           </div>
-          <motion.div 
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-            variants={containerVariants}
-            initial={false}
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {galleryImages.map((src, index) => (
-              <motion.div 
-                key={src} 
-                className="group relative aspect-[4/3] overflow-hidden rounded-lg"
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
-                <motion.div
-                  className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100"
-                />
-                <Image
-                  src={src}
-                  alt={`Gallery Kilap Kendaraan ${index + 1}`}
-                  fill
-                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  className="object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
-                />
-                <motion.div
-                  className="absolute bottom-4 left-4 z-20 text-white opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100"
-                  initial={{ y: 20 }}
-                  whileHover={{ y: 0 }}
+          {galleryImages.length ? (
+            <motion.div 
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              variants={containerVariants}
+              initial={false}
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              {galleryImages.map((src, index) => (
+                <motion.div 
+                  key={src} 
+                  className="group relative aspect-[4/3] overflow-hidden rounded-lg"
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <p className="text-sm font-semibold">Gallery #{index + 1}</p>
+                  <motion.div
+                    className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100"
+                  />
+                  <Image
+                    src={src}
+                    alt={`Gallery Kilap Kendaraan ${index + 1}`}
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
+                  />
+                  <motion.div
+                    className="absolute bottom-4 left-4 z-20 text-white opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100"
+                    initial={{ y: 20 }}
+                    whileHover={{ y: 0 }}
+                  >
+                    <p className="text-sm font-semibold">Gallery #{index + 1}</p>
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            ))}
-          </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <EmptyState
+              title="Gallery masih kosong"
+              description="Belum ada data gallery dari Supabase saat ini."
+              className="mx-auto max-w-2xl border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-900/60"
+            />
+          )}
         </MotionSection>
 
         <MotionSection id="faq" className="bg-white py-16 sm:py-20 dark:bg-slate-900/40">
