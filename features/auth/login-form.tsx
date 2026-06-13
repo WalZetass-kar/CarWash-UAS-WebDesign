@@ -31,21 +31,26 @@ export function LoginForm() {
     event.preventDefault();
     setLoading(true);
 
-    const response = await csrfFetch("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
-    const payload = await readJsonResponse<{ message?: string }>(response);
-    setLoading(false);
+    try {
+      const response = await csrfFetch("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      const payload = await readJsonResponse<{ message?: string }>(response);
 
-    if (!response.ok) {
-      toast.error(payload.message ?? "Login gagal");
-      return;
+      if (!response.ok) {
+        toast.error(payload.message ?? "Login gagal");
+        return;
+      }
+
+      toast.success("Login berhasil");
+      router.push(searchParams.get("next") ?? "/dashboard");
+      router.refresh();
+    } catch {
+      toast.error("Gagal terhubung ke server. Periksa koneksi internet atau coba lagi.");
+    } finally {
+      setLoading(false);
     }
-
-    toast.success("Login berhasil");
-    router.push(searchParams.get("next") ?? "/dashboard");
-    router.refresh();
   }
 
   return (

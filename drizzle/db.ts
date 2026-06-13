@@ -20,7 +20,7 @@ export function isDemoModeEnabled() {
 }
 
 export function shouldUseDemoData() {
-  return !hasDatabaseConfig() && isDemoModeEnabled();
+  return isDemoModeEnabled();
 }
 
 export function getDb() {
@@ -36,8 +36,8 @@ export function getDb() {
       // Supabase pooler on local/student deployments is more reliable with one reused connection.
       max: 1,
       prepare: false,
-      connect_timeout: 8,
-      idle_timeout: 20,
+      connect_timeout: 5,
+      idle_timeout: 15,
       connection: {
         application_name: "kilapkendaraan-car-wash",
         statement_timeout: 15_000,

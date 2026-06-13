@@ -9,7 +9,7 @@ const TRANSIENT_DATABASE_CODES = new Set([
   "EAI_AGAIN",
 ]);
 
-export async function withDatabaseRetry<T>(operation: () => Promise<T>, attempts = 5) {
+export async function withDatabaseRetry<T>(operation: () => Promise<T>, attempts = 3) {
   let lastError: unknown;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {

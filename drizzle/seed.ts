@@ -1,4 +1,4 @@
-import nextEnv from "@next/env";
+import { loadEnvConfig } from "@next/env";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/drizzle/db";
@@ -22,8 +22,6 @@ import {
 } from "@/lib/data";
 import { demoUserPasswords, demoUsers } from "@/lib/constants";
 
-const { loadEnvConfig } = nextEnv;
-
 loadEnvConfig(process.cwd());
 
 async function main() {
@@ -36,24 +34,20 @@ async function main() {
   );
 
   for (const user of seededUsers) {
-    const existing = await db.query.users.findFirst({
-      where: eq(users.email, user.email),
-    });
-
-    if (existing) {
-      await db
-        .update(users)
-        .set({
+    await db
+      .insert(users)
+      .values(user)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
           name: user.name,
+          email: user.email,
           passwordHash: user.passwordHash,
           role: user.role,
           isActive: true,
           updatedAt: new Date(),
-        })
-        .where(eq(users.email, user.email));
-    } else {
-      await db.insert(users).values(user);
-    }
+        },
+      });
   }
 
   await db
