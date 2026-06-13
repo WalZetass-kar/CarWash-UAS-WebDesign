@@ -33,6 +33,7 @@ export type DemoActivityLog = {
 type DemoState = {
   activityLogs: DemoActivityLog[];
   customers: Customer[];
+  galleryUrls: string[];
   packages: WashPackage[];
   payments: Payment[];
   queues: QueueItem[];
@@ -79,6 +80,7 @@ function createInitialDemoState(): DemoState {
       },
     ],
     customers: demoCustomers.map((item) => ({ ...item })),
+    galleryUrls: [],
     packages: demoPackages.map((item) => ({ ...item })),
     payments: demoPayments.map((item) => ({ ...item })),
     queues: demoQueues.map((item) => ({ ...item })),

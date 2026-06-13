@@ -1,8 +1,10 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
 import { jsonResponse, rejectInvalidCsrf, requireApiRole } from "@/app/api/_utils";
 import { validateUploadFile } from "@/lib/security/upload-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDemoState } from "@/lib/demo-store";
 import { gallery } from "@/drizzle/schema";
 
 export async function POST(request: NextRequest) {
@@ -25,6 +27,15 @@ export async function POST(request: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+
+  if (shouldUseDemoData()) {
+    const dataUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
+    const state = getDemoState();
+    state.galleryUrls = [dataUrl, ...state.galleryUrls].slice(0, 12);
+    revalidateTag("gallery-images-6", "max");
+    return jsonResponse({ url: dataUrl, path: "demo", persisted: true });
+  }
+
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "webp";
   const path = `gallery/${Date.now()}-${crypto.randomUUID()}.${extension}`;
   const supabase = createSupabaseAdminClient();
@@ -48,17 +59,15 @@ export async function POST(request: NextRequest) {
 
     const { data } = supabase.storage.from("kilapkendaraan").getPublicUrl(path);
 
-    // Save to database if not in demo mode
-    if (!shouldUseDemoData()) {
-      try {
-        await getDb().insert(gallery).values({
-          url: data.publicUrl,
-        });
-      } catch (dbError) {
-        console.error("Failed to save gallery record to DB", dbError);
-      }
+    try {
+      await getDb().insert(gallery).values({
+        url: data.publicUrl,
+      });
+    } catch (dbError) {
+      console.error("Failed to save gallery record to DB", dbError);
     }
 
+    revalidateTag("gallery-images-6", "max");
     return jsonResponse({ url: data.publicUrl, path, persisted: true });
   }
 

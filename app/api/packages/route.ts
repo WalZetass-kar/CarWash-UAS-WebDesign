@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
 import { packageSchema } from "@/schemas/package";
 import { createPackage, listPackages } from "@/services/packages";
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   const washPackage = await createPackage(parsed.data);
+  revalidateTag("landing-packages", "max");
   await logActivity({
     userId: session.user.id,
     action: "create",

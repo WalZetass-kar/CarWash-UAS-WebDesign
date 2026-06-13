@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
 import { jsonResponse, rejectInvalidCsrf, requireApiRole } from "@/app/api/_utils";
 import { appSettingsSchema } from "@/schemas/settings";
@@ -26,6 +27,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const settings = await updateAppSettings(parsed.data);
+  revalidateTag("landing-settings", "max");
   await logActivity({
     userId: session.user.id,
     action: "update",

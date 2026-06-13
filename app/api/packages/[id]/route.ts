@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
 import { packageSchema } from "@/schemas/package";
 import { deletePackage, updatePackage } from "@/services/packages";
@@ -23,6 +24,7 @@ export async function PUT(
 
   const { id } = await params;
   const washPackage = await updatePackage(id, parsed.data);
+  revalidateTag("landing-packages", "max");
   await logActivity({
     userId: session.user.id,
     action: "update",
@@ -47,6 +49,7 @@ export async function DELETE(
 
   const { id } = await params;
   await deletePackage(id);
+  revalidateTag("landing-packages", "max");
   await logActivity({
     userId: session.user.id,
     action: "delete",
