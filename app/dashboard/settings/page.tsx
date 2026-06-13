@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GalleryUpload } from "@/features/dashboard/gallery-upload";
+import { DangerZone } from "@/features/settings/danger-zone";
 import { SettingsManager } from "@/features/settings/settings-manager";
 import { requireRole } from "@/lib/auth/session";
 import { withDatabaseRetry } from "@/lib/runtime/database-retry";
@@ -60,6 +61,7 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+      <DangerZone />
     </div>
   );
 }
