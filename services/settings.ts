@@ -14,6 +14,16 @@ import { defaultAppSettings } from "@/lib/data";
 import type { AppSettingsInput } from "@/schemas/settings";
 import { deleteAllGalleryStorageObjects } from "@/services/gallery";
 
+const blankAppSettings = {
+  ...defaultAppSettings,
+  businessName: "",
+  businessPhone: "",
+  businessAddress: "",
+  queueSlotCapacity: 1,
+  reportDefaultRangeDays: 1,
+  invoiceFooter: "",
+};
+
 export async function getAppSettings() {
   if (shouldUseDemoData()) {
     return getDemoState().settings;
@@ -24,7 +34,7 @@ export async function getAppSettings() {
     where: eq(appSettingsTable.id, defaultAppSettings.id),
   });
 
-  return existing ?? { ...defaultAppSettings };
+  return existing ?? { ...blankAppSettings };
 }
 
 export async function updateAppSettings(input: AppSettingsInput) {

@@ -1,7 +1,8 @@
 import { connection } from "next/server";
 import { hasDatabaseConfig, isDemoModeEnabled } from "@/drizzle/db";
 import { LandingPage } from "@/components/landing/landing-page";
-import { defaultAppSettings, demoPackages } from "@/lib/data";
+import { APP_NAME } from "@/lib/constants";
+import { defaultAppSettings, type AppSettings } from "@/lib/data";
 import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { listGalleryImages } from "@/services/gallery";
 import { listPackages } from "@/services/packages";
@@ -18,7 +19,7 @@ export default async function Home() {
 
   return (
     <LandingPage
-      brandName={settings.businessName}
+      brandName={settings.businessName || APP_NAME}
       packages={JSON.parse(JSON.stringify(packages.filter((item) => item.isActive)))}
       gallery={gallery}
     />
@@ -26,23 +27,36 @@ export default async function Home() {
 }
 
 async function loadLandingSettings() {
-  if (!hasDatabaseConfig() && !isDemoModeEnabled()) return defaultAppSettings;
+  if (!hasDatabaseConfig() && !isDemoModeEnabled()) return getEmptyLandingSettings();
 
   try {
     return await withDatabaseRetry(() => getAppSettings(), 2);
   } catch (error) {
     console.error("Failed to load landing settings", error);
-    return defaultAppSettings;
+    return getEmptyLandingSettings();
   }
 }
 
 async function loadLandingPackages() {
-  if (!hasDatabaseConfig() && !isDemoModeEnabled()) return demoPackages;
+  if (!hasDatabaseConfig() && !isDemoModeEnabled()) return [];
 
   try {
     return await withDatabaseRetry(() => listPackages(), 2);
   } catch (error) {
     console.error("Failed to load landing packages", error);
-    return demoPackages;
+    return [];
   }
+}
+
+function getEmptyLandingSettings(): AppSettings {
+  return {
+    ...defaultAppSettings,
+    businessName: APP_NAME,
+    businessPhone: "",
+    businessAddress: "",
+    queueSlotCapacity: 1,
+    reportDefaultRangeDays: 1,
+    autoPrintInvoice: false,
+    invoiceFooter: "",
+  };
 }

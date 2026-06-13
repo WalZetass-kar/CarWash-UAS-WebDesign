@@ -42,37 +42,12 @@ type LandingPackageCard = {
   featured?: boolean;
 };
 
-const fallbackPackages: LandingPackageCard[] = [
-  {
-    slug: "express-wash",
-    name: "Express Wash",
-    price: 35000,
-    time: "25 menit",
-    items: ["Snow wash", "Bilas tekanan tinggi", "Lap microfiber"],
-  },
-  {
-    slug: "premium-gloss",
-    name: "Premium Gloss",
-    price: 85000,
-    time: "55 menit",
-    items: ["Vacuum interior", "Semir ban", "Wax kilap"],
-    featured: true,
-  },
-  {
-    slug: "detailing-care",
-    name: "Detailing Care",
-    price: 175000,
-    time: "120 menit",
-    items: ["Deep clean", "Coating ringan", "Finishing premium"],
-  },
-];
-
 function packageSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
 function toLandingPackageCards(packages: WashPackage[]): LandingPackageCard[] {
-  if (!packages.length) return fallbackPackages;
+  if (!packages.length) return [];
 
   return packages.slice(0, 6).map((item, index) => {
     const descriptionItems = item.description
@@ -468,65 +443,73 @@ export function LandingPage({
               <Badge className="transition-all duration-300 hover:scale-105">Paket Pencucian</Badge>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">Pilihan paket untuk kebutuhan harian sampai detailing.</h2>
             </motion.div>
-            <motion.div 
-              className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-              variants={containerVariants}
-              initial={false}
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {packageCards.map((item) => (
-                <motion.div
-                  key={item.name}
-                  variants={itemVariants}
-                  whileHover={{ y: -12, scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className={`group h-full cursor-default transition-all duration-300 ${
-                    item.featured 
-                      ? "border-cyan-300 shadow-xl shadow-cyan-600/20 hover:shadow-2xl hover:shadow-cyan-600/30 dark:border-cyan-700" 
-                      : "border-slate-200 hover:border-cyan-200 hover:shadow-xl hover:shadow-cyan-600/10 dark:border-slate-800 dark:hover:border-cyan-800"
-                  }`}>
-                    <CardContent className="pt-6">
-                      {item.featured ? (
-                        <motion.div
-                          initial={false}
-                          whileInView={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <Badge className="mb-4 animate-pulse bg-gradient-to-r from-cyan-600 to-blue-600">Paling Populer</Badge>
-                        </motion.div>
-                      ) : null}
-                      <h3 className="text-lg font-semibold transition-colors duration-300 group-hover:text-cyan-700 sm:text-xl dark:group-hover:text-cyan-300">{item.name}</h3>
-                      <div className="mt-3 flex items-end gap-2">
-                        <span className="text-2xl font-semibold transition-colors duration-300 group-hover:text-cyan-600 sm:text-3xl">{formatCurrency(item.price)}</span>
-                        <span className="pb-1 text-xs text-slate-500 sm:text-sm">{item.time}</span>
-                      </div>
-                      <ul className="mt-6 space-y-3">
-                        {item.items.map((feature, idx) => (
-                          <motion.li 
-                            key={feature} 
-                            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
+            {packageCards.length ? (
+              <motion.div 
+                className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                variants={containerVariants}
+                initial={false}
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
+                {packageCards.map((item) => (
+                  <motion.div
+                    key={item.name}
+                    variants={itemVariants}
+                    whileHover={{ y: -12, scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className={`group h-full cursor-default transition-all duration-300 ${
+                      item.featured 
+                        ? "border-cyan-300 shadow-xl shadow-cyan-600/20 hover:shadow-2xl hover:shadow-cyan-600/30 dark:border-cyan-700" 
+                        : "border-slate-200 hover:border-cyan-200 hover:shadow-xl hover:shadow-cyan-600/10 dark:border-slate-800 dark:hover:border-cyan-800"
+                    }`}>
+                      <CardContent className="pt-6">
+                        {item.featured ? (
+                          <motion.div
                             initial={false}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: idx * 0.1, duration: 0.5 }}
+                            whileInView={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
                           >
-                            <CheckCircle2 className="size-4 flex-shrink-0 text-emerald-500 transition-transform duration-300 group-hover:scale-110" />
-                            {feature}
-                          </motion.li>
-                        ))}
-                      </ul>
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Button asChild className="mt-6 w-full transition-all duration-300 hover:shadow-lg hover:shadow-cyan-600/30">
-                          <Link href={`/booking?package=${item.slug}`}>Pilih Paket</Link>
-                        </Button>
-                      </motion.div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
+                            <Badge className="mb-4 animate-pulse bg-gradient-to-r from-cyan-600 to-blue-600">Paling Populer</Badge>
+                          </motion.div>
+                        ) : null}
+                        <h3 className="text-lg font-semibold transition-colors duration-300 group-hover:text-cyan-700 sm:text-xl dark:group-hover:text-cyan-300">{item.name}</h3>
+                        <div className="mt-3 flex items-end gap-2">
+                          <span className="text-2xl font-semibold transition-colors duration-300 group-hover:text-cyan-600 sm:text-3xl">{formatCurrency(item.price)}</span>
+                          <span className="pb-1 text-xs text-slate-500 sm:text-sm">{item.time}</span>
+                        </div>
+                        <ul className="mt-6 space-y-3">
+                          {item.items.map((feature, idx) => (
+                            <motion.li 
+                              key={feature} 
+                              className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
+                              initial={false}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ delay: idx * 0.1, duration: 0.5 }}
+                            >
+                              <CheckCircle2 className="size-4 flex-shrink-0 text-emerald-500 transition-transform duration-300 group-hover:scale-110" />
+                              {feature}
+                            </motion.li>
+                          ))}
+                        </ul>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Button asChild className="mt-6 w-full transition-all duration-300 hover:shadow-lg hover:shadow-cyan-600/30">
+                            <Link href={`/booking?package=${item.slug}`}>Pilih Paket</Link>
+                          </Button>
+                        </motion.div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              <EmptyState
+                title="Paket masih kosong"
+                description="Tidak ada paket aktif di Supabase saat ini."
+                className="mt-10 mx-auto max-w-2xl border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-900/60"
+              />
+            )}
           </div>
         </MotionSection>
 
