@@ -11,7 +11,7 @@ export async function getCurrentSession() {
 
 export async function requireSession() {
   const session = await getCurrentSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/aksesadmincarwash");
   return session;
 }
 

@@ -263,11 +263,6 @@ export function LandingPage({
 
           <div className="hidden items-center gap-3 md:flex">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button asChild variant="ghost" className="text-white transition-all duration-300 hover:bg-white/10 hover:text-cyan-300 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
-                <Link href="/login">Masuk</Link>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button asChild className="bg-cyan-600 text-white transition-all duration-300 hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/30">
                 <Link href="/booking">
                   Booking Sekarang
@@ -313,9 +308,6 @@ export function LandingPage({
                 {item.label}
               </motion.a>
             ))}
-            <Button asChild variant="ghost" className="mt-2 border border-slate-700 text-white hover:bg-slate-800">
-              <Link href="/login" onClick={() => setOpen(false)}>Masuk Dashboard</Link>
-            </Button>
             <Button asChild className="w-full">
               <Link href="/booking">Booking Sekarang</Link>
             </Button>

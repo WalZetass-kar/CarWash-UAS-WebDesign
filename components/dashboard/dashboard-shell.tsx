@@ -104,7 +104,7 @@ export function DashboardShell({
   async function logout() {
     await csrfFetch("/api/auth/logout", { method: "POST", body: JSON.stringify({}) });
     toast.success("Logout berhasil");
-    router.push("/login");
+    router.push("/aksesadmincarwash");
     router.refresh();
   }
 

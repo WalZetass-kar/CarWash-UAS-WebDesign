@@ -58,14 +58,14 @@ export async function proxy(request: NextRequest) {
 
   if (isProtected && !session) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/aksesadmincarwash";
     url.searchParams.set("next", pathname);
     const response = NextResponse.redirect(url);
     response.cookies.delete(SESSION_COOKIE);
     return applyHeaders(response);
   }
 
-  if (pathname === "/login" && session) {
+  if (pathname === "/aksesadmincarwash" && session) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return applyHeaders(NextResponse.redirect(url));
