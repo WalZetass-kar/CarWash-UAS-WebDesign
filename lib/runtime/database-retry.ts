@@ -30,7 +30,27 @@ export async function withDatabaseRetry<T>(operation: () => Promise<T>, attempts
 }
 
 function isTransientDatabaseError(error: unknown) {
-  return collectErrorCodes(error).some((code) => TRANSIENT_DATABASE_CODES.has(code));
+  if (collectErrorCodes(error).some((code) => TRANSIENT_DATABASE_CODES.has(code))) return true;
+  const message = collectErrorMessage(error).toLowerCase();
+  return (
+    message.includes("failed query") ||
+    message.includes("connection terminated") ||
+    message.includes("etimedout") ||
+    message.includes("econnreset") ||
+    message.includes("write epipe")
+  );
+}
+
+function collectErrorMessage(error: unknown): string {
+  let current = error;
+  const seen = new Set<unknown>();
+  while (typeof current === "object" && current !== null && !seen.has(current)) {
+    seen.add(current);
+    const record = current as { message?: unknown; cause?: unknown };
+    if (typeof record.message === "string") return record.message;
+    current = record.cause;
+  }
+  return "";
 }
 
 function collectErrorCodes(error: unknown) {
