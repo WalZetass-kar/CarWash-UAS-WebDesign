@@ -24,16 +24,7 @@ export async function getAppSettings() {
     where: eq(appSettingsTable.id, defaultAppSettings.id),
   });
 
-  if (existing) {
-    return existing;
-  }
-
-  const [created] = await db
-    .insert(appSettingsTable)
-    .values(defaultAppSettings)
-    .returning();
-
-  return created;
+  return existing ?? { ...defaultAppSettings };
 }
 
 export async function updateAppSettings(input: AppSettingsInput) {

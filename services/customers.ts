@@ -1,5 +1,5 @@
-import { and, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
-import { customers, queues } from "@/drizzle/schema";
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { customers, payments, queues, transactions } from "@/drizzle/schema";
 import { getDb, shouldUseDemoData } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type Customer } from "@/lib/data";
@@ -100,13 +100,31 @@ export async function updateCustomer(id: string, input: CustomerInput) {
 export async function deleteCustomer(id: string) {
   if (shouldUseDemoData()) {
     const state = getDemoState();
+    const transactionIds = new Set(
+      state.transactions.filter((transaction) => transaction.customerId === id).map((transaction) => transaction.id),
+    );
+    state.payments = state.payments.filter((payment) => !transactionIds.has(payment.transactionId));
+    state.transactions = state.transactions.filter((transaction) => transaction.customerId !== id);
+    state.queues = state.queues.filter((queue) => queue.customerId !== id);
     state.customers = state.customers.filter((customer) => customer.id !== id);
     return true;
   }
 
-  await getDb()
-    .update(customers)
-    .set({ deletedAt: new Date(), updatedAt: new Date() })
-    .where(eq(customers.id, id));
+  const db = getDb();
+  await db.transaction(async (tx) => {
+    const transactionRows = await tx
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(eq(transactions.customerId, id));
+    const transactionIds = transactionRows.map((row) => row.id);
+
+    if (transactionIds.length > 0) {
+      await tx.delete(payments).where(inArray(payments.transactionId, transactionIds));
+      await tx.delete(transactions).where(inArray(transactions.id, transactionIds));
+    }
+
+    await tx.delete(queues).where(eq(queues.customerId, id));
+    await tx.delete(customers).where(eq(customers.id, id));
+  });
   return true;
 }

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { userFormSchema } from "@/schemas/auth";
-import { deactivateUser, updateUser } from "@/services/users";
+import { deleteUser, updateUser } from "@/services/users";
 import { getClientIp } from "@/lib/utils";
 import { sanitizeObject } from "@/lib/security/sanitize";
 import { logActivity } from "@/services/activity";
@@ -46,15 +46,15 @@ export async function DELETE(
   if (response || !session) return response;
 
   const { id } = await params;
-  await deactivateUser(id);
   await logActivity({
     userId: session.user.id,
-    action: "deactivate",
+    action: "delete",
     entity: "users",
     entityId: id,
     ipAddress: getClientIp(request.headers),
     userAgent: request.headers.get("user-agent"),
   });
+  await deleteUser(id);
 
   return jsonResponse({ ok: true });
 }

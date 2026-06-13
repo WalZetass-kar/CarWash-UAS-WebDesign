@@ -1,5 +1,5 @@
-import { and, desc, eq, ilike, isNull } from "drizzle-orm";
-import { washPackages } from "@/drizzle/schema";
+import { and, desc, eq, ilike, inArray, isNull } from "drizzle-orm";
+import { payments, queues, transactions, washPackages } from "@/drizzle/schema";
 import { getDb, shouldUseDemoData } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type WashPackage } from "@/lib/data";
@@ -57,13 +57,31 @@ export async function updatePackage(id: string, input: PackageInput) {
 export async function deletePackage(id: string) {
   if (shouldUseDemoData()) {
     const state = getDemoState();
+    const transactionIds = new Set(
+      state.transactions.filter((transaction) => transaction.packageId === id).map((transaction) => transaction.id),
+    );
+    state.payments = state.payments.filter((payment) => !transactionIds.has(payment.transactionId));
+    state.transactions = state.transactions.filter((transaction) => transaction.packageId !== id);
+    state.queues = state.queues.filter((queue) => queue.packageId !== id);
     state.packages = state.packages.filter((item) => item.id !== id);
     return true;
   }
 
-  await getDb()
-    .update(washPackages)
-    .set({ deletedAt: new Date(), updatedAt: new Date() })
-    .where(eq(washPackages.id, id));
+  const db = getDb();
+  await db.transaction(async (tx) => {
+    const transactionRows = await tx
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(eq(transactions.packageId, id));
+    const transactionIds = transactionRows.map((row) => row.id);
+
+    if (transactionIds.length > 0) {
+      await tx.delete(payments).where(inArray(payments.transactionId, transactionIds));
+      await tx.delete(transactions).where(inArray(transactions.id, transactionIds));
+    }
+
+    await tx.delete(queues).where(eq(queues.packageId, id));
+    await tx.delete(washPackages).where(eq(washPackages.id, id));
+  });
   return true;
 }

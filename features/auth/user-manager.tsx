@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { KeyRound, Pencil, UserRoundPlus } from "lucide-react";
+import { Pencil, Trash2, UserRoundPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -126,16 +126,16 @@ export function UserManager({
     setFormOpen(false);
   }
 
-  async function deactivate(id: string) {
+  async function remove(id: string) {
     const previous = data;
-    setData((items) => items.map((item) => (item.id === id ? { ...item, isActive: false } : item)));
+    setData((items) => items.filter((item) => item.id !== id));
     const response = await csrfFetch(`/api/users/${id}`, { method: "DELETE" });
     if (!response.ok) {
       setData(previous);
-      toast.error("Gagal menonaktifkan user");
+      toast.error("Gagal menghapus user");
       return;
     }
-    toast.success("User dinonaktifkan");
+    toast.success("User dihapus");
   }
 
   const columns: ColumnDef<User>[] = [
@@ -177,12 +177,11 @@ export function UserManager({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => deactivate(row.original.id)}
-            disabled={!row.original.isActive}
+            onClick={() => remove(row.original.id)}
             className="w-full justify-center sm:w-auto"
           >
-            <KeyRound className="size-4" />
-            Nonaktifkan
+            <Trash2 className="size-4" />
+            Hapus
           </Button>
         </div>
       ),

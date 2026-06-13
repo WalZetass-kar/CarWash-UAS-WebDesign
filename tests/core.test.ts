@@ -49,6 +49,51 @@ function withEnv<T>(updates: Partial<NodeJS.ProcessEnv>, callback: () => T) {
   }
 }
 
+async function createLinkedDemoFixture(prefix: string) {
+  const { createCustomer } = await import("../services/customers");
+  const { createPackage } = await import("../services/packages");
+  const { createQueue } = await import("../services/queues");
+  const { createPayment } = await import("../services/payments");
+  const { listTransactions } = await import("../services/transactions");
+
+  const unique = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+  const customer = await createCustomer({
+    name: `${prefix} Customer`,
+    phone: `08${unique}`,
+    licensePlate: `B ${unique.slice(-4).toUpperCase()} ZZ`,
+    vehicleType: "mobil",
+    notes: null,
+  });
+  const washPackage = await createPackage({
+    name: `${prefix} Package`,
+    description: "Paket uji hapus permanen",
+    price: 40000,
+    estimatedMinutes: 30,
+    imageUrl: null,
+    isActive: true,
+  });
+  const scheduledAt = new Date("2099-01-01T10:00:00.000Z");
+  const queue = await createQueue({
+    customerId: customer.id,
+    packageId: washPackage.id,
+    scheduledAt,
+    status: "menunggu",
+    notes: null,
+  });
+  const transaction = (await listTransactions(queue.queueNumber)).find((item) => item.queueId === queue.id);
+  assert.ok(transaction);
+
+  const payment = await createPayment({
+    transactionId: transaction.id,
+    method: "tunai",
+    amount: transaction.total,
+    status: "lunas",
+  });
+  assert.equal(payment.status, "lunas");
+
+  return { customer, washPackage, queue, transaction };
+}
+
 test("RBAC membatasi akses admin-only untuk petugas", () => {
   assert.equal(can({ role: "admin" }, "users:manage"), true);
   assert.equal(can({ role: "petugas" }, "users:manage"), false);
@@ -192,6 +237,50 @@ test("reset data demo membersihkan gallery urls dan melaporkan jumlah file galle
   assert.equal(getDemoState().galleryUrls.length, 0);
 });
 
+test("hapus pelanggan demo membersihkan pelanggan dan data turunannya", async () => {
+  const { deleteCustomer } = await import("../services/customers");
+  const { getDemoState } = await import("../lib/demo-store");
+
+  const { customer, queue, transaction } = await createLinkedDemoFixture("Customer delete");
+  await deleteCustomer(customer.id);
+
+  const state = getDemoState();
+  assert.equal(state.customers.some((item) => item.id === customer.id), false);
+  assert.equal(state.queues.some((item) => item.id === queue.id), false);
+  assert.equal(state.transactions.some((item) => item.id === transaction.id), false);
+  assert.equal(state.payments.some((item) => item.transactionId === transaction.id), false);
+});
+
+test("hapus paket demo membersihkan paket dan data turunannya", async () => {
+  const { deletePackage } = await import("../services/packages");
+  const { getDemoState } = await import("../lib/demo-store");
+
+  const { customer, washPackage, queue, transaction } = await createLinkedDemoFixture("Package delete");
+  await deletePackage(washPackage.id);
+
+  const state = getDemoState();
+  assert.equal(state.packages.some((item) => item.id === washPackage.id), false);
+  assert.equal(state.queues.some((item) => item.id === queue.id), false);
+  assert.equal(state.transactions.some((item) => item.id === transaction.id), false);
+  assert.equal(state.payments.some((item) => item.transactionId === transaction.id), false);
+  assert.equal(state.customers.some((item) => item.id === customer.id), true);
+});
+
+test("hapus antrian demo membersihkan antrian dan data pembayarannya", async () => {
+  const { deleteQueue } = await import("../services/queues");
+  const { getDemoState } = await import("../lib/demo-store");
+
+  const { customer, washPackage, queue, transaction } = await createLinkedDemoFixture("Queue delete");
+  await deleteQueue(queue.id);
+
+  const state = getDemoState();
+  assert.equal(state.queues.some((item) => item.id === queue.id), false);
+  assert.equal(state.transactions.some((item) => item.id === transaction.id), false);
+  assert.equal(state.payments.some((item) => item.transactionId === transaction.id), false);
+  assert.equal(state.customers.some((item) => item.id === customer.id), true);
+  assert.equal(state.packages.some((item) => item.id === washPackage.id), true);
+});
+
 test("booking publik dapat memilih paket tanpa login", async () => {
   const { createPublicBooking } = await import("../services/bookings");
   const { listQueues } = await import("../services/queues");
@@ -309,6 +398,40 @@ test("user demo baru bisa login dan user nonaktif ditolak login", async () => {
   await deactivateUser(createdUser.id);
   const rejectedUser = await authenticateUser("operator@kilapkendaraan.my.id", "operator123");
   assert.equal(rejectedUser, null);
+});
+
+test("user demo dapat dihapus permanen dan referensi activity log dibersihkan", async () => {
+  const { createUser, deleteUser } = await import("../services/users");
+  const { logActivity } = await import("../services/activity");
+  const { getDemoState } = await import("../lib/demo-store");
+
+  const createdUser = await createUser({
+    name: "User Hapus",
+    email: "hapus@kilapkendaraan.my.id",
+    password: "hapus123",
+    role: "petugas",
+    isActive: true,
+  });
+
+  await logActivity({
+    userId: createdUser.id,
+    action: "update",
+    entity: "users",
+    entityId: createdUser.id,
+  });
+
+  await deleteUser(createdUser.id);
+
+  const state = getDemoState();
+  assert.equal(state.users.some((item) => item.id === createdUser.id), false);
+  assert.equal(
+    state.activityLogs.some((item) => item.entityId === createdUser.id && item.userId === createdUser.id),
+    false,
+  );
+  assert.equal(
+    state.activityLogs.some((item) => item.entityId === createdUser.id && item.userId === null),
+    true,
+  );
 });
 
 test("filter export laporan menerima format json/csv/pdf/xlsx dan menolak format lain", () => {

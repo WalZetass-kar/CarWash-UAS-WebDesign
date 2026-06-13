@@ -1,5 +1,5 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
-import { users } from "@/drizzle/schema";
+import { activityLogs, transactions, users } from "@/drizzle/schema";
 import { getDb, shouldUseDemoData } from "@/drizzle/db";
 import { getDemoState, toPublicUser } from "@/lib/demo-store";
 import type { User } from "@/lib/data";
@@ -134,5 +134,32 @@ export async function deactivateUser(id: string) {
     .update(users)
     .set({ isActive: false, updatedAt: new Date() })
     .where(eq(users.id, id));
+  return true;
+}
+
+export async function deleteUser(id: string) {
+  if (shouldUseDemoData()) {
+    const state = getDemoState();
+    state.activityLogs = state.activityLogs.map((item) =>
+      item.userId === id ? { ...item, userId: null } : item,
+    );
+    state.users = state.users.filter((item) => item.id !== id);
+    return true;
+  }
+
+  const db = getDb();
+  await db.transaction(async (tx) => {
+    await tx
+      .update(transactions)
+      .set({ createdBy: null, updatedAt: new Date() })
+      .where(eq(transactions.createdBy, id));
+
+    await tx
+      .update(activityLogs)
+      .set({ userId: null, updatedAt: new Date() })
+      .where(eq(activityLogs.userId, id));
+
+    await tx.delete(users).where(eq(users.id, id));
+  });
   return true;
 }
