@@ -34,12 +34,10 @@ export async function POST(request: NextRequest) {
     user = await withDatabaseRetry(() => authenticateUser(parsed.data.email, parsed.data.password));
   } catch (error) {
     console.error("Login database check failed", error);
-    const err = error as { code?: string; message?: string; name?: string };
     return jsonResponse(
       {
         message:
           "Koneksi database login sedang bermasalah. Periksa konfigurasi Postgres/Supabase, lalu coba lagi.",
-        _debug: { code: err?.code, name: err?.name, detail: err?.message?.substring(0, 200) },
       },
       503,
     );
