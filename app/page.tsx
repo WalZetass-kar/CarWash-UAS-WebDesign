@@ -14,7 +14,7 @@ export default async function Home() {
   const [settings, packages, gallery] = await Promise.all([
     loadLandingSettings(),
     loadLandingPackages(),
-    listGalleryImages(),
+    loadLandingGallery(),
   ]);
 
   return (
@@ -59,4 +59,13 @@ function getEmptyLandingSettings(): AppSettings {
     autoPrintInvoice: false,
     invoiceFooter: "",
   };
+}
+
+async function loadLandingGallery() {
+  try {
+    return await listGalleryImages();
+  } catch (error) {
+    console.warn("Failed to load landing gallery", error);
+    return [];
+  }
 }

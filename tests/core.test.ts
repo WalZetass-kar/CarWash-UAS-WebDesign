@@ -156,6 +156,33 @@ test("Supabase runtime config memakai fallback yesssss_* saat env standar kosong
   );
 });
 
+test("gallery publik tetap kosong saat storage Supabase tidak tersedia", async () => {
+  const { listGalleryImages } = await import("../services/gallery");
+  const previous = { ...process.env };
+  try {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    delete process.env.SUPABASE_ANON_KEY;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.SUPABASE_SECRET_KEY;
+    delete process.env.NEXT_PUBLIC_yesssss_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_yesssss_SUPABASE_ANON_KEY;
+    delete process.env.NEXT_PUBLIC_yesssss_SUPABASE_PUBLISHABLE_KEY;
+    delete process.env.yesssss_SUPABASE_URL;
+    delete process.env.yesssss_SUPABASE_ANON_KEY;
+    delete process.env.yesssss_SUPABASE_PUBLISHABLE_KEY;
+    delete process.env.yesssss_SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.yesssss_SUPABASE_SECRET_KEY;
+    setNodeEnv("test");
+
+    const gallery = await listGalleryImages();
+    assert.deepEqual(gallery, []);
+  } finally {
+    process.env = previous;
+  }
+});
+
 test("proxy membiarkan request API diproses route handler tanpa redirect HTML", async () => {
   const response = await proxy(new NextRequest("http://localhost:3000/api/settings"));
 

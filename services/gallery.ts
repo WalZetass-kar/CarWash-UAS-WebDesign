@@ -28,14 +28,26 @@ export async function listGalleryImages(limit = 6) {
     console.error("Failed to list gallery from DB, falling back to storage", error);
   }
 
-  return listGalleryImagesFromStorage(limit);
+  try {
+    return await listGalleryImagesFromStorage(limit);
+  } catch (error) {
+    console.warn("Failed to list gallery from storage", error);
+    return [];
+  }
 }
 
 async function listGalleryImagesFromStorage(limit: number) {
   const supabase = createSupabaseAdminClient();
   if (!supabase) return [];
 
-  const objectNames = await listGalleryStorageObjectNames(supabase, limit, limit);
+  let objectNames: string[];
+  try {
+    objectNames = await listGalleryStorageObjectNames(supabase, limit, limit);
+  } catch (error) {
+    console.warn("Failed to list gallery from storage", error);
+    return [];
+  }
+
   if (!objectNames.length) return [];
 
   const urls = objectNames.slice(0, limit)
