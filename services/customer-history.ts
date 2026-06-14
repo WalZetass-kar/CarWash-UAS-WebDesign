@@ -1,7 +1,6 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { customers, payments, queues, transactions, washPackages } from "@/drizzle/schema";
-import { getDb, hasDatabaseConfig } from "@/drizzle/db";
-import { getDemoState } from "@/lib/demo-store";
+import { getDb } from "@/drizzle/db";
 import { normalizeQueueStatus, type PaymentMethod, type PaymentStatus, type QueueStatus } from "@/lib/constants";
 
 export type CustomerHistoryEntry = {
@@ -58,78 +57,51 @@ function buildSummary(history: CustomerHistoryEntry[]) {
 }
 
 export async function getCustomerHistory(customerId: string): Promise<CustomerHistoryData | null> {
-  if (!hasDatabaseConfig()) {
-    const state = getDemoState();
-    const customer = state.customers.find((item) => item.id === customerId);
+  try {
+    const db = getDb();
+    const customer = await db.query.customers.findFirst({
+      where: (table, { and }) => and(eq(table.id, customerId), isNull(table.deletedAt)),
+    });
+
     if (!customer) return null;
 
-    const history = state.transactions
-      .filter((item) => item.customerId === customerId)
-      .map((transaction) => {
-        const queue = state.queues.find((item) => item.id === transaction.queueId);
-        const payment = state.payments.find((item) => item.transactionId === transaction.id);
-        return {
-          id: transaction.id,
-          queueNumber: transaction.queueNumber,
-          packageName: transaction.packageName,
-          licensePlate: queue?.licensePlate ?? customer.licensePlate,
-          queueStatus: queue?.status ?? "menunggu",
-          paymentStatus: transaction.status,
-          paymentMethod: payment?.method ?? null,
-          total: transaction.total,
-          paidAt: payment?.paidAt ?? null,
-          createdAt: transaction.createdAt,
-        } satisfies CustomerHistoryEntry;
+    const history = await db
+      .select({
+        id: transactions.id,
+        queueNumber: queues.queueNumber,
+        packageName: washPackages.name,
+        licensePlate: customers.licensePlate,
+        queueStatus: queues.status,
+        paymentStatus: transactions.status,
+        paymentMethod: payments.method,
+        total: transactions.total,
+        paidAt: payments.paidAt,
+        createdAt: transactions.createdAt,
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .from(transactions)
+      .innerJoin(queues, eq(transactions.queueId, queues.id))
+      .innerJoin(customers, eq(transactions.customerId, customers.id))
+      .innerJoin(washPackages, eq(transactions.packageId, washPackages.id))
+      .leftJoin(payments, and(eq(payments.transactionId, transactions.id), isNull(payments.deletedAt)))
+      .where(and(eq(transactions.customerId, customerId), isNull(transactions.deletedAt)))
+      .orderBy(desc(transactions.createdAt));
+
+    const normalizedHistory = history.map((item) => ({
+      ...item,
+      paidAt: item.paidAt ? item.paidAt.toISOString() : null,
+      createdAt: item.createdAt.toISOString(),
+    }));
 
     return {
-      customer,
-      summary: buildSummary(history),
-      history,
+      customer: {
+        ...customer,
+        createdAt: customer.createdAt.toISOString(),
+      },
+      summary: buildSummary(normalizedHistory),
+      history: normalizedHistory,
     };
+  } catch (error) {
+    console.error("Failed to load customer history", error);
+    return null;
   }
-
-  const db = getDb();
-  const customer = await db.query.customers.findFirst({
-    where: (table, { and }) => and(eq(table.id, customerId), isNull(table.deletedAt)),
-  });
-
-  if (!customer) return null;
-
-  const history = await db
-    .select({
-      id: transactions.id,
-      queueNumber: queues.queueNumber,
-      packageName: washPackages.name,
-      licensePlate: customers.licensePlate,
-      queueStatus: queues.status,
-      paymentStatus: transactions.status,
-      paymentMethod: payments.method,
-      total: transactions.total,
-      paidAt: payments.paidAt,
-      createdAt: transactions.createdAt,
-    })
-    .from(transactions)
-    .innerJoin(queues, eq(transactions.queueId, queues.id))
-    .innerJoin(customers, eq(transactions.customerId, customers.id))
-    .innerJoin(washPackages, eq(transactions.packageId, washPackages.id))
-    .leftJoin(payments, and(eq(payments.transactionId, transactions.id), isNull(payments.deletedAt)))
-    .where(and(eq(transactions.customerId, customerId), isNull(transactions.deletedAt)))
-    .orderBy(desc(transactions.createdAt));
-
-  const normalizedHistory = history.map((item) => ({
-    ...item,
-    paidAt: item.paidAt ? item.paidAt.toISOString() : null,
-    createdAt: item.createdAt.toISOString(),
-  }));
-
-  return {
-    customer: {
-      ...customer,
-      createdAt: customer.createdAt.toISOString(),
-    },
-    summary: buildSummary(normalizedHistory),
-    history: normalizedHistory,
-  };
 }

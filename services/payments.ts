@@ -55,32 +55,37 @@ export async function listPayments(query = "", status?: string | null) {
 
   if (status === "belum_bayar") return [];
 
-  const statusFilter =
-    status && status === "lunas"
-      ? eq(payments.status, status as PaymentInput["status"])
+  try {
+    const statusFilter =
+      status && status === "lunas"
+        ? eq(payments.status, status as PaymentInput["status"])
+        : undefined;
+    const searchFilter = query
+      ? or(ilike(queues.queueNumber, `%${query}%`), ilike(customers.name, `%${query}%`))
       : undefined;
-  const searchFilter = query
-    ? or(ilike(queues.queueNumber, `%${query}%`), ilike(customers.name, `%${query}%`))
-    : undefined;
 
-  return getDb()
-    .select({
-      id: payments.id,
-      transactionId: payments.transactionId,
-      queueNumber: queues.queueNumber,
-      customerName: customers.name,
-      method: payments.method,
-      amount: payments.amount,
-      status: payments.status,
-      paidAt: payments.paidAt,
-      createdAt: payments.createdAt,
-    })
-    .from(payments)
-    .innerJoin(transactions, eq(payments.transactionId, transactions.id))
-    .innerJoin(queues, eq(transactions.queueId, queues.id))
-    .innerJoin(customers, eq(transactions.customerId, customers.id))
-    .where(and(isNull(payments.deletedAt), statusFilter, searchFilter))
-    .orderBy(desc(payments.createdAt));
+    return await getDb()
+      .select({
+        id: payments.id,
+        transactionId: payments.transactionId,
+        queueNumber: queues.queueNumber,
+        customerName: customers.name,
+        method: payments.method,
+        amount: payments.amount,
+        status: payments.status,
+        paidAt: payments.paidAt,
+        createdAt: payments.createdAt,
+      })
+      .from(payments)
+      .innerJoin(transactions, eq(payments.transactionId, transactions.id))
+      .innerJoin(queues, eq(transactions.queueId, queues.id))
+      .innerJoin(customers, eq(transactions.customerId, customers.id))
+      .where(and(isNull(payments.deletedAt), statusFilter, searchFilter))
+      .orderBy(desc(payments.createdAt));
+  } catch (error) {
+    console.error("Failed to list payments", error);
+    return [];
+  }
 }
 
 export async function createPayment(input: PaymentInput) {

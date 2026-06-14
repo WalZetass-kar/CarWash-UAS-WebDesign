@@ -17,24 +17,29 @@ export async function listUsers(query = "", role?: string | null) {
     });
   }
 
-  const roleFilter =
-    role && ["admin", "petugas"].includes(role) ? eq(users.role, role as UserFormInput["role"]) : undefined;
-  const searchFilter = query
-    ? or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`))
-    : undefined;
+  try {
+    const roleFilter =
+      role && ["admin", "petugas"].includes(role) ? eq(users.role, role as UserFormInput["role"]) : undefined;
+    const searchFilter = query
+      ? or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`))
+      : undefined;
 
-  return getDb()
-    .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      isActive: users.isActive,
-      createdAt: users.createdAt,
-    })
-    .from(users)
-    .where(and(isNull(users.deletedAt), roleFilter, searchFilter))
-    .orderBy(desc(users.createdAt));
+    return await getDb()
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        isActive: users.isActive,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(and(isNull(users.deletedAt), roleFilter, searchFilter))
+      .orderBy(desc(users.createdAt));
+  } catch (error) {
+    console.error("Failed to list users", error);
+    return [];
+  }
 }
 
 export async function createUser(input: UserFormInput) {

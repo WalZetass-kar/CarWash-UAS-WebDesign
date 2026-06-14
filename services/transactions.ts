@@ -23,38 +23,43 @@ export async function listTransactions(query = "", status?: PaymentStatus | null
     });
   }
 
-  const statusFilter = status ? eq(transactions.status, status) : undefined;
-  const searchFilter = query
-    ? or(
-        ilike(queues.queueNumber, `%${query}%`),
-        ilike(customers.name, `%${query}%`),
-        ilike(washPackages.name, `%${query}%`),
-      )
-    : undefined;
+  try {
+    const statusFilter = status ? eq(transactions.status, status) : undefined;
+    const searchFilter = query
+      ? or(
+          ilike(queues.queueNumber, `%${query}%`),
+          ilike(customers.name, `%${query}%`),
+          ilike(washPackages.name, `%${query}%`),
+        )
+      : undefined;
 
-  return getDb()
-    .select({
-      id: transactions.id,
-      queueId: transactions.queueId,
-      queueNumber: queues.queueNumber,
-      customerId: transactions.customerId,
-      customerName: customers.name,
-      licensePlate: customers.licensePlate,
-      vehicleType: customers.vehicleType,
-      packageId: transactions.packageId,
-      packageName: washPackages.name,
-      subtotal: transactions.subtotal,
-      discount: transactions.discount,
-      total: transactions.total,
-      status: transactions.status,
-      createdAt: transactions.createdAt,
-    })
-    .from(transactions)
-    .innerJoin(queues, eq(transactions.queueId, queues.id))
-    .innerJoin(customers, eq(transactions.customerId, customers.id))
-    .innerJoin(washPackages, eq(transactions.packageId, washPackages.id))
-    .where(and(isNull(transactions.deletedAt), statusFilter, searchFilter))
-    .orderBy(desc(transactions.createdAt));
+    return await getDb()
+      .select({
+        id: transactions.id,
+        queueId: transactions.queueId,
+        queueNumber: queues.queueNumber,
+        customerId: transactions.customerId,
+        customerName: customers.name,
+        licensePlate: customers.licensePlate,
+        vehicleType: customers.vehicleType,
+        packageId: transactions.packageId,
+        packageName: washPackages.name,
+        subtotal: transactions.subtotal,
+        discount: transactions.discount,
+        total: transactions.total,
+        status: transactions.status,
+        createdAt: transactions.createdAt,
+      })
+      .from(transactions)
+      .innerJoin(queues, eq(transactions.queueId, queues.id))
+      .innerJoin(customers, eq(transactions.customerId, customers.id))
+      .innerJoin(washPackages, eq(transactions.packageId, washPackages.id))
+      .where(and(isNull(transactions.deletedAt), statusFilter, searchFilter))
+      .orderBy(desc(transactions.createdAt));
+  } catch (error) {
+    console.error("Failed to list transactions", error);
+    return [];
+  }
 }
 
 export async function getTransactionById(id: string) {

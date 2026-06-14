@@ -14,11 +14,16 @@ export async function listPackages(query = "") {
     );
   }
 
-  const where = query
-    ? and(isNull(washPackages.deletedAt), ilike(washPackages.name, `%${query}%`))
-    : isNull(washPackages.deletedAt);
+  try {
+    const where = query
+      ? and(isNull(washPackages.deletedAt), ilike(washPackages.name, `%${query}%`))
+      : isNull(washPackages.deletedAt);
 
-  return getDb().select().from(washPackages).where(where).orderBy(desc(washPackages.createdAt));
+    return await getDb().select().from(washPackages).where(where).orderBy(desc(washPackages.createdAt));
+  } catch (error) {
+    console.error("Failed to list packages", error);
+    return [];
+  }
 }
 
 export async function createPackage(input: PackageInput) {

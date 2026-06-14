@@ -1,6 +1,5 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
-import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { PackageManager } from "@/features/packages/package-manager";
 import { requireSession } from "@/lib/auth/session";
 import { withDatabaseRetry } from "@/lib/runtime/database-retry";
@@ -19,7 +18,6 @@ export default async function PackagesPage({
   const session = await requireSession();
   const params = await searchParams;
   const packages = await loadPackagesData();
-  if (!packages) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
   return (
     <div className="space-y-6">
@@ -45,6 +43,6 @@ async function loadPackagesData() {
     return JSON.parse(JSON.stringify(await withDatabaseRetry(() => listPackages())));
   } catch (error) {
     console.error("Failed to load packages page data", error);
-    return null;
+    return [];
   }
 }

@@ -1,10 +1,9 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
-import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { ReportManager } from "@/features/reports/report-manager";
 import { requireRole } from "@/lib/auth/session";
 import { withDatabaseRetry } from "@/lib/runtime/database-retry";
-import { getDashboardData } from "@/services/dashboard";
+import { getDashboardData, getEmptyDashboardData } from "@/services/dashboard";
 
 export const metadata = {
   title: "Laporan Transaksi",
@@ -18,7 +17,6 @@ export default async function ReportsPage() {
   await connection();
   await requireRole(["admin"]);
   const pageData = await loadReportsData();
-  if (!pageData) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
   const { data, reportRows } = pageData;
 
@@ -53,7 +51,11 @@ async function loadReportsData() {
     });
   } catch (error) {
     console.error("Failed to load reports page data", error);
-    return null;
+    const data = getEmptyDashboardData();
+    return {
+      data,
+      reportRows: buildReportRows(data.transactions, data.payments),
+    };
   }
 }
 

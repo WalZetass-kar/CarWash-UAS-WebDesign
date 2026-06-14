@@ -1,7 +1,6 @@
-import { hasDatabaseConfig } from "@/drizzle/db";
-import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { Badge } from "@/components/ui/badge";
 import { PublicBookingForm } from "@/features/bookings/public-booking-form";
+import { defaultAppSettings } from "@/lib/data";
 import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { getAppSettings } from "@/services/settings";
 import { listPackages } from "@/services/packages";
@@ -21,22 +20,6 @@ export default async function BookingPage({
 }) {
   const params = await searchParams;
 
-  if (!hasDatabaseConfig()) {
-    return (
-      <main className="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-6xl min-w-0 space-y-6">
-          <div>
-            <Badge>Customer Booking</Badge>
-            <h1 className="mt-3 max-w-3xl break-words text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-              Pilih paket dan booking jadwal
-            </h1>
-          </div>
-          <BackendSetupNotice area="booking" />
-        </div>
-      </main>
-    );
-  }
-
   const data = await loadBookingData();
   if (!data) {
     return (
@@ -48,7 +31,9 @@ export default async function BookingPage({
               Pilih paket dan booking jadwal
             </h1>
           </div>
-          <BackendSetupNotice area="booking" issue="connection-error" />
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
+            Data booking belum bisa dimuat. Halaman akan tetap tampil setelah server membaca koneksi database.
+          </div>
         </div>
       </main>
     );
@@ -96,6 +81,18 @@ async function loadBookingData() {
     });
   } catch (error) {
     console.error("Failed to load booking page data", error);
-    return null;
+    return [
+      {
+        ...defaultAppSettings,
+        businessName: "",
+        businessPhone: "",
+        businessAddress: "",
+        queueSlotCapacity: 1,
+        reportDefaultRangeDays: 1,
+        autoPrintInvoice: false,
+        invoiceFooter: "",
+      },
+      [],
+    ] as const;
   }
 }

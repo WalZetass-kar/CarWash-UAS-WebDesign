@@ -29,12 +29,17 @@ export async function getAppSettings() {
     return getDemoState().settings;
   }
 
-  const db = getDb();
-  const existing = await db.query.appSettings.findFirst({
-    where: eq(appSettingsTable.id, defaultAppSettings.id),
-  });
+  try {
+    const db = getDb();
+    const existing = await db.query.appSettings.findFirst({
+      where: eq(appSettingsTable.id, defaultAppSettings.id),
+    });
 
-  return existing ?? { ...blankAppSettings };
+    return existing ?? { ...blankAppSettings };
+  } catch (error) {
+    console.error("Failed to load app settings", error);
+    return { ...blankAppSettings };
+  }
 }
 
 export async function updateAppSettings(input: AppSettingsInput) {

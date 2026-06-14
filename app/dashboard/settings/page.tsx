@@ -1,11 +1,11 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
-import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GalleryUpload } from "@/features/dashboard/gallery-upload";
 import { DangerZone } from "@/features/settings/danger-zone";
 import { SettingsManager } from "@/features/settings/settings-manager";
 import { requireRole } from "@/lib/auth/session";
+import { defaultAppSettings } from "@/lib/data";
 import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { getAppSettings } from "@/services/settings";
 
@@ -13,11 +13,21 @@ export const metadata = {
   title: "Pengaturan",
 };
 
+const blankSettings = {
+  ...defaultAppSettings,
+  businessName: "",
+  businessPhone: "",
+  businessAddress: "",
+  queueSlotCapacity: 1,
+  reportDefaultRangeDays: 1,
+  autoPrintInvoice: false,
+  invoiceFooter: "",
+};
+
 export default async function SettingsPage() {
   await connection();
   await requireRole(["admin"]);
   const settings = await loadSettingsData();
-  if (!settings) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
   return (
     <div className="space-y-6">
@@ -71,6 +81,6 @@ async function loadSettingsData() {
     return await withDatabaseRetry(() => getAppSettings());
   } catch (error) {
     console.error("Failed to load settings page data", error);
-    return null;
+    return { ...blankSettings };
   }
 }

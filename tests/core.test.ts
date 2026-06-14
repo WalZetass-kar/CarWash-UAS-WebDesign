@@ -134,15 +134,19 @@ test("proxy membiarkan request API diproses route handler tanpa redirect HTML", 
   assert.equal(response.headers.get("location"), null);
 });
 
-test("service data menolak jalan tanpa database jika mode demo tidak diaktifkan", async () => {
+test("service data fallback kosong saat database tidak tersedia", async () => {
   const { listCustomers } = await import("../services/customers");
+  const { getDashboardData } = await import("../services/dashboard");
   const previousNodeEnv = process.env.NODE_ENV;
   setNodeEnv("development");
   try {
-    await assert.rejects(
-      () => listCustomers(),
-      /DATABASE_URL, POSTGRES_URL, POSTGRES_PRISMA_URL, POSTGRES_URL_NON_POOLING, SUPABASE_DB_URL wajib diatur/,
-    );
+    const customers = await listCustomers();
+    const dashboard = await getDashboardData();
+
+    assert.deepEqual(customers, []);
+    assert.equal(dashboard.metrics.revenueToday, 0);
+    assert.equal(dashboard.metrics.totalCustomers, 0);
+    assert.deepEqual(dashboard.packages, []);
   } finally {
     setNodeEnv(previousNodeEnv);
   }

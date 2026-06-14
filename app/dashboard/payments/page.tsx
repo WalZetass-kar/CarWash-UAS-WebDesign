@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
-import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { PaymentManager } from "@/features/payments/payment-manager";
+import { defaultAppSettings } from "@/lib/data";
 import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { listPayments } from "@/services/payments";
 import { getAppSettings } from "@/services/settings";
@@ -9,6 +9,17 @@ import { listTransactions } from "@/services/transactions";
 
 export const metadata = {
   title: "Pembayaran",
+};
+
+const blankSettings = {
+  ...defaultAppSettings,
+  businessName: "",
+  businessPhone: "",
+  businessAddress: "",
+  queueSlotCapacity: 1,
+  reportDefaultRangeDays: 1,
+  autoPrintInvoice: false,
+  invoiceFooter: "",
 };
 
 export default async function PaymentsPage({
@@ -19,7 +30,6 @@ export default async function PaymentsPage({
   await connection();
   const params = await searchParams;
   const data = await loadPaymentsData();
-  if (!data) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
   const [payments, transactions, allTransactions, settings] = data;
 
@@ -56,6 +66,6 @@ async function loadPaymentsData() {
     });
   } catch (error) {
     console.error("Failed to load payments page data", error);
-    return null;
+    return [[], [], [], { ...blankSettings }] as const;
   }
 }

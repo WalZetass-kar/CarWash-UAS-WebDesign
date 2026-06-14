@@ -59,24 +59,29 @@ export async function listRecentActivity(limit = 5): Promise<ActivityFeedItem[]>
     }));
   }
 
-  const rows = await getDb()
-    .select({
-      id: activityLogs.id,
-      action: activityLogs.action,
-      entity: activityLogs.entity,
-      createdAt: activityLogs.createdAt,
-      actorName: users.name,
-    })
-    .from(activityLogs)
-    .leftJoin(users, eq(activityLogs.userId, users.id))
-    .orderBy(desc(activityLogs.createdAt))
-    .limit(limit);
+  try {
+    const rows = await getDb()
+      .select({
+        id: activityLogs.id,
+        action: activityLogs.action,
+        entity: activityLogs.entity,
+        createdAt: activityLogs.createdAt,
+        actorName: users.name,
+      })
+      .from(activityLogs)
+      .leftJoin(users, eq(activityLogs.userId, users.id))
+      .orderBy(desc(activityLogs.createdAt))
+      .limit(limit);
 
-  return rows.map((item) => ({
-    id: item.id,
-    message: buildActivityMessage(item),
-    createdAt: item.createdAt.toISOString(),
-  }));
+    return rows.map((item) => ({
+      id: item.id,
+      message: buildActivityMessage(item),
+      createdAt: item.createdAt.toISOString(),
+    }));
+  } catch (error) {
+    console.error("Failed to list recent activity", error);
+    return [];
+  }
 }
 
 function buildActivityMessage(input: {

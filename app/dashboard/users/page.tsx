@@ -1,6 +1,5 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
-import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { UserManager } from "@/features/auth/user-manager";
 import { requireRole } from "@/lib/auth/session";
 import { withDatabaseRetry } from "@/lib/runtime/database-retry";
@@ -19,7 +18,6 @@ export default async function UsersPage({
   await requireRole(["admin"]);
   const params = await searchParams;
   const users = await loadUsersData();
-  if (!users) return <BackendSetupNotice area="dashboard" compact issue="connection-error" />;
 
   return (
     <div className="space-y-6">
@@ -44,6 +42,6 @@ async function loadUsersData() {
     return JSON.parse(JSON.stringify(await withDatabaseRetry(() => listUsers())));
   } catch (error) {
     console.error("Failed to load users page data", error);
-    return null;
+    return [];
   }
 }

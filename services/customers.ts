@@ -23,44 +23,49 @@ export async function listCustomers(query = "") {
       );
   }
 
-  const db = getDb();
+  try {
+    const db = getDb();
 
-  const visitCounts = db
-    .select({
-      customerId: queues.customerId,
-      count: sql<number>`count(${queues.id})`.as("visit_count"),
-    })
-    .from(queues)
-    .where(eq(queues.status, "selesai"))
-    .groupBy(queues.customerId)
-    .as("visit_counts");
+    const visitCounts = db
+      .select({
+        customerId: queues.customerId,
+        count: sql<number>`count(${queues.id})`.as("visit_count"),
+      })
+      .from(queues)
+      .where(eq(queues.status, "selesai"))
+      .groupBy(queues.customerId)
+      .as("visit_counts");
 
-  const where = query
-    ? and(
-        isNull(customers.deletedAt),
-        or(
-          ilike(customers.name, `%${query}%`),
-          ilike(customers.phone, `%${query}%`),
-          ilike(customers.licensePlate, `%${query}%`),
-        ),
-      )
-    : isNull(customers.deletedAt);
+    const where = query
+      ? and(
+          isNull(customers.deletedAt),
+          or(
+            ilike(customers.name, `%${query}%`),
+            ilike(customers.phone, `%${query}%`),
+            ilike(customers.licensePlate, `%${query}%`),
+          ),
+        )
+      : isNull(customers.deletedAt);
 
-  return db
-    .select({
-      id: customers.id,
-      name: customers.name,
-      phone: customers.phone,
-      licensePlate: customers.licensePlate,
-      vehicleType: customers.vehicleType,
-      notes: customers.notes,
-      createdAt: customers.createdAt,
-      visitCount: sql<number>`coalesce(${visitCounts.count}, 0)`,
-    })
-    .from(customers)
-    .leftJoin(visitCounts, eq(customers.id, visitCounts.customerId))
-    .where(where)
-    .orderBy(desc(customers.createdAt));
+    return await db
+      .select({
+        id: customers.id,
+        name: customers.name,
+        phone: customers.phone,
+        licensePlate: customers.licensePlate,
+        vehicleType: customers.vehicleType,
+        notes: customers.notes,
+        createdAt: customers.createdAt,
+        visitCount: sql<number>`coalesce(${visitCounts.count}, 0)`,
+      })
+      .from(customers)
+      .leftJoin(visitCounts, eq(customers.id, visitCounts.customerId))
+      .where(where)
+      .orderBy(desc(customers.createdAt));
+  } catch (error) {
+    console.error("Failed to list customers", error);
+    return [];
+  }
 }
 
 export async function createCustomer(input: CustomerInput) {

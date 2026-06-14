@@ -40,40 +40,45 @@ export async function listQueues(query = "", status?: string | null) {
     });
   }
 
-  const statusFilter =
-    status && (queueStatuses as readonly string[]).includes(status)
-      ? eq(queues.status, status as QueueStatusInput["status"])
+  try {
+    const statusFilter =
+      status && (queueStatuses as readonly string[]).includes(status)
+        ? eq(queues.status, status as QueueStatusInput["status"])
+        : undefined;
+    const searchFilter = query
+      ? or(
+          ilike(queues.queueNumber, `%${query}%`),
+          ilike(customers.name, `%${query}%`),
+          ilike(customers.licensePlate, `%${query}%`),
+          ilike(washPackages.name, `%${query}%`),
+        )
       : undefined;
-  const searchFilter = query
-    ? or(
-        ilike(queues.queueNumber, `%${query}%`),
-        ilike(customers.name, `%${query}%`),
-        ilike(customers.licensePlate, `%${query}%`),
-        ilike(washPackages.name, `%${query}%`),
-      )
-    : undefined;
 
-  return getDb()
-    .select({
-      id: queues.id,
-      queueNumber: queues.queueNumber,
-      customerId: queues.customerId,
-      packageId: queues.packageId,
-      customerName: customers.name,
-      customerPhone: customers.phone,
-      packageName: washPackages.name,
-      licensePlate: customers.licensePlate,
-      scheduledAt: queues.scheduledAt,
-      status: queues.status,
-      total: sql<number>`coalesce(${transactions.total}, ${washPackages.price})`,
-      createdAt: queues.createdAt,
-    })
-    .from(queues)
-    .innerJoin(customers, eq(queues.customerId, customers.id))
-    .innerJoin(washPackages, eq(queues.packageId, washPackages.id))
-    .leftJoin(transactions, and(eq(transactions.queueId, queues.id), isNull(transactions.deletedAt)))
-    .where(and(isNull(queues.deletedAt), statusFilter, searchFilter))
-    .orderBy(desc(queues.createdAt));
+    return await getDb()
+      .select({
+        id: queues.id,
+        queueNumber: queues.queueNumber,
+        customerId: queues.customerId,
+        packageId: queues.packageId,
+        customerName: customers.name,
+        customerPhone: customers.phone,
+        packageName: washPackages.name,
+        licensePlate: customers.licensePlate,
+        scheduledAt: queues.scheduledAt,
+        status: queues.status,
+        total: sql<number>`coalesce(${transactions.total}, ${washPackages.price})`,
+        createdAt: queues.createdAt,
+      })
+      .from(queues)
+      .innerJoin(customers, eq(queues.customerId, customers.id))
+      .innerJoin(washPackages, eq(queues.packageId, washPackages.id))
+      .leftJoin(transactions, and(eq(transactions.queueId, queues.id), isNull(transactions.deletedAt)))
+      .where(and(isNull(queues.deletedAt), statusFilter, searchFilter))
+      .orderBy(desc(queues.createdAt));
+  } catch (error) {
+    console.error("Failed to list queues", error);
+    return [];
+  }
 }
 
 export async function getQueueByPlate(plate: string) {
