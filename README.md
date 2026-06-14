@@ -55,19 +55,13 @@ npm run smoke:e2e
 
 ```bash
 npm run db:push
-npm run db:seed
 ```
 
 Alternatif manual di Supabase SQL Editor:
 
 1. Jalankan `scripts/supabase-bootstrap.sql`
-2. Jika ingin langsung ada data operasional contoh, jalankan `scripts/supabase-seed-operational.sql`
-3. Login dengan akun awal:
+2. Login dengan akun admin awal:
    `admin@kilapkendaraan.my.id` / `admin123`
-   `kasir@kilapkendaraan.my.id` / `kasir123`
-   `staff@kilapkendaraan.my.id` / `staff123`
-   `petugas@kilapkendaraan.my.id` / `petugas123`
-4. Jika perlu reset ulang akun admin, jalankan `scripts/supabase-reset-admin.sql`
 
 Kalau ingin pakai password lain, generate hash bcrypt with:
 
@@ -86,17 +80,13 @@ Schema utama ada di `drizzle/schema.ts`.
 ```bash
 npm run db:generate
 npm run db:push
-npm run db:seed
 ```
 
-## Akun Seed Awal
+## Akun Admin Awal
 
 - Admin: `admin@kilapkendaraan.my.id` / `admin123`
-- Kasir: `kasir@kilapkendaraan.my.id` / `kasir123`
-- Staff: `staff@kilapkendaraan.my.id` / `staff123`
-- Petugas: `petugas@kilapkendaraan.my.id` / `petugas123`
 
-Data akun di atas berasal dari proses seed database. Aplikasi tidak lagi fallback ke data in-memory pada mode normal.
+Hanya akun admin yang disediakan dari bootstrap awal. Akun operasional lain dibuat dari dashboard setelah database kosong diaktifkan.
 
 ## Struktur Database
 
@@ -119,7 +109,7 @@ Semua tabel memiliki `id`, `created_at`, `updated_at`, dan `deleted_at` untuk so
 - `lib`: auth, security, constants, utils, Supabase clients
 - `services`: data access layer Drizzle + orchestration logic
 - `schemas`: validasi Zod
-- `drizzle`: schema, config, migration SQL, seeder
+- `drizzle`: schema, config, migration SQL
 - `actions`, `api`, `middleware`: folder pendukung sesuai requirement
 - `proxy.ts`: pengganti modern `middleware.ts` di Next.js 16 untuk auth, RBAC, CSRF cookie, dan security headers
 
@@ -161,6 +151,6 @@ Build command: `npm run build`
 
 ## Catatan Deploy
 
-Project ini sekarang diposisikan untuk mode online/persisten. Isi seluruh env, jalankan `npm run db:push`, lanjut `npm run db:seed`, lalu build dan start seperti environment deploy. `npm run env:check` memvalidasi format env, koneksi Postgres, dan keberadaan tabel inti.
+Project ini sekarang diposisikan untuk mode online/persisten. Isi seluruh env, jalankan `npm run db:push`, lalu build dan start seperti environment deploy. `npm run env:check` memvalidasi format env, koneksi Postgres, dan keberadaan tabel inti.
 
-`ENABLE_DEMO_MODE` hanya disediakan untuk pengujian internal lokal dan test suite, bukan untuk deployment produksi.
+Mode demo dan seed data operasional sudah dihapus dari runtime aplikasi.

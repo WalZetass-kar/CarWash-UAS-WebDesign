@@ -15,20 +15,18 @@ export function hasDatabaseConfig() {
   return Boolean(getConfiguredDatabaseUrl());
 }
 
-export function isDemoModeEnabled() {
-  return process.env.ENABLE_DEMO_MODE === "true";
+export function isTestEnvironment() {
+  return process.env.NODE_ENV === "test";
 }
 
-export function shouldUseDemoData() {
-  return isDemoModeEnabled();
+export function shouldUseTestFixtures() {
+  return isTestEnvironment();
 }
 
 export function getDb() {
   const connectionString = getConfiguredDatabaseUrl();
   if (!connectionString) {
-    throw new Error(
-      `${getDatabaseEnvHint()} wajib diatur. ENABLE_DEMO_MODE hanya boleh dipakai untuk pengujian internal lokal.`,
-    );
+    throw new Error(`${getDatabaseEnvHint()} wajib diatur.`);
   }
 
   if (!globalThis.kilapkendaraanSql || globalThis.kilapkendaraanSqlConnectionString !== connectionString) {

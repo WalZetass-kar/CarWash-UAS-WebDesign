@@ -188,28 +188,6 @@ create index if not exists activity_logs_user_idx on activity_logs(user_id);
 create index if not exists activity_logs_entity_idx on activity_logs(entity, entity_id);
 create index if not exists activity_logs_created_at_idx on activity_logs(created_at);
 
-insert into app_settings (
-  id,
-  business_name,
-  business_phone,
-  business_address,
-  queue_slot_capacity,
-  report_default_range_days,
-  auto_print_invoice,
-  invoice_footer
-)
-values (
-  'default',
-  'Kilap Kendaraan Car Wash',
-  '0812-3456-7890',
-  'Jl. Cuci Kilat No. 88, Jakarta',
-  4,
-  30,
-  false,
-  'Terima kasih telah mempercayakan kendaraan Anda kepada Kilap Kendaraan.'
-)
-on conflict (id) do nothing;
-
 insert into users (
   id,
   name,

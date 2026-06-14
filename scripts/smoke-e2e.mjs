@@ -1,10 +1,70 @@
 import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
+import { loadEnvConfig } from "@next/env";
+import postgres from "postgres";
+
+loadEnvConfig(process.cwd());
 
 if (!existsSync(".next/BUILD_ID")) {
   console.error("Production build belum ada. Jalankan npm run build sebelum npm run smoke:e2e.");
   process.exit(1);
 }
+
+const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+if (!databaseUrl) {
+  console.error("DATABASE_URL / POSTGRES_URL_NON_POOLING / POSTGRES_URL belum diatur.");
+  process.exit(1);
+}
+
+const sql = postgres(databaseUrl, {
+  max: 1,
+  prepare: false,
+  connect_timeout: 10,
+  idle_timeout: 5,
+});
+
+const smokePackage = {
+  id: crypto.randomUUID(),
+  name: `Smoke Package ${Date.now()}`,
+  description: "Paket sementara untuk smoke test",
+  price: 35000,
+  estimatedMinutes: 25,
+  isActive: true,
+};
+const smokeBooking = {
+  name: `Smoke Test ${Date.now()}`,
+  phone: `0812${String(Date.now()).slice(-8)}`,
+  licensePlate: `B ${String(Date.now()).slice(-4)} E2E`,
+  vehicleType: "mobil",
+  notes: "smoke e2e",
+};
+
+await sql`
+  insert into wash_packages (
+    id,
+    name,
+    description,
+    price,
+    estimated_minutes,
+    is_active
+  )
+  values (
+    ${smokePackage.id},
+    ${smokePackage.name},
+    ${smokePackage.description},
+    ${smokePackage.price},
+    ${smokePackage.estimatedMinutes},
+    ${smokePackage.isActive}
+  )
+  on conflict (id) do update set
+    name = excluded.name,
+    description = excluded.description,
+    price = excluded.price,
+    estimated_minutes = excluded.estimated_minutes,
+    is_active = excluded.is_active,
+    updated_at = now(),
+    deleted_at = null
+`;
 
 const port = 3200 + Math.floor(Math.random() * 400);
 const baseUrl = `http://127.0.0.1:${port}`;
@@ -12,16 +72,6 @@ const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const server = spawn(npmCommand, ["run", "start", "--", "-p", String(port)], {
   env: {
     ...process.env,
-    ENABLE_DEMO_MODE: "true",
-    DATABASE_URL: "",
-    POSTGRES_URL: "",
-    POSTGRES_URL_NON_POOLING: "",
-    NEXT_PUBLIC_SUPABASE_URL: "",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "",
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "",
-    SUPABASE_ANON_KEY: "",
-    SUPABASE_SERVICE_ROLE_KEY: "",
-    SUPABASE_SECRET_KEY: "",
     NEXT_PUBLIC_APP_URL: baseUrl,
   },
   stdio: ["ignore", "pipe", "pipe"],
@@ -37,6 +87,7 @@ server.stderr.on("data", (chunk) => {
 });
 
 const cookies = new Map();
+let queueNumberForCleanup = null;
 
 function rememberCookies(response) {
   const setCookie = response.headers.get("set-cookie");
@@ -51,6 +102,43 @@ function rememberCookies(response) {
 
 function cookieHeader() {
   return Array.from(cookies.entries()).map(([name, value]) => `${name}=${value}`).join("; ");
+}
+
+async function cleanupSmokeData(queueNumber) {
+  try {
+    if (queueNumber) {
+      const rows = await sql`
+        select q.id as queue_id, q.customer_id, t.id as transaction_id, p.id as payment_id
+        from queues q
+        left join transactions t on t.queue_id = q.id
+        left join payments p on p.transaction_id = t.id
+        where q.queue_number = ${queueNumber}
+        order by t.created_at desc
+        limit 1
+      `;
+
+      const row = rows[0];
+      if (row?.payment_id) {
+        await sql`delete from payments where id = ${row.payment_id}`;
+      } else if (row?.transaction_id) {
+        await sql`delete from payments where transaction_id = ${row.transaction_id}`;
+      }
+
+      if (row?.transaction_id) {
+        await sql`delete from transactions where id = ${row.transaction_id}`;
+      }
+
+      if (row?.queue_id) {
+        await sql`delete from queues where id = ${row.queue_id}`;
+      }
+
+      if (row?.customer_id) {
+        await sql`delete from customers where id = ${row.customer_id}`;
+      }
+    }
+  } finally {
+    await sql`delete from wash_packages where id = ${smokePackage.id}`;
+  }
 }
 
 async function request(path, init = {}) {
@@ -104,18 +192,21 @@ async function main() {
       "x-csrf-token": csrfToken,
     },
     body: JSON.stringify({
-      name: "Smoke Test",
-      phone: "081234567899",
-      licensePlate: "B 1234 E2E",
-      vehicleType: "mobil",
-      packageId: "20000000-0000-4000-8000-000000000001",
+      name: smokeBooking.name,
+      phone: smokeBooking.phone,
+      licensePlate: smokeBooking.licensePlate,
+      vehicleType: smokeBooking.vehicleType,
+      packageId: smokePackage.id,
       scheduledAt,
-      notes: "smoke e2e",
+      notes: smokeBooking.notes,
     }),
   });
   if (booking.status !== 201) {
     throw new Error(`Booking expected 201, got ${booking.status}: ${await booking.text()}`);
   }
+
+  const bookingBody = await booking.json();
+  queueNumberForCleanup = bookingBody?.booking?.queueNumber ?? null;
 
   const login = await request("/api/auth/login", {
     method: "POST",
@@ -159,6 +250,8 @@ try {
     }
   }
   await new Promise((resolve) => setTimeout(resolve, 500));
+  await cleanupSmokeData(queueNumberForCleanup).catch((error) => {
+    console.error("Smoke cleanup failed", error);
+  });
+  await sql.end({ timeout: 1 }).catch(() => undefined);
 }
-
-

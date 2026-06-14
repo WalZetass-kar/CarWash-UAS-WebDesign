@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasDatabaseConfig, isDemoModeEnabled } from "@/drizzle/db";
+import { hasDatabaseConfig } from "@/drizzle/db";
 import { SESSION_COOKIE, type Role } from "@/lib/constants";
 import { verifySession } from "@/lib/auth/jwt";
 import { getDatabaseEnvHint } from "@/lib/runtime/database-config";
@@ -47,7 +47,7 @@ export function rejectInvalidCsrf(request: NextRequest) {
 }
 
 export function rejectUnavailableBackend() {
-  if (hasDatabaseConfig() || isDemoModeEnabled()) {
+  if (hasDatabaseConfig()) {
     return null;
   }
 

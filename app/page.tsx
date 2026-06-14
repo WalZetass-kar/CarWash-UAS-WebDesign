@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { hasDatabaseConfig, isDemoModeEnabled } from "@/drizzle/db";
+import { hasDatabaseConfig } from "@/drizzle/db";
 import { LandingPage } from "@/components/landing/landing-page";
 import { APP_NAME } from "@/lib/constants";
 import { defaultAppSettings, type AppSettings } from "@/lib/data";
@@ -27,7 +27,7 @@ export default async function Home() {
 }
 
 async function loadLandingSettings() {
-  if (!hasDatabaseConfig() && !isDemoModeEnabled()) return getEmptyLandingSettings();
+  if (!hasDatabaseConfig()) return getEmptyLandingSettings();
 
   try {
     return await withDatabaseRetry(() => getAppSettings(), 2);
@@ -38,7 +38,7 @@ async function loadLandingSettings() {
 }
 
 async function loadLandingPackages() {
-  if (!hasDatabaseConfig() && !isDemoModeEnabled()) return [];
+  if (!hasDatabaseConfig()) return [];
 
   try {
     return await withDatabaseRetry(() => listPackages(), 2);

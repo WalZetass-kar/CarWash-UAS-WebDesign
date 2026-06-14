@@ -3,8 +3,7 @@ import { NextRequest } from "next/server";
 import { jsonResponse, rejectInvalidCsrf, requireApiRole } from "@/app/api/_utils";
 import { validateUploadFile } from "@/lib/security/upload-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
-import { getDemoState } from "@/lib/demo-store";
+import { getDb } from "@/drizzle/db";
 import { gallery } from "@/drizzle/schema";
 
 export async function POST(request: NextRequest) {
@@ -27,14 +26,6 @@ export async function POST(request: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-
-  if (shouldUseDemoData()) {
-    const dataUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
-    const state = getDemoState();
-    state.galleryUrls = [dataUrl, ...state.galleryUrls].slice(0, 12);
-    revalidateTag("gallery-images-6", "max");
-    return jsonResponse({ url: dataUrl, path: "demo", persisted: true });
-  }
 
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "webp";
   const path = `gallery/${Date.now()}-${crypto.randomUUID()}.${extension}`;

@@ -1,11 +1,11 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { gallery } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export async function listGalleryImages(limit = 6) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     if (state.galleryUrls.length > 0) {
       return state.galleryUrls.slice(0, limit);

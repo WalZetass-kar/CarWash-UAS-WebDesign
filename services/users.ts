@@ -1,13 +1,13 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { activityLogs, transactions, users } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState, toPublicUser } from "@/lib/demo-store";
 import type { User } from "@/lib/data";
 import type { UserFormInput } from "@/schemas/auth";
 import { hashPassword } from "@/lib/auth/password";
 
 export async function listUsers(query = "", role?: string | null) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const memoryUsers = getDemoState().users.map(toPublicUser);
     const normalized = query.toLowerCase();
     return memoryUsers.filter((item) => {
@@ -40,7 +40,7 @@ export async function listUsers(query = "", role?: string | null) {
 export async function createUser(input: UserFormInput) {
   if (!input.password) throw new Error("Password wajib diisi.");
 
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const user: User = {
       id: crypto.randomUUID(),
@@ -81,7 +81,7 @@ export async function createUser(input: UserFormInput) {
 }
 
 export async function updateUser(id: string, input: UserFormInput) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.users = state.users.map((item) =>
       item.id === id
@@ -122,7 +122,7 @@ export async function updateUser(id: string, input: UserFormInput) {
 }
 
 export async function deactivateUser(id: string) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.users = state.users.map((item) =>
       item.id === id ? { ...item, isActive: false } : item,
@@ -138,7 +138,7 @@ export async function deactivateUser(id: string) {
 }
 
 export async function deleteUser(id: string) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.activityLogs = state.activityLogs.map((item) =>
       item.userId === id ? { ...item, userId: null } : item,

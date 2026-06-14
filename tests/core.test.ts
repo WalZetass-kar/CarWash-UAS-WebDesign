@@ -20,7 +20,7 @@ beforeEach(async () => {
   delete process.env.DATABASE_URL;
   delete process.env.POSTGRES_URL;
   delete process.env.POSTGRES_URL_NON_POOLING;
-  process.env.ENABLE_DEMO_MODE = "true";
+  setNodeEnv("test");
   const { resetDemoState } = await import("../lib/demo-store");
   resetDemoState();
 });
@@ -47,6 +47,11 @@ function withEnv<T>(updates: Partial<NodeJS.ProcessEnv>, callback: () => T) {
   } finally {
     process.env = previous;
   }
+}
+
+function setNodeEnv(value?: string) {
+  const env = process.env as NodeJS.ProcessEnv & { NODE_ENV: typeof process.env.NODE_ENV };
+  env.NODE_ENV = value as typeof process.env.NODE_ENV;
 }
 
 async function createLinkedDemoFixture(prefix: string) {
@@ -130,13 +135,14 @@ test("proxy membiarkan request API diproses route handler tanpa redirect HTML", 
 });
 
 test("service data menolak jalan tanpa database jika mode demo tidak diaktifkan", async () => {
-  delete process.env.ENABLE_DEMO_MODE;
   const { listCustomers } = await import("../services/customers");
-
-  await assert.rejects(
-    () => listCustomers(),
-    /DATABASE_URL, POSTGRES_URL, POSTGRES_URL_NON_POOLING wajib diatur/,
-  );
+  const previousNodeEnv = process.env.NODE_ENV;
+  setNodeEnv("development");
+  try {
+    await assert.rejects(() => listCustomers(), /DATABASE_URL, POSTGRES_URL, POSTGRES_URL_NON_POOLING wajib diatur/);
+  } finally {
+    setNodeEnv(previousNodeEnv);
+  }
 });
 
 test("konfigurasi database menerima fallback POSTGRES_URL_NON_POOLING", async () => {

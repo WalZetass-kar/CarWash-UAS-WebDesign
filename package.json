@@ -15,8 +15,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx drizzle/seed.ts"
+    "db:migrate": "drizzle-kit migrate"
   },
   "overrides": {
     "postcss": "8.5.14",

@@ -1,11 +1,11 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { customers, queues, transactions, washPackages } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type PaymentStatus, type TransactionItem } from "@/lib/data";
 
 export async function listTransactions(query = "", status?: PaymentStatus | null) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const { transactions: memoryTransactions } = getDemoState();
     const normalized = query.toLowerCase();
     return memoryTransactions.filter((item) => {
@@ -58,7 +58,7 @@ export async function listTransactions(query = "", status?: PaymentStatus | null
 }
 
 export async function getTransactionById(id: string) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     return getDemoState().transactions.find((item) => item.id === id) ?? null;
   }
 
@@ -94,7 +94,7 @@ export function createMemoryTransaction(transaction: TransactionItem) {
 }
 
 export async function updateTransactionPaymentStatus(id: string, status: PaymentStatus) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.transactions = state.transactions.map((item) =>
       item.id === id ? { ...item, status } : item,

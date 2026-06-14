@@ -12,18 +12,13 @@ import { Label } from "@/components/ui/label";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useCsrfFetch } from "@/hooks/use-csrf-fetch";
 import { readJsonResponse } from "@/lib/http/read-json-response";
-import { demoUserPasswords, demoUsers, roleLabels } from "@/lib/constants";
-
-const showSeedCredentials = process.env.NODE_ENV !== "production";
-const seedAdminEmail = "admin@kilapkendaraan.my.id";
-const seedAdminPassword = "admin123";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const csrfFetch = useCsrfFetch();
-  const [email, setEmail] = useState(showSeedCredentials ? seedAdminEmail : "");
-  const [password, setPassword] = useState(showSeedCredentials ? seedAdminPassword : "");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -61,9 +56,7 @@ export function LoginForm() {
         </Link>
         <h1 className="text-2xl font-semibold">Masuk Dashboard</h1>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          {showSeedCredentials
-            ? "Gunakan akun seed awal admin atau petugas untuk setup lokal."
-            : "Masukkan email dan password akun operasional."}
+          Masukkan email dan password akun operasional yang sudah dibuat di Supabase.
         </p>
       </div>
 
@@ -113,16 +106,6 @@ export function LoginForm() {
         </Button>
       </form>
 
-      {showSeedCredentials ? (
-        <div className="mt-6 grid gap-2 rounded-lg bg-slate-50 p-4 text-xs text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-          {demoUsers.map((user) => (
-            <div key={user.email}>
-              <span className="font-semibold">{roleLabels[user.role]}:</span>{" "}
-              <span className="break-all">{user.email} / {demoUserPasswords[user.email]}</span>
-            </div>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }

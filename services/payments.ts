@@ -1,6 +1,6 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { customers, payments, queues, transactions } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type Payment, type PaymentStatus } from "@/lib/data";
 import type { PaymentInput } from "@/schemas/payment";
@@ -38,7 +38,7 @@ function validatePendingTransaction<T extends PayableTransaction>(
 }
 
 export async function listPayments(query = "", status?: string | null) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     if (status === "belum_bayar") return [];
 
     const { payments: memoryPayments } = getDemoState();
@@ -86,7 +86,7 @@ export async function listPayments(query = "", status?: string | null) {
 export async function createPayment(input: PaymentInput) {
   validatePaymentStatus(input.status);
 
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const transaction = await getTransactionById(input.transactionId);
     validatePendingTransaction(transaction, input.amount);
@@ -169,7 +169,7 @@ export async function createPayment(input: PaymentInput) {
 export async function updatePayment(id: string, input: PaymentInput) {
   validatePaymentStatus(input.status);
 
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const existing = state.payments.find((item) => item.id === id);
     if (!existing) throw new Error("Pembayaran tidak ditemukan.");

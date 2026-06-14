@@ -1,12 +1,12 @@
 import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { customers, payments, queues, transactions } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type Customer } from "@/lib/data";
 import type { CustomerInput } from "@/schemas/customer";
 
 export async function listCustomers(query = "") {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const { customers: memoryCustomers, queues: memoryQueues } = getDemoState();
     const normalized = query.toLowerCase();
     return memoryCustomers
@@ -64,7 +64,7 @@ export async function listCustomers(query = "") {
 }
 
 export async function createCustomer(input: CustomerInput) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const customer: Customer = {
       id: crypto.randomUUID(),
@@ -81,7 +81,7 @@ export async function createCustomer(input: CustomerInput) {
 }
 
 export async function updateCustomer(id: string, input: CustomerInput) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.customers = state.customers.map((customer) =>
       customer.id === id ? { ...customer, ...input, notes: input.notes } : customer,
@@ -98,7 +98,7 @@ export async function updateCustomer(id: string, input: CustomerInput) {
 }
 
 export async function deleteCustomer(id: string) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const transactionIds = new Set(
       state.transactions.filter((transaction) => transaction.customerId === id).map((transaction) => transaction.id),

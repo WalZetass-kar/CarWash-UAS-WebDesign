@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
@@ -39,6 +39,7 @@ export function PaymentManager({
   const csrfFetch = useCsrfFetch();
   const [data, setData] = useState<Payment[]>(initialData);
   const [pendingTransactions, setPendingTransactions] = useState<TransactionItem[]>(transactions);
+  const [allTransactionData, setAllTransactionData] = useState<TransactionItem[]>(allTransactions);
   const [selected, setSelected] = useState<Payment | null>(
     initialData.find((item) => item.id === highlightedId) ?? initialData[0] ?? null,
   );
@@ -52,6 +53,68 @@ export function PaymentManager({
     amount: selectedInitialTransaction?.total ?? 0,
     status: "lunas",
   });
+
+  useEffect(() => {
+    let active = true;
+
+    const refresh = async () => {
+      try {
+        const [paymentsResponse, pendingTransactionsResponse, allTransactionsResponse] = await Promise.all([
+          fetch("/api/payments", { cache: "no-store" }),
+          fetch("/api/transactions?status=belum_bayar", { cache: "no-store" }),
+          fetch("/api/transactions", { cache: "no-store" }),
+        ]);
+
+        if (!paymentsResponse.ok || !pendingTransactionsResponse.ok || !allTransactionsResponse.ok) {
+          return;
+        }
+
+        const [nextData, nextPendingTransactions, nextAllTransactions] = (await Promise.all([
+          paymentsResponse.json(),
+          pendingTransactionsResponse.json(),
+          allTransactionsResponse.json(),
+        ])) as [Payment[], TransactionItem[], TransactionItem[]];
+
+        if (!active) return;
+
+        setData(nextData);
+        setAllTransactionData(nextAllTransactions);
+        setSelected((current) => {
+          const currentId = current?.id;
+          const nextSelected =
+            (currentId ? nextData.find((item) => item.id === currentId) : nextData[0]) ?? nextData[0] ?? null;
+          return nextSelected;
+        });
+        setPendingTransactions(nextPendingTransactions);
+        setForm((current) => {
+          const nextTransaction =
+            nextPendingTransactions.find((item) => item.id === current.transactionId) ??
+            nextPendingTransactions[0];
+          return {
+            ...current,
+            transactionId: nextTransaction?.id ?? "",
+            amount: nextTransaction?.total ?? 0,
+          };
+        });
+      } catch (error) {
+        if (!active) return;
+        console.error("Failed to refresh payment data", error);
+      }
+    };
+
+    const handleUpdate = () => {
+      void refresh();
+    };
+
+    window.addEventListener("kilapkendaraan:queue-updated", handleUpdate);
+    window.addEventListener("kilapkendaraan:payment-updated", handleUpdate);
+
+    return () => {
+      active = false;
+      window.removeEventListener("kilapkendaraan:queue-updated", handleUpdate);
+      window.removeEventListener("kilapkendaraan:payment-updated", handleUpdate);
+    };
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -117,7 +180,7 @@ export function PaymentManager({
     const doc = new jsPDF({ unit: "mm", format: [width, 160] });
     const margin = 5;
     const contentWidth = width - margin * 2;
-    const txn = allTransactions.find((t) => t.id === payment.transactionId);
+    const txn = allTransactionData.find((t) => t.id === payment.transactionId);
     let y = margin;
 
     doc.setFont("courier", "bold");

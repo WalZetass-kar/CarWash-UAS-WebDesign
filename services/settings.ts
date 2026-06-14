@@ -8,7 +8,7 @@ import {
   queues,
   transactions,
 } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { defaultAppSettings } from "@/lib/data";
 import type { AppSettingsInput } from "@/schemas/settings";
@@ -25,7 +25,7 @@ const blankAppSettings = {
 };
 
 export async function getAppSettings() {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     return getDemoState().settings;
   }
 
@@ -38,7 +38,7 @@ export async function getAppSettings() {
 }
 
 export async function updateAppSettings(input: AppSettingsInput) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.settings = {
       ...state.settings,
@@ -67,7 +67,7 @@ export async function updateAppSettings(input: AppSettingsInput) {
 }
 
 export async function resetOperationalData() {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const counts = {
       payments: state.payments.length,

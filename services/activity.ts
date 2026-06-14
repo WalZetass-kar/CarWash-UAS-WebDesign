@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { activityLogs, users } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type ActivityFeedItem } from "@/lib/data";
 
@@ -14,7 +14,7 @@ type ActivityInput = {
 };
 
 export async function logActivity(input: ActivityInput) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.activityLogs = [
       {
@@ -46,7 +46,7 @@ export async function logActivity(input: ActivityInput) {
 }
 
 export async function listRecentActivity(limit = 5): Promise<ActivityFeedItem[]> {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     return state.activityLogs.slice(0, limit).map((item) => ({
       id: item.id,

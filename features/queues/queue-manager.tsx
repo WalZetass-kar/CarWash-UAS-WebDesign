@@ -51,7 +51,7 @@ export function QueueManager({
   useEffect(() => {
     const refresh = async () => {
       try {
-        const response = await fetch("/api/queues");
+        const response = await fetch("/api/queues", { cache: "no-store" });
         if (response.ok) setQueues(await response.json());
       } catch {
         console.error("Failed to refresh queue list");

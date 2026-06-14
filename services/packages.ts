@@ -1,12 +1,12 @@
 import { and, desc, eq, ilike, inArray, isNull } from "drizzle-orm";
 import { payments, queues, transactions, washPackages } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type WashPackage } from "@/lib/data";
 import type { PackageInput } from "@/schemas/package";
 
 export async function listPackages(query = "") {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const { packages: memoryPackages } = getDemoState();
     const normalized = query.toLowerCase();
     return memoryPackages.filter((item) =>
@@ -22,7 +22,7 @@ export async function listPackages(query = "") {
 }
 
 export async function createPackage(input: PackageInput) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const washPackage: WashPackage = {
       id: crypto.randomUUID(),
@@ -38,7 +38,7 @@ export async function createPackage(input: PackageInput) {
 }
 
 export async function updatePackage(id: string, input: PackageInput) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.packages = state.packages.map((item) =>
       item.id === id ? { ...item, ...input } : item,
@@ -55,7 +55,7 @@ export async function updatePackage(id: string, input: PackageInput) {
 }
 
 export async function deletePackage(id: string) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const transactionIds = new Set(
       state.transactions.filter((transaction) => transaction.packageId === id).map((transaction) => transaction.id),

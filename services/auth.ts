@@ -1,5 +1,5 @@
 import { eq, isNull } from "drizzle-orm";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState, toPublicUser } from "@/lib/demo-store";
 import { users } from "@/drizzle/schema";
 import { verifyPassword } from "@/lib/auth/password";
@@ -7,7 +7,7 @@ import { verifyPassword } from "@/lib/auth/password";
 export async function authenticateUser(email: string, password: string) {
   const normalizedEmail = email.toLowerCase();
 
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const user = getDemoState().users.find((item) => item.email === normalizedEmail);
     if (!user || user.password !== password || !user.isActive) return null;
     return toPublicUser(user);

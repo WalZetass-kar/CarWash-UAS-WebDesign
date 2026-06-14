@@ -13,7 +13,6 @@ import {
   Menu,
   ShieldCheck,
   Sparkles,
-  Star,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -109,6 +108,33 @@ const itemVariants: Variants = {
   },
 };
 
+const packageAccentTones = [
+  "from-cyan-500 to-sky-500",
+  "from-emerald-500 to-teal-500",
+  "from-amber-500 to-orange-500",
+] as const;
+
+function getPackageAccent(index: number) {
+  return packageAccentTones[index % packageAccentTones.length];
+}
+
+function getGalleryTileClass(index: number) {
+  switch (index % 6) {
+    case 0:
+      return "sm:col-span-2 lg:col-span-6 lg:row-span-2 aspect-[4/5] lg:aspect-auto";
+    case 1:
+      return "sm:col-span-1 lg:col-span-3 aspect-[4/3]";
+    case 2:
+      return "sm:col-span-1 lg:col-span-3 aspect-[4/3]";
+    case 3:
+      return "sm:col-span-1 lg:col-span-4 aspect-[4/3]";
+    case 4:
+      return "sm:col-span-1 lg:col-span-4 aspect-[4/3]";
+    default:
+      return "sm:col-span-1 lg:col-span-4 aspect-[4/3]";
+  }
+}
+
 function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -189,6 +215,47 @@ export function LandingPage({
   );
   const packageCards = toLandingPackageCards(packages);
   const galleryImages = gallery;
+  const activePackageCount = packageCards.length;
+  const startingPackagePrice = packageCards.length
+    ? Math.min(...packageCards.map((item) => item.price))
+    : null;
+  const heroQueuePreview = [
+    {
+      number: "CR-014",
+      customer: "Rafli",
+      status: "Sedang dicuci",
+      accent: "from-cyan-400 to-sky-400",
+    },
+    {
+      number: "CR-015",
+      customer: "Sinta",
+      status: "Menunggu",
+      accent: "from-amber-400 to-orange-400",
+    },
+    {
+      number: "CR-016",
+      customer: "Dimas",
+      status: "Selesai",
+      accent: "from-emerald-400 to-teal-400",
+    },
+  ];
+  const heroFlow = [
+    {
+      label: "Booking",
+      detail: "Publik",
+      icon: Car,
+    },
+    {
+      label: "Queue",
+      detail: "Realtime",
+      icon: Clock,
+    },
+    {
+      label: "Invoice",
+      detail: "Ready",
+      icon: BadgeCheck,
+    },
+  ];
 
   return (
     <div className="min-h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
@@ -286,24 +353,20 @@ export function LandingPage({
       </motion.header>
 
       <main>
-        <section className="relative min-h-[92vh] pt-16 overflow-hidden">
+        <section className="relative min-h-[92vh] overflow-hidden pt-16">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.2),_transparent_32%),linear-gradient(135deg,_#020617_0%,_#0f172a_42%,_#082f49_100%)]" />
+          <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:72px_72px]" />
           <motion.div
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0"
-          >
-            <Image
-              src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=1800&q=85"
-              alt="Mobil premium setelah dicuci di Kilap Kendaraan"
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-            />
-          </motion.div>
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/50 to-cyan-950/20" />
-          <div className="relative mx-auto flex min-h-[92vh] max-w-7xl items-center px-4 pb-20 pt-12 sm:px-6 lg:px-8">
+            className="absolute -left-20 top-20 size-72 rounded-full bg-cyan-400/20 blur-3xl"
+            animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute right-0 top-32 size-80 rounded-full bg-blue-500/20 blur-3xl"
+            animate={{ x: [0, -16, 0], y: [0, 18, 0] }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <div className="relative mx-auto grid min-h-[92vh] max-w-7xl gap-12 px-4 pb-20 pt-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
             <motion.div
               className="max-w-3xl text-white"
               initial={false}
@@ -313,14 +376,14 @@ export function LandingPage({
               <motion.div
                 initial={false}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+                transition={{ duration: 0.6, delay: 0.35 }}
               >
-                <Badge className="mb-5 bg-white/14 text-cyan-50 ring-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                <Badge className="mb-5 border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-cyan-50 ring-1 ring-cyan-300/20 transition-all duration-300 hover:bg-cyan-400/20 hover:scale-[1.02]">
                   <Sparkles className="mr-1 size-3 animate-pulse" />
-                  Premium wash, realtime queue, fast payment
+                  Live operations panel
                 </Badge>
               </motion.div>
-              <motion.h1 
+              <motion.h1
                 className="max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl"
                 initial={false}
                 animate={{ opacity: 1, y: 0 }}
@@ -328,46 +391,54 @@ export function LandingPage({
               >
                 {brandName}
               </motion.h1>
-              <motion.p 
+              <motion.p
                 className="mt-5 max-w-2xl text-sm leading-7 text-cyan-50/90 sm:text-base sm:leading-8 lg:text-lg"
                 initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
-                Booking, antrian, pembayaran, invoice, laporan, dan dashboard operasional dalam satu aplikasi modern untuk layanan cuci kendaraan yang rapi dan profesional.
+                Booking publik, antrian realtime, pembayaran, invoice, laporan, dan pengaturan admin digabung di satu
+                sistem. Halaman ini sekarang menampilkan panel produk nyata, bukan stok visual generik.
               </motion.p>
-              <motion.div 
+              <motion.div
                 className="mt-8 flex flex-col gap-3 sm:flex-row"
                 initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.7 }}
               >
                 <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}>
-                  <Button asChild size="lg" className="group w-full sm:w-auto shadow-xl shadow-cyan-600/30 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-600/40">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="group w-full bg-cyan-600 shadow-xl shadow-cyan-600/30 transition-all duration-300 hover:bg-cyan-500 hover:shadow-2xl hover:shadow-cyan-500/40 sm:w-auto"
+                  >
                     <Link href="/booking">
-                      Booking Sekarang 
+                      Booking Sekarang
                       <ArrowRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
                     </Link>
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}>
-                  <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-white/30 bg-white/10 text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/20 hover:border-white/50">
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="w-full border-white/30 bg-white/10 text-white backdrop-blur-sm transition-all duration-300 hover:border-white/50 hover:bg-white/20 sm:w-auto"
+                  >
                     <a href="#paket">Lihat Paket</a>
                   </Button>
                 </motion.div>
               </motion.div>
-              <motion.div 
-                className="mt-10 grid max-w-xl grid-cols-2 gap-3 text-xs sm:grid-cols-3 sm:text-sm"
+              <motion.div
+                className="mt-10 grid max-w-xl grid-cols-1 gap-3 text-xs sm:grid-cols-3 sm:text-sm"
                 variants={containerVariants}
                 initial={false}
                 animate="visible"
               >
-                {["Realtime Queue", "Secure Payment", "Printable Invoice"].map((item, index) => (
-                  <motion.div 
-                    key={item} 
-                    className={`rounded-lg border border-cyan-500 bg-slate-950/90 px-3 py-3 text-center font-medium text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-cyan-400 hover:bg-slate-900 hover:shadow-lg hover:shadow-cyan-500/30 cursor-default ${
-                      index === 2 ? "col-span-2 sm:col-span-1" : ""
-                    }`}
+                {["Booking publik", "Realtime queue", "Invoice cetak"].map((item) => (
+                  <motion.div
+                    key={item}
+                    className="rounded-xl border border-white/20 bg-white/10 px-3 py-3 text-center font-medium text-white/90 backdrop-blur-sm transition-all duration-300 hover:border-cyan-300/50 hover:bg-white/20 hover:shadow-lg hover:shadow-cyan-500/20"
                     variants={itemVariants}
                     whileHover={{ y: -4 }}
                   >
@@ -375,6 +446,142 @@ export function LandingPage({
                   </motion.div>
                 ))}
               </motion.div>
+            </motion.div>
+
+            <motion.div
+              className="relative"
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <motion.div
+                className="absolute inset-6 -z-10 rounded-[2rem] bg-cyan-400/20 blur-3xl"
+                animate={{ opacity: [0.4, 0.7, 0.4], scale: [0.98, 1.02, 0.98] }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <Card className="overflow-hidden border-white/10 bg-slate-950/80 text-white shadow-2xl shadow-cyan-950/30 backdrop-blur-xl">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.35em] text-cyan-200/70">Live operations</p>
+                      <h3 className="mt-1 text-lg font-semibold">Preview dashboard</h3>
+                    </div>
+                    <Badge className="border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-emerald-200">
+                      <span className="mr-2 inline-flex size-2 rounded-full bg-emerald-400" />
+                      Supabase live
+                    </Badge>
+                  </div>
+                  <div className="grid gap-4 p-5 sm:grid-cols-[1.08fr_0.92fr]">
+                    <div className="space-y-4">
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Queue board</p>
+                            <p className="mt-1 text-sm text-slate-300">Status kendaraan bergerak realtime.</p>
+                          </div>
+                          <Clock className="size-4 text-cyan-300" />
+                        </div>
+                        <div className="mt-4 space-y-3">
+                          {heroQueuePreview.map((item, index) => (
+                            <motion.div
+                              key={item.number}
+                              className="rounded-xl border border-white/10 bg-slate-900/70 p-3"
+                              initial={false}
+                              whileInView={{ opacity: 1, y: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ delay: index * 0.08, duration: 0.4 }}
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-semibold text-white">{item.number}</p>
+                                  <p className="text-xs text-slate-400">{item.customer}</p>
+                                </div>
+                                <span
+                                  className={`rounded-full bg-gradient-to-r px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-950 ${item.accent}`}
+                                >
+                                  {item.status}
+                                </span>
+                              </div>
+                              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+                                <motion.div
+                                  className={`h-full rounded-full bg-gradient-to-r ${item.accent}`}
+                                  initial={{ width: "20%" }}
+                                  whileInView={{
+                                    width: item.number === "CR-016" ? "100%" : item.number === "CR-015" ? "52%" : "78%",
+                                  }}
+                                  viewport={{ once: true }}
+                                  transition={{ duration: 0.7, ease: "easeOut" }}
+                                />
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        {heroFlow.map((item) => (
+                          <motion.div
+                            key={item.label}
+                            className="rounded-2xl border border-white/10 bg-white/5 p-3"
+                            whileHover={{ y: -4, scale: 1.02 }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            <item.icon className="size-4 text-cyan-300" />
+                            <p className="mt-3 text-sm font-semibold text-white">{item.label}</p>
+                            <p className="mt-1 text-xs text-slate-400">{item.detail}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/20 to-slate-900 p-4">
+                        <p className="text-xs uppercase tracking-[0.28em] text-cyan-200/70">Payment flow</p>
+                        <div className="mt-4 flex items-end justify-between gap-3">
+                          <div>
+                            <p className="text-sm text-slate-300">Status pembayaran</p>
+                            <p className="mt-1 text-2xl font-semibold">Lunas</p>
+                          </div>
+                          <BadgeCheck className="size-8 text-cyan-300" />
+                        </div>
+                        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                          <motion.div
+                            className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-emerald-400"
+                            initial={{ width: "40%" }}
+                            whileInView={{ width: "78%" }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                          />
+                        </div>
+                        <p className="mt-3 text-xs leading-5 text-slate-400">
+                          Invoice printable, status pembayaran, dan export laporan mengikuti data Supabase langsung.
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Operational steps</p>
+                        <div className="mt-3 space-y-3">
+                          {[
+                            { title: "Booking publik", desc: "Pengunjung isi form tanpa login.", icon: Car },
+                            { title: "Antrian realtime", desc: "Petugas memproses dari dashboard.", icon: Clock },
+                            { title: "Invoice siap", desc: "Transaksi dan laporan langsung terbentuk.", icon: BadgeCheck },
+                          ].map((item) => (
+                            <div key={item.title} className="flex items-start gap-3 rounded-xl border border-white/10 bg-slate-900/60 p-3">
+                              <div className="grid size-8 flex-none place-items-center rounded-lg bg-cyan-400/10 text-cyan-300">
+                                <item.icon className="size-4" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-white">{item.title}</p>
+                                <p className="mt-1 text-xs leading-5 text-slate-400">{item.desc}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           </div>
         </section>
@@ -431,77 +638,129 @@ export function LandingPage({
           </div>
         </MotionSection>
 
-        <MotionSection id="paket" className="bg-white py-16 sm:py-20 dark:bg-slate-900/40">
+        <MotionSection id="paket" className="bg-gradient-to-b from-white via-slate-50 to-cyan-50/40 py-16 sm:py-20 dark:from-slate-900/40 dark:via-slate-900/60 dark:to-slate-950">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <motion.div 
-              className="max-w-2xl"
-              initial={false}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-            >
-              <Badge className="transition-all duration-300 hover:scale-105">Paket Pencucian</Badge>
-              <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">Pilihan paket untuk kebutuhan harian sampai detailing.</h2>
-            </motion.div>
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <motion.div
+                className="max-w-2xl"
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <Badge className="transition-all duration-300 hover:scale-105">Paket Pencucian</Badge>
+                <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
+                  Pilihan paket untuk kebutuhan harian sampai detailing.
+                </h2>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+                  Setiap paket diambil dari data Supabase, jadi harga, estimasi, dan detail layanan tetap sinkron dengan
+                  dashboard operasional.
+                </p>
+              </motion.div>
+              <motion.div
+                className="grid gap-3 sm:grid-cols-2 lg:min-w-[340px]"
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.15 }}
+              >
+                <div className="rounded-2xl border border-cyan-200 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-cyan-400/20 dark:bg-slate-900/80">
+                  <p className="text-xs uppercase tracking-[0.28em] text-cyan-600 dark:text-cyan-300">Paket aktif</p>
+                  <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">{activePackageCount}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+                  <p className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Mulai dari</p>
+                  <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
+                    {startingPackagePrice !== null ? formatCurrency(startingPackagePrice) : "-"}
+                  </p>
+                </div>
+              </motion.div>
+            </div>
             {packageCards.length ? (
-              <motion.div 
+              <motion.div
                 className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
                 variants={containerVariants}
                 initial={false}
                 whileInView="visible"
                 viewport={{ once: true }}
               >
-                {packageCards.map((item) => (
-                  <motion.div
-                    key={item.name}
-                    variants={itemVariants}
-                    whileHover={{ y: -12, scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Card className={`group h-full cursor-default transition-all duration-300 ${
-                      item.featured 
-                        ? "border-cyan-300 shadow-xl shadow-cyan-600/20 hover:shadow-2xl hover:shadow-cyan-600/30 dark:border-cyan-700" 
-                        : "border-slate-200 hover:border-cyan-200 hover:shadow-xl hover:shadow-cyan-600/10 dark:border-slate-800 dark:hover:border-cyan-800"
-                    }`}>
-                      <CardContent className="pt-6">
-                        {item.featured ? (
-                          <motion.div
-                            initial={false}
-                            whileInView={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                          >
-                            <Badge className="mb-4 animate-pulse bg-gradient-to-r from-cyan-600 to-blue-600">Paling Populer</Badge>
-                          </motion.div>
-                        ) : null}
-                        <h3 className="text-lg font-semibold transition-colors duration-300 group-hover:text-cyan-700 sm:text-xl dark:group-hover:text-cyan-300">{item.name}</h3>
-                        <div className="mt-3 flex items-end gap-2">
-                          <span className="text-2xl font-semibold transition-colors duration-300 group-hover:text-cyan-600 sm:text-3xl">{formatCurrency(item.price)}</span>
-                          <span className="pb-1 text-xs text-slate-500 sm:text-sm">{item.time}</span>
-                        </div>
-                        <ul className="mt-6 space-y-3">
-                          {item.items.map((feature, idx) => (
-                            <motion.li 
-                              key={feature} 
-                              className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
+                {packageCards.map((item, index) => {
+                  const accent = getPackageAccent(index);
+                  return (
+                    <motion.div
+                      key={item.name}
+                      variants={itemVariants}
+                      whileHover={{ y: -12, scale: 1.02 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Card
+                        className={`group relative h-full overflow-hidden border-slate-200 bg-white/90 shadow-sm transition-all duration-300 hover:border-cyan-300 hover:shadow-2xl hover:shadow-cyan-600/10 dark:border-slate-800 dark:bg-slate-950/80 dark:hover:border-cyan-700 ${
+                          item.featured ? "ring-1 ring-cyan-200/70 dark:ring-cyan-400/20" : ""
+                        }`}
+                      >
+                        <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`} />
+                        <div
+                          className={`absolute right-4 top-4 size-24 rounded-full bg-gradient-to-br ${accent} opacity-10 blur-3xl`}
+                        />
+                        <CardContent className="relative pt-7">
+                          {item.featured ? (
+                            <motion.div
                               initial={false}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ delay: idx * 0.1, duration: 0.5 }}
+                              whileInView={{ scale: 1, opacity: 1 }}
+                              transition={{ duration: 0.5 }}
                             >
-                              <CheckCircle2 className="size-4 flex-shrink-0 text-emerald-500 transition-transform duration-300 group-hover:scale-110" />
-                              {feature}
-                            </motion.li>
-                          ))}
-                        </ul>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <Button asChild className="mt-6 w-full transition-all duration-300 hover:shadow-lg hover:shadow-cyan-600/30">
-                            <Link href={`/booking?package=${item.slug}`}>Pilih Paket</Link>
-                          </Button>
-                        </motion.div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                              <Badge className={`mb-4 bg-gradient-to-r ${accent} text-slate-950`}>
+                                Paling dipilih
+                              </Badge>
+                            </motion.div>
+                          ) : null}
+                          <h3 className="text-lg font-semibold transition-colors duration-300 group-hover:text-cyan-700 sm:text-xl dark:group-hover:text-cyan-300">
+                            {item.name}
+                          </h3>
+                          <div className="mt-3 flex items-end justify-between gap-3">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                                Estimasi
+                              </p>
+                              <span className="mt-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
+                                {item.time}
+                              </span>
+                            </div>
+                            <span className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-2xl font-semibold tracking-tight text-slate-950 transition-colors duration-300 group-hover:border-cyan-200 group-hover:text-cyan-700 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:group-hover:text-cyan-300">
+                              {formatCurrency(item.price)}
+                            </span>
+                          </div>
+                          <ul className="mt-6 space-y-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                            {item.items.map((feature, idx) => (
+                              <motion.li
+                                key={feature}
+                                className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
+                                initial={false}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: idx * 0.1, duration: 0.5 }}
+                              >
+                                <CheckCircle2 className="size-4 flex-shrink-0 text-emerald-500 transition-transform duration-300 group-hover:scale-110" />
+                                {feature}
+                              </motion.li>
+                            ))}
+                          </ul>
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Button
+                              asChild
+                              className={`mt-6 w-full bg-gradient-to-r ${accent} text-slate-950 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-600/30`}
+                            >
+                              <Link href={`/booking?package=${item.slug}`}>
+                                Pilih Paket
+                                <ArrowRight className="ml-2 size-4" />
+                              </Link>
+                            </Button>
+                          </motion.div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
               </motion.div>
             ) : (
               <EmptyState
@@ -514,117 +773,136 @@ export function LandingPage({
         </MotionSection>
 
         <MotionSection className="mx-auto max-w-7xl px-4 py-16 sm:py-20 sm:px-6 lg:px-8">
-          <motion.div 
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-            variants={containerVariants}
-            initial={false}
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {[
-              ["1.250+", "Kendaraan dicuci"],
-              ["98%", "Kepuasan pelanggan"],
-              ["12 menit", "Rata-rata check-in"],
-              ["24/7", "Dashboard siap pantau"],
-            ].map(([value, label], index) => (
-              <motion.div 
-                key={label} 
-                className="group cursor-default rounded-lg border border-slate-200 bg-white p-6 text-center transition-all duration-300 hover:border-cyan-300 hover:shadow-xl hover:shadow-cyan-600/10 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-cyan-700"
-                variants={itemVariants}
-                whileHover={{ y: -8, scale: 1.05 }}
-              >
-                <motion.div 
-                  className="text-2xl font-semibold text-cyan-700 transition-all duration-300 group-hover:scale-110 sm:text-3xl dark:text-cyan-300"
-                  initial={false}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
-                >
-                  {value}
-                </motion.div>
-                <div className="mt-2 text-xs text-slate-500 sm:text-sm dark:text-slate-400">{label}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </MotionSection>
+          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+            <motion.div
+              initial={false}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Badge className="transition-all duration-300 hover:scale-105">Operasional Nyata</Badge>
+              <h2 className="mt-4 max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
+                Tanpa angka palsu, tanpa testimoni fiktif, fokus ke alur kerja yang benar-benar dipakai.
+              </h2>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 sm:text-base dark:text-slate-300">
+                Semua yang tampil di web ini berasal dari fitur aktif: booking publik, antrian realtime, pembayaran,
+                invoice, laporan, dan pengaturan admin. Kalau data kosong, halaman akan jujur menampilkan state kosong.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <Link href="/booking">
+                    Booking Sekarang
+                    <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                  <Link href="/aksesadmincarwash">Masuk Dashboard</Link>
+                </Button>
+              </div>
+            </motion.div>
 
-        <MotionSection className="bg-slate-950 py-16 text-white sm:py-20">
-          <div className="mx-auto grid max-w-7xl gap-5 px-4 sm:gap-6 sm:px-6 lg:grid-cols-3 lg:px-8">
-            {[
-              ["Rizky Pratama", "Mobil terlihat baru lagi. Proses cepat dan invoice langsung dikirim."],
-              ["Nadia Putri", "Antrian jelas, petugas responsif, dan dashboard booking terasa profesional."],
-              ["Fajar Maulana", "Paket motor shine rapi. Cocok untuk langganan mingguan."],
-            ].map(([name, text], index) => (
-              <motion.div
-                key={name}
-                initial={false}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.15, duration: 0.6 }}
-                whileHover={{ y: -8, scale: 1.02 }}
-              >
-                <Card className="group h-full cursor-default border-white/10 bg-white/[0.08] text-white transition-all duration-300 hover:border-white/30 hover:bg-white/[0.12] hover:shadow-2xl hover:shadow-cyan-600/20">
-                  <CardContent className="pt-6">
-                    <motion.div 
-                      className="mb-4 flex gap-1 text-amber-300"
-                      initial={false}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.15 + 0.3, duration: 0.5 }}
-                    >
-                      {Array.from({ length: 5 }).map((_, starIndex) => (
-                        <motion.div
-                          key={starIndex}
-                          initial={false}
-                          whileInView={{ opacity: 1, rotate: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: index * 0.15 + starIndex * 0.05, duration: 0.4 }}
-                          whileHover={{ scale: 1.2, rotate: 360 }}
-                        >
-                          <Star className="size-4 fill-current" />
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                    <p className="text-sm leading-6 text-slate-200">{text}</p>
-                    <p className="mt-5 font-semibold transition-colors duration-300 group-hover:text-cyan-300">{name}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            <motion.div
+              className="grid gap-4 sm:grid-cols-2"
+              variants={containerVariants}
+              initial={false}
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              {[
+                {
+                  icon: Car,
+                  title: "Booking publik",
+                  desc: "Pelanggan bisa pesan jadwal tanpa login dan langsung masuk ke alur antrian.",
+                },
+                {
+                  icon: Clock,
+                  title: "Realtime queue",
+                  desc: "Status antrian bergerak saat petugas update dari dashboard Supabase.",
+                },
+                {
+                  icon: BadgeCheck,
+                  title: "Pembayaran & invoice",
+                  desc: "Transaksi lunas, struk printable, dan ekspor laporan ditangani di satu tempat.",
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Admin access",
+                  desc: "Role-based access menjaga dashboard, pengaturan, dan data operasional tetap aman.",
+                },
+              ].map((item) => (
+                <motion.div
+                  key={item.title}
+                  variants={itemVariants}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="group h-full cursor-default border-slate-200 transition-all duration-300 hover:border-cyan-300 hover:shadow-xl hover:shadow-cyan-600/10 dark:border-slate-800 dark:hover:border-cyan-700">
+                    <CardContent className="pt-5">
+                      <motion.div
+                        className="mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700 dark:bg-cyan-400/10 dark:text-cyan-300"
+                        whileHover={{ rotate: [0, -8, 8, 0], scale: 1.05 }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      >
+                        <item.icon className="size-5" />
+                      </motion.div>
+                      <h3 className="font-semibold transition-colors duration-300 group-hover:text-cyan-700 dark:group-hover:text-cyan-300">
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </MotionSection>
 
         <MotionSection id="gallery" className="mx-auto max-w-7xl px-4 py-16 sm:py-20 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <motion.div
+              className="max-w-2xl"
               initial={false}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
             >
               <Badge className="transition-all duration-300 hover:scale-105">Gallery</Badge>
-              <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">Hasil layanan Kilap Kendaraan</h2>
+              <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
+                Hasil layanan Kilap Kendaraan
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+                Dokumentasi visual ditarik langsung dari Supabase Storage agar apa yang ditampilkan tetap akurat.
+              </p>
             </motion.div>
-            <Skeleton className="hidden h-10 w-44 sm:block" />
+            <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[340px]">
+              <div className="rounded-2xl border border-cyan-200 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-cyan-400/20 dark:bg-slate-900/80">
+                <p className="text-xs uppercase tracking-[0.28em] text-cyan-600 dark:text-cyan-300">Foto aktif</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">{galleryImages.length}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Sumber</p>
+                <p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">Supabase Storage</p>
+              </div>
+            </div>
           </div>
           {galleryImages.length ? (
-            <motion.div 
-              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            <motion.div
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:auto-rows-[180px]"
               variants={containerVariants}
               initial={false}
               whileInView="visible"
               viewport={{ once: true }}
             >
               {galleryImages.map((src, index) => (
-                <motion.div 
-                  key={src} 
-                  className="group relative aspect-[4/3] overflow-hidden rounded-lg"
+                <motion.div
+                  key={src}
+                  className={`group relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 shadow-lg shadow-slate-950/5 ${getGalleryTileClass(index)}`}
                   variants={itemVariants}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, y: -4 }}
                   transition={{ duration: 0.3 }}
                 >
                   <motion.div
-                    className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-slate-950/75 via-slate-950/15 to-transparent opacity-100 transition-opacity duration-300 sm:opacity-90 sm:group-hover:opacity-100"
                   />
                   <Image
                     src={src}
@@ -634,11 +912,17 @@ export function LandingPage({
                     className="object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
                   />
                   <motion.div
-                    className="absolute bottom-4 left-4 z-20 text-white opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="absolute inset-x-4 bottom-4 z-20 text-white opacity-100 transition-opacity duration-300"
                     initial={{ y: 20 }}
                     whileHover={{ y: 0 }}
                   >
-                    <p className="text-sm font-semibold">Gallery #{index + 1}</p>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.32em] text-cyan-100/70">Dokumentasi</p>
+                        <p className="mt-1 text-sm font-semibold">Gallery #{index + 1}</p>
+                      </div>
+                      <Badge className="border-white/20 bg-white/10 text-white">Supabase</Badge>
+                    </div>
                   </motion.div>
                 </motion.div>
               ))}
@@ -708,7 +992,9 @@ export function LandingPage({
               </motion.div>
               <span className="transition-colors duration-300 group-hover:text-cyan-300">{brandName}</span>
             </motion.div>
-            <p className="mt-2 text-sm text-slate-400">Premium car wash management for Web Design UAS project.</p>
+            <p className="mt-2 text-sm text-slate-400">
+              Booking, antrian, pembayaran, dan laporan terhubung ke Supabase live.
+            </p>
           </motion.div>
           <motion.div 
             className="text-sm text-slate-400 md:text-right"

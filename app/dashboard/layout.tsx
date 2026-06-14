@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { hasDatabaseConfig, isDemoModeEnabled } from "@/drizzle/db";
+import { hasDatabaseConfig } from "@/drizzle/db";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { BackendSetupNotice } from "@/components/runtime/backend-setup-notice";
 import { requireSession } from "@/lib/auth/session";
@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   await connection();
   const session = await requireSession();
 
-  if (!hasDatabaseConfig() && !isDemoModeEnabled()) {
+  if (!hasDatabaseConfig()) {
     return (
       <DashboardShell user={session.user} brandName={APP_NAME}>
         <BackendSetupNotice area="dashboard" compact />

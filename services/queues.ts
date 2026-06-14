@@ -1,6 +1,6 @@
 import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { customers, payments, queues, transactions, washPackages } from "@/drizzle/schema";
-import { getDb, shouldUseDemoData } from "@/drizzle/db";
+import { getDb, shouldUseTestFixtures } from "@/drizzle/db";
 import { getDemoState } from "@/lib/demo-store";
 import { type QueueItem } from "@/lib/data";
 import { getHourKey } from "@/lib/utils";
@@ -27,7 +27,7 @@ function isUniqueViolation(error: unknown) {
 }
 
 export async function listQueues(query = "", status?: string | null) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const { queues: memoryQueues } = getDemoState();
     const normalized = query.toLowerCase();
     return memoryQueues.filter((item) => {
@@ -77,7 +77,7 @@ export async function listQueues(query = "", status?: string | null) {
 }
 
 export async function getQueueByPlate(plate: string) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const { queues: memoryQueues } = getDemoState();
     return memoryQueues.find((item) => item.licensePlate.replace(/\s+/g, "").toUpperCase() === plate.replace(/\s+/g, "").toUpperCase()) ?? null;
   }
@@ -115,7 +115,7 @@ export async function createQueue(input: CreateQueueInput, createdBy?: string): 
     throw new Error("Jadwal antrian tidak valid.");
   }
 
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const memoryQueues = state.queues;
     const queuesInSlot = memoryQueues.filter(
@@ -270,7 +270,7 @@ function toIsoString(value: Date | string) {
 }
 
 export async function updateQueueStatus(id: string, input: QueueStatusInput) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     state.queues = state.queues.map((item) =>
       item.id === id ? { ...item, status: input.status } : item,
@@ -287,7 +287,7 @@ export async function updateQueueStatus(id: string, input: QueueStatusInput) {
 }
 
 export async function deleteQueue(id: string) {
-  if (shouldUseDemoData()) {
+  if (shouldUseTestFixtures()) {
     const state = getDemoState();
     const transactionIds = new Set(
       state.transactions.filter((transaction) => transaction.queueId === id).map((transaction) => transaction.id),
