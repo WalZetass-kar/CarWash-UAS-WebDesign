@@ -3,6 +3,7 @@ import { beforeEach, test } from "node:test";
 import { NextRequest } from "next/server";
 import { can } from "../lib/auth/rbac";
 import { getJwtSecretValue } from "../lib/auth/jwt-secret";
+import { getSupabaseBrowserKey, getSupabaseUrl } from "../lib/runtime/supabase-config";
 import { validateCsrf } from "../lib/security/csrf";
 import { APP_TIME_ZONE } from "../lib/constants";
 import { defaultAppSettings, demoCustomers, demoPackages, demoPayments, demoTransactions } from "../lib/data";
@@ -125,6 +126,34 @@ test("JWT secret production wajib ada dan minimal 32 karakter", () => {
   withEnv({ NODE_ENV: "production", JWT_SECRET: "x".repeat(32) }, () => {
     assert.equal(getJwtSecretValue(), "x".repeat(32));
   });
+
+  withEnv(
+    {
+      NODE_ENV: "production",
+      JWT_SECRET: "",
+      SUPABASE_JWT_SECRET: "",
+      yesssss_SUPABASE_JWT_SECRET: "y".repeat(32),
+    },
+    () => {
+      assert.equal(getJwtSecretValue(), "y".repeat(32));
+    },
+  );
+});
+
+test("Supabase runtime config memakai fallback yesssss_* saat env standar kosong", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_SUPABASE_URL: "",
+      NEXT_PUBLIC_yesssss_SUPABASE_URL: "https://example.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "",
+      NEXT_PUBLIC_yesssss_SUPABASE_ANON_KEY: "fallback-anon",
+    },
+    () => {
+      assert.equal(getSupabaseUrl(), "https://example.supabase.co");
+      assert.equal(getSupabaseBrowserKey(), "fallback-anon");
+    },
+  );
 });
 
 test("proxy membiarkan request API diproses route handler tanpa redirect HTML", async () => {

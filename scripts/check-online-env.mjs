@@ -11,11 +11,25 @@ const publicSupabaseKeyCandidates = [
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_yesssss_SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_yesssss_SUPABASE_PUBLISHABLE_KEY",
+  "yesssss_SUPABASE_ANON_KEY",
+  "yesssss_SUPABASE_PUBLISHABLE_KEY",
 ];
 
-const adminSupabaseKeyCandidates = ["SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"];
+const adminSupabaseKeyCandidates = [
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "SUPABASE_SECRET_KEY",
+  "yesssss_SUPABASE_SERVICE_ROLE_KEY",
+  "yesssss_SUPABASE_SECRET_KEY",
+];
 
-const required = ["NEXT_PUBLIC_SUPABASE_URL", "JWT_SECRET"];
+const jwtSecretCandidates = ["JWT_SECRET", "SUPABASE_JWT_SECRET", "yesssss_SUPABASE_JWT_SECRET"];
+const supabaseUrlCandidates = [
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_yesssss_SUPABASE_URL",
+  "yesssss_SUPABASE_URL",
+];
 
 const databaseCandidates = [
   "DATABASE_URL",
@@ -23,9 +37,18 @@ const databaseCandidates = [
   "POSTGRES_PRISMA_URL",
   "POSTGRES_URL_NON_POOLING",
   "SUPABASE_DB_URL",
+  "yesssss_DATABASE_URL",
+  "yesssss_POSTGRES_URL",
+  "yesssss_POSTGRES_PRISMA_URL",
+  "yesssss_POSTGRES_URL_NON_POOLING",
+  "yesssss_SUPABASE_DB_URL",
 ];
 
-const missing = required.filter((name) => !process.env[name]?.trim());
+const missing = [];
+
+if (!supabaseUrlCandidates.some((name) => process.env[name]?.trim())) {
+  missing.push(supabaseUrlCandidates.join("/"));
+}
 
 if (!publicSupabaseKeyCandidates.some((name) => process.env[name]?.trim())) {
   missing.push(publicSupabaseKeyCandidates.join("/"));
@@ -35,8 +58,12 @@ if (!adminSupabaseKeyCandidates.some((name) => process.env[name]?.trim())) {
   missing.push(adminSupabaseKeyCandidates.join("/"));
 }
 
+if (!jwtSecretCandidates.some((name) => process.env[name]?.trim())) {
+  missing.push(jwtSecretCandidates.join("/"));
+}
+
 if (!databaseCandidates.some((name) => process.env[name]?.trim())) {
-  missing.push("DATABASE_URL/POSTGRES_URL/POSTGRES_PRISMA_URL/POSTGRES_URL_NON_POOLING/SUPABASE_DB_URL");
+  missing.push("DATABASE_URL/POSTGRES_URL/POSTGRES_PRISMA_URL/POSTGRES_URL_NON_POOLING/SUPABASE_DB_URL/yesssss_*");
 }
 
 const appUrl = getAppUrl();
@@ -51,9 +78,13 @@ if (missing.length > 0) {
 
 try {
   new URL(appUrl);
-  new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const supabaseUrl = supabaseUrlCandidates.map((name) => process.env[name]?.trim()).find(Boolean);
+  if (!supabaseUrl) {
+    throw new Error("Supabase URL kosong");
+  }
+  new URL(supabaseUrl);
 } catch {
-  console.error("NEXT_PUBLIC_APP_URL dan NEXT_PUBLIC_SUPABASE_URL harus berupa URL valid.");
+  console.error("NEXT_PUBLIC_APP_URL dan Supabase URL harus berupa URL valid.");
   process.exit(1);
 }
 
@@ -64,8 +95,9 @@ if (!databaseUrl || !/^postgres(ql)?:\/\//.test(databaseUrl)) {
   process.exit(1);
 }
 
-if (process.env.JWT_SECRET.trim().length < 32) {
-  console.error("JWT_SECRET minimal 32 karakter.");
+const jwtSecret = jwtSecretCandidates.map((name) => process.env[name]?.trim()).find(Boolean);
+if (!jwtSecret || jwtSecret.length < 32) {
+  console.error(`JWT secret minimal 32 karakter. Isi salah satu env berikut: ${jwtSecretCandidates.join(", ")}`);
   process.exit(1);
 }
 

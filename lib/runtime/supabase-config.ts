@@ -2,11 +2,17 @@ const PUBLIC_SUPABASE_KEY_CANDIDATES = [
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_yesssss_SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_yesssss_SUPABASE_PUBLISHABLE_KEY",
+  "yesssss_SUPABASE_ANON_KEY",
+  "yesssss_SUPABASE_PUBLISHABLE_KEY",
 ] as const;
 
 const SERVICE_SUPABASE_KEY_CANDIDATES = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "SUPABASE_SECRET_KEY",
+  "yesssss_SUPABASE_SERVICE_ROLE_KEY",
+  "yesssss_SUPABASE_SECRET_KEY",
 ] as const;
 
 function getEnvValue(candidates: readonly string[]) {
@@ -21,15 +27,15 @@ function getEnvValue(candidates: readonly string[]) {
 }
 
 export function getSupabaseUrl() {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  return (
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_yesssss_SUPABASE_URL?.trim() ||
+    process.env.yesssss_SUPABASE_URL?.trim()
+  );
 }
 
 export function getSupabaseBrowserKey() {
-  return (
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
-    process.env.SUPABASE_ANON_KEY?.trim()
-  );
+  return getEnvValue(PUBLIC_SUPABASE_KEY_CANDIDATES);
 }
 
 export function getSupabaseAdminKey() {

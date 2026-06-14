@@ -5,11 +5,22 @@ import { createClient } from "@supabase/supabase-js";
 const { loadEnvConfig } = nextEnv;
 loadEnvConfig(process.cwd());
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.SUPABASE_SECRET_KEY?.trim();
+const supabaseUrl = getEnvValue([
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_yesssss_SUPABASE_URL",
+  "yesssss_SUPABASE_URL",
+]);
+const serviceRoleKey = getEnvValue([
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "SUPABASE_SECRET_KEY",
+  "yesssss_SUPABASE_SERVICE_ROLE_KEY",
+  "yesssss_SUPABASE_SECRET_KEY",
+]);
 
 if (!supabaseUrl || !serviceRoleKey) {
-  console.error("NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY wajib diatur.");
+  console.error(
+    "Supabase URL dan service role key wajib diatur. Isi salah satu env berikut: NEXT_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_yesssss_SUPABASE_URL/yesssss_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY/SUPABASE_SECRET_KEY/yesssss_SUPABASE_SERVICE_ROLE_KEY/yesssss_SUPABASE_SECRET_KEY.",
+  );
   process.exit(1);
 }
 
@@ -146,4 +157,15 @@ function getArg(name, fallback) {
   }
 
   return fallback;
+}
+
+function getEnvValue(candidates) {
+  for (const envName of candidates) {
+    const value = process.env[envName]?.trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
 }
