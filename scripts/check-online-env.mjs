@@ -15,11 +15,7 @@ const publicSupabaseKeyCandidates = [
 
 const adminSupabaseKeyCandidates = ["SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"];
 
-const required = [
-  "NEXT_PUBLIC_APP_URL",
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "JWT_SECRET",
-];
+const required = ["NEXT_PUBLIC_SUPABASE_URL", "JWT_SECRET"];
 
 const databaseCandidates = [
   "DATABASE_URL",
@@ -43,13 +39,18 @@ if (!databaseCandidates.some((name) => process.env[name]?.trim())) {
   missing.push("DATABASE_URL/POSTGRES_URL/POSTGRES_PRISMA_URL/POSTGRES_URL_NON_POOLING/SUPABASE_DB_URL");
 }
 
+const appUrl = getAppUrl();
+if (!appUrl) {
+  missing.push("NEXT_PUBLIC_APP_URL/VERCEL_PROJECT_PRODUCTION_URL/VERCEL_URL");
+}
+
 if (missing.length > 0) {
   console.error(`Env wajib belum lengkap: ${missing.join(", ")}`);
   process.exit(1);
 }
 
 try {
-  new URL(process.env.NEXT_PUBLIC_APP_URL);
+  new URL(appUrl);
   new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
 } catch {
   console.error("NEXT_PUBLIC_APP_URL dan NEXT_PUBLIC_SUPABASE_URL harus berupa URL valid.");
@@ -125,4 +126,21 @@ function describeError(error) {
     parts.push(error.cause.message);
   }
   return parts.join(" | ");
+}
+
+function getAppUrl() {
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (rawAppUrl) return rawAppUrl;
+
+  const vercelProductionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (vercelProductionUrl) return normalizeAppUrl(vercelProductionUrl);
+
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) return normalizeAppUrl(vercelUrl);
+
+  return undefined;
+}
+
+function normalizeAppUrl(rawUrl) {
+  return rawUrl.startsWith("http://") || rawUrl.startsWith("https://") ? rawUrl : `https://${rawUrl}`;
 }

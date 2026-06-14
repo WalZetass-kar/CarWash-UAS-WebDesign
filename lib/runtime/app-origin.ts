@@ -10,14 +10,11 @@ export function isLocalHostname(hostname?: string | null) {
 }
 
 export function getConfiguredAppUrl() {
-  const rawUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (!rawUrl) return null;
-
-  try {
-    return new URL(rawUrl);
-  } catch {
-    return null;
-  }
+  return (
+    parseAppUrl(process.env.NEXT_PUBLIC_APP_URL?.trim()) ??
+    parseAppUrlFromVercelHost(process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()) ??
+    parseAppUrlFromVercelHost(process.env.VERCEL_URL?.trim())
+  );
 }
 
 export function isLocalAppEnvironment() {
@@ -41,4 +38,24 @@ export function shouldUseSecureTransport(request?: RequestLike) {
   }
 
   return process.env.NODE_ENV === "production";
+}
+
+function parseAppUrl(rawUrl?: string) {
+  if (!rawUrl) return null;
+
+  try {
+    return new URL(rawUrl);
+  } catch {
+    return null;
+  }
+}
+
+function parseAppUrlFromVercelHost(rawHost?: string) {
+  if (!rawHost) return null;
+
+  try {
+    return new URL(rawHost.startsWith("http://") || rawHost.startsWith("https://") ? rawHost : `https://${rawHost}`);
+  } catch {
+    return null;
+  }
 }

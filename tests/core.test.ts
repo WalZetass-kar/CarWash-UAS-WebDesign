@@ -184,6 +184,19 @@ test("konfigurasi database menerima fallback POSTGRES_PRISMA_URL", async () => {
   );
 });
 
+test("origin publik memakai NEXT_PUBLIC_APP_URL lalu fallback ke VERCEL_URL", async () => {
+  const previous = { ...process.env };
+  delete process.env.NEXT_PUBLIC_APP_URL;
+  process.env.VERCEL_URL = "car-wash-uas-web-design.vercel.app";
+
+  try {
+    const { getConfiguredAppUrl } = await import("../lib/runtime/app-origin");
+    assert.equal(getConfiguredAppUrl()?.hostname, "car-wash-uas-web-design.vercel.app");
+  } finally {
+    process.env = previous;
+  }
+});
+
 test("schema CRUD pelanggan menolak input tidak valid", () => {
   assert.equal(
     customerSchema.safeParse({

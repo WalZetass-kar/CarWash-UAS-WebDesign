@@ -9,6 +9,7 @@
     "start": "next start",
     "env:check": "node scripts/check-online-env.mjs",
     "password:hash": "node scripts/hash-password.mjs",
+    "db:bootstrap": "node scripts/bootstrap-minimal.mjs",
     "lint": "eslint . --cache",
     "test": "tsx tests/core.test.ts",
     "smoke:e2e": "node scripts/smoke-e2e.mjs",
