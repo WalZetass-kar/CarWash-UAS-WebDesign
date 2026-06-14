@@ -139,7 +139,10 @@ test("service data menolak jalan tanpa database jika mode demo tidak diaktifkan"
   const previousNodeEnv = process.env.NODE_ENV;
   setNodeEnv("development");
   try {
-    await assert.rejects(() => listCustomers(), /DATABASE_URL, POSTGRES_URL, POSTGRES_URL_NON_POOLING wajib diatur/);
+    await assert.rejects(
+      () => listCustomers(),
+      /DATABASE_URL, POSTGRES_URL, POSTGRES_PRISMA_URL, POSTGRES_URL_NON_POOLING, SUPABASE_DB_URL wajib diatur/,
+    );
   } finally {
     setNodeEnv(previousNodeEnv);
   }
@@ -153,6 +156,23 @@ test("konfigurasi database menerima fallback POSTGRES_URL_NON_POOLING", async ()
       DATABASE_URL: "",
       POSTGRES_URL_NON_POOLING: "postgresql://postgres:secret@db.example.com:5432/postgres",
       POSTGRES_URL: "",
+    },
+    () => {
+      assert.equal(hasDatabaseConfig(), true);
+    },
+  );
+});
+
+test("konfigurasi database menerima fallback POSTGRES_PRISMA_URL", async () => {
+  const { hasDatabaseConfig } = await import("../drizzle/db");
+
+  withEnv(
+    {
+      DATABASE_URL: "",
+      POSTGRES_URL: "",
+      POSTGRES_PRISMA_URL: "postgresql://postgres:secret@db.example.com:5432/postgres",
+      POSTGRES_URL_NON_POOLING: "",
+      SUPABASE_DB_URL: "",
     },
     () => {
       assert.equal(hasDatabaseConfig(), true);

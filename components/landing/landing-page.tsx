@@ -114,6 +114,9 @@ const packageAccentTones = [
   "from-amber-500 to-orange-500",
 ] as const;
 
+const heroBackgroundImage =
+  "https://images.unsplash.com/photo-1680533749371-59c49b31fd74?auto=format&fit=crop&w=1800&q=80&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MXxhbGx8fHx8fHx8fHwxNzgxNDI4MjMyfA";
+
 function getPackageAccent(index: number) {
   return packageAccentTones[index % packageAccentTones.length];
 }
@@ -219,43 +222,6 @@ export function LandingPage({
   const startingPackagePrice = packageCards.length
     ? Math.min(...packageCards.map((item) => item.price))
     : null;
-  const heroQueuePreview = [
-    {
-      number: "CR-014",
-      customer: "Rafli",
-      status: "Sedang dicuci",
-      accent: "from-cyan-400 to-sky-400",
-    },
-    {
-      number: "CR-015",
-      customer: "Sinta",
-      status: "Menunggu",
-      accent: "from-amber-400 to-orange-400",
-    },
-    {
-      number: "CR-016",
-      customer: "Dimas",
-      status: "Selesai",
-      accent: "from-emerald-400 to-teal-400",
-    },
-  ];
-  const heroFlow = [
-    {
-      label: "Booking",
-      detail: "Publik",
-      icon: Car,
-    },
-    {
-      label: "Queue",
-      detail: "Realtime",
-      icon: Clock,
-    },
-    {
-      label: "Invoice",
-      detail: "Ready",
-      icon: BadgeCheck,
-    },
-  ];
 
   return (
     <div className="min-h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
@@ -353,9 +319,17 @@ export function LandingPage({
       </motion.header>
 
       <main>
-        <section className="relative min-h-[92vh] overflow-hidden pt-16">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.2),_transparent_32%),linear-gradient(135deg,_#020617_0%,_#0f172a_42%,_#082f49_100%)]" />
-          <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:72px_72px]" />
+        <section className="relative isolate min-h-[92vh] overflow-hidden pt-16">
+          <Image
+            src={heroBackgroundImage}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.2),_transparent_32%),linear-gradient(135deg,_rgba(2,6,23,0.78)_0%,_rgba(15,23,42,0.66)_45%,_rgba(8,47,73,0.62)_100%)]" />
+          <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:72px_72px]" />
           <motion.div
             className="absolute -left-20 top-20 size-72 rounded-full bg-cyan-400/20 blur-3xl"
             animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
@@ -366,7 +340,7 @@ export function LandingPage({
             animate={{ x: [0, -16, 0], y: [0, 18, 0] }}
             transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
           />
-          <div className="relative mx-auto grid min-h-[92vh] max-w-7xl gap-12 px-4 pb-20 pt-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
+          <div className="relative mx-auto flex min-h-[92vh] max-w-7xl items-center px-4 pb-20 pt-12 sm:px-6 lg:px-8">
             <motion.div
               className="max-w-3xl text-white"
               initial={false}
@@ -380,7 +354,7 @@ export function LandingPage({
               >
                 <Badge className="mb-5 border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-cyan-50 ring-1 ring-cyan-300/20 transition-all duration-300 hover:bg-cyan-400/20 hover:scale-[1.02]">
                   <Sparkles className="mr-1 size-3 animate-pulse" />
-                  Live operations panel
+                  Foto cuci mobil nyata
                 </Badge>
               </motion.div>
               <motion.h1
@@ -398,7 +372,7 @@ export function LandingPage({
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
                 Booking publik, antrian realtime, pembayaran, invoice, laporan, dan pengaturan admin digabung di satu
-                sistem. Halaman ini sekarang menampilkan panel produk nyata, bukan stok visual generik.
+                sistem. Halaman ini sekarang menampilkan foto operasional cuci mobil, bukan panel dashboard dummy.
               </motion.p>
               <motion.div
                 className="mt-8 flex flex-col gap-3 sm:flex-row"
@@ -446,142 +420,6 @@ export function LandingPage({
                   </motion.div>
                 ))}
               </motion.div>
-            </motion.div>
-
-            <motion.div
-              className="relative"
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <motion.div
-                className="absolute inset-6 -z-10 rounded-[2rem] bg-cyan-400/20 blur-3xl"
-                animate={{ opacity: [0.4, 0.7, 0.4], scale: [0.98, 1.02, 0.98] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <Card className="overflow-hidden border-white/10 bg-slate-950/80 text-white shadow-2xl shadow-cyan-950/30 backdrop-blur-xl">
-                <CardContent className="p-0">
-                  <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.35em] text-cyan-200/70">Live operations</p>
-                      <h3 className="mt-1 text-lg font-semibold">Preview dashboard</h3>
-                    </div>
-                    <Badge className="border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-emerald-200">
-                      <span className="mr-2 inline-flex size-2 rounded-full bg-emerald-400" />
-                      Supabase live
-                    </Badge>
-                  </div>
-                  <div className="grid gap-4 p-5 sm:grid-cols-[1.08fr_0.92fr]">
-                    <div className="space-y-4">
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Queue board</p>
-                            <p className="mt-1 text-sm text-slate-300">Status kendaraan bergerak realtime.</p>
-                          </div>
-                          <Clock className="size-4 text-cyan-300" />
-                        </div>
-                        <div className="mt-4 space-y-3">
-                          {heroQueuePreview.map((item, index) => (
-                            <motion.div
-                              key={item.number}
-                              className="rounded-xl border border-white/10 bg-slate-900/70 p-3"
-                              initial={false}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ delay: index * 0.08, duration: 0.4 }}
-                            >
-                              <div className="flex items-center justify-between gap-3">
-                                <div>
-                                  <p className="text-sm font-semibold text-white">{item.number}</p>
-                                  <p className="text-xs text-slate-400">{item.customer}</p>
-                                </div>
-                                <span
-                                  className={`rounded-full bg-gradient-to-r px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-950 ${item.accent}`}
-                                >
-                                  {item.status}
-                                </span>
-                              </div>
-                              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-                                <motion.div
-                                  className={`h-full rounded-full bg-gradient-to-r ${item.accent}`}
-                                  initial={{ width: "20%" }}
-                                  whileInView={{
-                                    width: item.number === "CR-016" ? "100%" : item.number === "CR-015" ? "52%" : "78%",
-                                  }}
-                                  viewport={{ once: true }}
-                                  transition={{ duration: 0.7, ease: "easeOut" }}
-                                />
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        {heroFlow.map((item) => (
-                          <motion.div
-                            key={item.label}
-                            className="rounded-2xl border border-white/10 bg-white/5 p-3"
-                            whileHover={{ y: -4, scale: 1.02 }}
-                            transition={{ duration: 0.25 }}
-                          >
-                            <item.icon className="size-4 text-cyan-300" />
-                            <p className="mt-3 text-sm font-semibold text-white">{item.label}</p>
-                            <p className="mt-1 text-xs text-slate-400">{item.detail}</p>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/20 to-slate-900 p-4">
-                        <p className="text-xs uppercase tracking-[0.28em] text-cyan-200/70">Payment flow</p>
-                        <div className="mt-4 flex items-end justify-between gap-3">
-                          <div>
-                            <p className="text-sm text-slate-300">Status pembayaran</p>
-                            <p className="mt-1 text-2xl font-semibold">Lunas</p>
-                          </div>
-                          <BadgeCheck className="size-8 text-cyan-300" />
-                        </div>
-                        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                          <motion.div
-                            className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-emerald-400"
-                            initial={{ width: "40%" }}
-                            whileInView={{ width: "78%" }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, ease: "easeOut" }}
-                          />
-                        </div>
-                        <p className="mt-3 text-xs leading-5 text-slate-400">
-                          Invoice printable, status pembayaran, dan export laporan mengikuti data Supabase langsung.
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Operational steps</p>
-                        <div className="mt-3 space-y-3">
-                          {[
-                            { title: "Booking publik", desc: "Pengunjung isi form tanpa login.", icon: Car },
-                            { title: "Antrian realtime", desc: "Petugas memproses dari dashboard.", icon: Clock },
-                            { title: "Invoice siap", desc: "Transaksi dan laporan langsung terbentuk.", icon: BadgeCheck },
-                          ].map((item) => (
-                            <div key={item.title} className="flex items-start gap-3 rounded-xl border border-white/10 bg-slate-900/60 p-3">
-                              <div className="grid size-8 flex-none place-items-center rounded-lg bg-cyan-400/10 text-cyan-300">
-                                <item.icon className="size-4" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-semibold text-white">{item.title}</p>
-                                <p className="mt-1 text-xs leading-5 text-slate-400">{item.desc}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </motion.div>
           </div>
         </section>

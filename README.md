@@ -50,7 +50,7 @@ npm run smoke:e2e
 1. Buat project Supabase.
 2. Ambil `NEXT_PUBLIC_SUPABASE_URL`, key browser Supabase (`NEXT_PUBLIC_SUPABASE_ANON_KEY` atau `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), dan key admin (`SUPABASE_SERVICE_ROLE_KEY` atau `SUPABASE_SECRET_KEY`).
 3. Ambil connection string Postgres dari Project Settings > Database.
-4. Isi `.env.local`. Aplikasi akan membaca `DATABASE_URL` atau fallback langsung ke `POSTGRES_URL_NON_POOLING` / `POSTGRES_URL` kalau itu yang diberikan provider.
+4. Isi `.env.local`. Aplikasi akan membaca `DATABASE_URL` atau fallback langsung ke `POSTGRES_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING`, atau `SUPABASE_DB_URL` kalau itu yang diberikan provider.
 5. Jalankan schema:
 
 ```bash

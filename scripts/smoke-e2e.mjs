@@ -10,9 +10,14 @@ if (!existsSync(".next/BUILD_ID")) {
   process.exit(1);
 }
 
-const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.SUPABASE_DB_URL;
 if (!databaseUrl) {
-  console.error("DATABASE_URL / POSTGRES_URL_NON_POOLING / POSTGRES_URL belum diatur.");
+  console.error("DATABASE_URL / POSTGRES_URL / POSTGRES_PRISMA_URL / POSTGRES_URL_NON_POOLING / SUPABASE_DB_URL belum diatur.");
   process.exit(1);
 }
 

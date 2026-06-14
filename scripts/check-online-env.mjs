@@ -21,7 +21,13 @@ const required = [
   "JWT_SECRET",
 ];
 
-const databaseCandidates = ["DATABASE_URL", "POSTGRES_URL_NON_POOLING", "POSTGRES_URL"];
+const databaseCandidates = [
+  "DATABASE_URL",
+  "POSTGRES_URL",
+  "POSTGRES_PRISMA_URL",
+  "POSTGRES_URL_NON_POOLING",
+  "SUPABASE_DB_URL",
+];
 
 const missing = required.filter((name) => !process.env[name]?.trim());
 
@@ -34,7 +40,7 @@ if (!adminSupabaseKeyCandidates.some((name) => process.env[name]?.trim())) {
 }
 
 if (!databaseCandidates.some((name) => process.env[name]?.trim())) {
-  missing.push("DATABASE_URL/POSTGRES_URL_NON_POOLING/POSTGRES_URL");
+  missing.push("DATABASE_URL/POSTGRES_URL/POSTGRES_PRISMA_URL/POSTGRES_URL_NON_POOLING/SUPABASE_DB_URL");
 }
 
 if (missing.length > 0) {

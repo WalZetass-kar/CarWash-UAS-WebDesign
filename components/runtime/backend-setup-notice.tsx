@@ -18,17 +18,17 @@ export function BackendSetupNotice({
   const descriptions = {
     dashboard:
       issue === "missing-config"
-        ? "Server belum memiliki koneksi database, jadi data dashboard belum bisa diambil."
+        ? "Server belum membaca env database di deployment, jadi data dashboard belum bisa diambil."
         : "Koneksi atau query database gagal saat memuat data dashboard.",
     booking:
       issue === "missing-config"
-        ? "Server belum memiliki koneksi database, jadi paket booking belum bisa diambil."
+        ? "Server belum membaca env database di deployment, jadi paket booking belum bisa diambil."
         : "Koneksi atau query database gagal saat memuat data booking.",
   };
 
   const actionText =
     issue === "missing-config"
-      ? "Isi env database di server, jalankan migrasi atau seed jika perlu, lalu redeploy."
+      ? "Isi salah satu env database yang didukung di Vercel, jalankan migrasi bila perlu, lalu redeploy."
       : "Periksa status database, akses jaringan, SSL/pooling, serta migrasi atau seed yang dibutuhkan.";
 
   const wrapperClass = compact
@@ -51,6 +51,9 @@ export function BackendSetupNotice({
               Detail teknis koneksi database:
             </p>
             <p className="mt-2 font-mono text-xs sm:text-sm">{getDatabaseEnvHint()}</p>
+            <p className="mt-2 text-amber-800/90 dark:text-amber-100/85">
+              Kalau deploy di Vercel, pastikan env itu diisi pada Production Environment dan deploy ulang setelah perubahan.
+            </p>
             <p className="mt-1 text-amber-800/90 dark:text-amber-100/85">{actionText}</p>
           </div>
         </div>
