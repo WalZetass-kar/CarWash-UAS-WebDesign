@@ -1,6 +1,14 @@
-import { demoUsers, type PaymentMethod, type PaymentStatus, type QueueStatus, type Role, type VehicleType } from "@/lib/constants";
+import {
+  demoUsers,
+  type PaymentMethod,
+  type PaymentStatus,
+  type QueueStatus,
+  type ReviewSentiment,
+  type Role,
+  type VehicleType,
+} from "@/lib/constants";
 
-export type { PaymentMethod, PaymentStatus, QueueStatus, Role, VehicleType };
+export type { PaymentMethod, PaymentStatus, QueueStatus, ReviewSentiment, Role, VehicleType };
 
 export type User = {
   id: string;
@@ -70,6 +78,15 @@ export type TransactionItem = {
   packageName: string;
   total: number;
   status: PaymentStatus;
+  createdAt: string;
+};
+
+export type AiReviewAnalysis = {
+  id: string;
+  customerName: string;
+  review: string;
+  sentiment: ReviewSentiment;
+  confidenceScore: number;
   createdAt: string;
 };
 

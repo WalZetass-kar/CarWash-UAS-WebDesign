@@ -64,27 +64,27 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative w-full max-w-sm">
+      <div className="surface-ring flex flex-col gap-3 rounded-[1.5rem] border border-slate-200/80 bg-white/80 p-3.5 backdrop-blur md:flex-row md:items-center md:justify-between dark:border-slate-800/90 dark:bg-slate-950/76">
+        <div className="relative w-full max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <Input
             placeholder={searchPlaceholder}
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-9"
+            className="pl-10"
           />
         </div>
-        {toolbar ? <div className="flex flex-wrap items-center gap-2">{toolbar}</div> : null}
+        {toolbar ? <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">{toolbar}</div> : null}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="surface-ring overflow-hidden rounded-[1.7rem] border border-slate-200/80 bg-white/90 dark:border-slate-800/90 dark:bg-slate-950/84">
         <div className="overflow-x-auto">
-          <table className={cn("w-full min-w-[760px] text-sm", tableClassName)}>
-            <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+          <table className={cn("w-full min-w-[680px] text-sm", tableClassName)}>
+            <thead className="bg-slate-50/85 text-left text-[11px] uppercase tracking-[0.14em] text-slate-500 dark:bg-slate-900/90 dark:text-slate-400">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="px-4 py-3 font-semibold">
+                    <th key={header.id} className="px-5 py-4 font-semibold">
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
@@ -98,7 +98,7 @@ export function DataTable<TData, TValue>({
                 Array.from({ length: 5 }).map((_, rowIndex) => (
                   <tr key={`skeleton-${rowIndex}`}>
                     {columns.map((column, columnIndex) => (
-                      <td key={`${String(column.id ?? columnIndex)}-${rowIndex}`} className="px-4 py-3 align-middle">
+                      <td key={`${String(column.id ?? columnIndex)}-${rowIndex}`} className="px-5 py-4 align-middle">
                         <Skeleton className="h-5 w-full max-w-[12rem]" />
                       </td>
                     ))}
@@ -106,9 +106,12 @@ export function DataTable<TData, TValue>({
                 ))
               ) : table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-900/60">
+                  <tr
+                    key={row.id}
+                    className="group odd:bg-white even:bg-slate-50/40 hover:bg-cyan-50/50 dark:odd:bg-slate-950/50 dark:even:bg-slate-900/55 dark:hover:bg-cyan-400/6"
+                  >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3 align-middle">
+                      <td key={cell.id} className="px-5 py-4 align-middle text-slate-700 dark:text-slate-200">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
@@ -129,9 +132,9 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-slate-500">
-          {table.getFilteredRowModel().rows.length} item • Halaman {table.getState().pagination.pageIndex + 1} dari{" "}
+      <div className="flex flex-col gap-3 rounded-[1.4rem] border border-slate-200/70 bg-white/72 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-slate-800/80 dark:bg-slate-950/70">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {table.getFilteredRowModel().rows.length} item - Halaman {table.getState().pagination.pageIndex + 1} dari{" "}
           {table.getPageCount() || 1}
         </p>
         <div className="flex gap-2">

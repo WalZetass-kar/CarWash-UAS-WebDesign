@@ -20,6 +20,7 @@ export const queueStatuses = [...queueWorkflowStatuses, "dibatalkan", "diproses"
 export const paymentMethods = ["tunai", "transfer", "qris", "e-wallet"] as const;
 export const paymentStatuses = ["belum_bayar", "lunas"] as const;
 export const vehicleTypes = ["mobil", "motor", "suv", "pickup", "van"] as const;
+export const reviewSentiments = ["positif", "netral", "negatif"] as const;
 
 export type Role = (typeof roles)[number];
 export type PrimaryRole = (typeof primaryRoles)[number];
@@ -28,6 +29,7 @@ export type QueueWorkflowStatus = (typeof queueWorkflowStatuses)[number];
 export type PaymentMethod = (typeof paymentMethods)[number];
 export type PaymentStatus = (typeof paymentStatuses)[number];
 export type VehicleType = (typeof vehicleTypes)[number];
+export type ReviewSentiment = (typeof reviewSentiments)[number];
 
 export const roleLabels: Record<(typeof roles)[number], string> = {
   admin: "Admin",
@@ -59,6 +61,12 @@ export const paymentStatusLabels: Record<(typeof paymentStatuses)[number], strin
   lunas: "Lunas",
 };
 
+export const reviewSentimentLabels: Record<(typeof reviewSentiments)[number], string> = {
+  positif: "Positif",
+  netral: "Netral",
+  negatif: "Negatif",
+};
+
 export function normalizeQueueStatus(status: QueueStatus) {
   if (status === "diproses") return "sedang_dicuci" satisfies QueueWorkflowStatus;
   if (status === "dibatalkan") return "menunggu" satisfies QueueWorkflowStatus;
@@ -73,6 +81,7 @@ export const protectedPrefixes = [
   "/api/payments",
   "/api/transactions",
   "/api/reports",
+  "/api/ai-reviews",
   "/api/search",
   "/api/users",
   "/api/uploads",

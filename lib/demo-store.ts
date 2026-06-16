@@ -1,4 +1,5 @@
 import {
+  type AiReviewAnalysis,
   demoCustomers,
   demoPackages,
   demoPayments,
@@ -21,6 +22,7 @@ export const demoStore: {
   queues: QueueItem[];
   transactions: TransactionItem[];
   payments: Payment[];
+  aiReviewAnalyses: AiReviewAnalysis[];
   users: User[];
   passwords: Record<string, string>;
 } = {
@@ -29,6 +31,7 @@ export const demoStore: {
   queues: [...demoQueues],
   transactions: [...demoTransactions],
   payments: [...demoPayments],
+  aiReviewAnalyses: [],
   users: demoUsers.map((user) => ({
     ...user,
     createdAt: userCreatedAt,

@@ -16,6 +16,7 @@ import {
   PackageCheck,
   Search,
   Settings,
+  Sparkles,
   Sun,
   Users,
   X,
@@ -56,6 +57,7 @@ const navItems: NavItem[] = [
   { href: "/dashboard/packages", label: "Paket", icon: PackageCheck, roles: ["admin", "petugas"] },
   { href: "/dashboard/queues", label: "Antrian", icon: Car, roles: ["admin", "staff", "petugas"] },
   { href: "/dashboard/payments", label: "Pembayaran", icon: CreditCard, roles: ["admin", "kasir", "petugas"] },
+  { href: "/dashboard/ai-analysis", label: "Analisis AI", icon: Sparkles, roles: ["admin", "kasir", "staff", "petugas"] },
   { href: "/dashboard/reports", label: "Laporan", icon: FileText, roles: ["admin"] },
   { href: "/dashboard/users", label: "Manajemen User", icon: BarChart3, roles: ["admin"] },
   { href: "/dashboard/settings", label: "Pengaturan", icon: Settings, roles: ["admin"] },
@@ -67,6 +69,11 @@ type SearchResult = {
   description: string;
   href: string;
 };
+
+function isActiveNav(pathname: string, href: string) {
+  if (href === "/dashboard") return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function DashboardShell({
   user,
@@ -151,16 +158,21 @@ export function DashboardShell({
   }
 
   const sidebar = (
-    <aside className="flex h-full w-72 flex-col border-r border-slate-200 bg-white/88 p-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/88">
-      <div className="flex items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-          <span className="grid size-9 place-items-center rounded-lg bg-cyan-600 text-white">
+    <aside className="relative flex h-full w-[18.5rem] flex-col overflow-hidden rounded-[2rem] border border-white/50 bg-white/82 p-4 shadow-[0_32px_90px_-44px_rgba(15,23,42,0.7)] backdrop-blur-xl dark:border-slate-800/90 dark:bg-slate-950/84 dark:shadow-[0_36px_90px_-42px_rgba(0,0,0,0.9)]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),transparent_38%)]" />
+
+      <div className="relative flex items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-500 via-sky-500 to-cyan-700 text-white shadow-[0_18px_32px_-18px_rgba(8,145,178,0.95)]">
             <Car className="size-5" />
           </span>
-          CleanRide
+          <div>
+            <div className="text-sm font-semibold tracking-[0.02em] text-slate-950 dark:text-white">CleanRide</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Operations Suite</div>
+          </div>
         </Link>
         <button
-          className="grid size-9 place-items-center rounded-lg hover:bg-slate-100 lg:hidden dark:hover:bg-slate-900"
+          className="grid size-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 lg:hidden dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
           onClick={() => setSidebarOpen(false)}
           aria-label="Tutup sidebar"
         >
@@ -168,35 +180,53 @@ export function DashboardShell({
         </button>
       </div>
 
-      <nav className="mt-8 space-y-1">
+      <div className="relative mt-6 rounded-[1.4rem] border border-slate-200/80 bg-slate-50/80 p-3 dark:border-slate-800/80 dark:bg-slate-900/72">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Realtime workspace</div>
+        <div className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Semua modul operasional CleanRide dalam satu dashboard yang rapi dan fokus.
+        </div>
+      </div>
+
+      <nav className="relative mt-6 flex-1 space-y-1.5 overflow-y-auto pr-1">
         {visibleNav.map((item) => {
-          const active = pathname === item.href;
+          const active = isActiveNav(pathname, item.href);
+
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+                "group relative flex items-center gap-3 overflow-hidden rounded-[1.15rem] px-3 py-3 text-sm font-medium transition-all duration-300",
                 active
-                  ? "bg-cyan-50 text-cyan-700 dark:bg-cyan-400/10 dark:text-cyan-200"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900",
+                  ? "bg-gradient-to-r from-cyan-500/14 via-cyan-400/10 to-transparent text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_18px_34px_-28px_rgba(8,145,178,0.7)] dark:text-white"
+                  : "text-slate-600 hover:bg-slate-100/90 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900/90 dark:hover:text-white",
               )}
               onClick={() => setSidebarOpen(false)}
             >
-              <item.icon className="size-4" />
-              {item.label}
+              <span
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-300",
+                  active
+                    ? "border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/12 dark:text-cyan-200"
+                    : "border-slate-200 bg-white/90 text-slate-500 group-hover:border-cyan-100 group-hover:text-cyan-700 dark:border-slate-800 dark:bg-slate-950/80 dark:text-slate-400 dark:group-hover:border-cyan-500/20 dark:group-hover:text-cyan-200",
+                )}
+              >
+                <item.icon className="size-4" />
+              </span>
+              <span className="truncate">{item.label}</span>
+              {active ? <span className="absolute inset-y-3 left-0 w-1 rounded-full bg-cyan-500 dark:bg-cyan-300" /> : null}
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-auto rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/70">
-        <div className="text-sm font-semibold">{user.name}</div>
-        <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
+      <div className="relative mt-5 rounded-[1.5rem] border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/70">
+        <div className="text-sm font-semibold text-slate-900 dark:text-white">{user.name}</div>
+        <div className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
         <Badge className="mt-3" variant={user.role === "admin" ? "default" : "secondary"}>
           {roleLabels[user.role]}
         </Badge>
-        <Button variant="outline" size="sm" onClick={requestLogout} className="mt-3 w-full lg:hidden">
+        <Button variant="outline" size="sm" onClick={requestLogout} className="mt-4 w-full lg:hidden">
           <LogOut className="size-4" />
           Logout
         </Button>
@@ -205,29 +235,34 @@ export function DashboardShell({
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.12),transparent_28%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.08),transparent_24%),linear-gradient(180deg,#020617_0%,#071122_54%,#020617_100%)]">
       <RealtimeRefresh />
-      <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">{sidebar}</div>
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-0 top-0 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl dark:bg-cyan-400/10" />
+        <div className="absolute right-0 top-24 h-72 w-72 rounded-full bg-sky-500/10 blur-3xl dark:bg-sky-400/10" />
+      </div>
+
+      <div className="fixed inset-y-0 left-0 z-40 hidden p-4 lg:block">{sidebar}</div>
       {sidebarOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
-            className="absolute inset-0 bg-slate-950/50"
+            className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
             aria-label="Tutup overlay"
           />
-          <div className="relative h-full">{sidebar}</div>
+          <div className="relative h-full p-4">{sidebar}</div>
         </div>
       ) : null}
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/82 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/82">
-          <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
+      <div className="relative lg:pl-[20rem]">
+        <header className="sticky top-0 z-30 border-b border-white/55 bg-white/76 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/76">
+          <div className="flex h-20 items-center gap-3 px-4 sm:px-6 xl:px-10">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu className="size-5" />
             </Button>
 
-            <div className="relative max-w-xl flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <div className="relative max-w-2xl flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               <Input
                 value={query}
                 onChange={(event) => {
@@ -235,34 +270,45 @@ export function DashboardShell({
                   startTransition(() => setQuery(nextValue));
                 }}
                 placeholder="Cari pelanggan, transaksi, antrian, user..."
-                className="pl-9"
+                className="h-12 rounded-2xl border-white/60 bg-white/84 pl-11 pr-10 dark:border-slate-800/90 dark:bg-slate-950/78"
               />
               {searchLoading ? (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
                   <LoadingSpinner />
                 </div>
               ) : null}
               {results.length > 0 ? (
-                <div className="absolute left-0 right-0 top-12 z-50 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-950">
-                  {results.map((result) => (
+                <div className="surface-ring absolute left-0 right-0 top-14 z-50 overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-white/92 shadow-[0_28px_80px_-38px_rgba(15,23,42,0.55)] dark:border-slate-800/90 dark:bg-slate-950/94">
+                  {results.map((result, index) => (
                     <Link
                       key={`${result.type}-${result.title}`}
                       href={result.href}
-                      className="block border-b border-slate-100 px-4 py-3 text-sm hover:bg-slate-50 dark:border-slate-900 dark:hover:bg-slate-900"
+                      className="block border-b border-slate-100 px-5 py-4 text-sm transition-colors hover:bg-cyan-50/60 dark:border-slate-900 dark:hover:bg-slate-900"
                       onClick={() => {
                         setQuery("");
                         setResults([]);
                       }}
                     >
-                      <div className="font-semibold">{result.title}</div>
-                      <div className="mt-1 text-xs text-slate-500">{result.type} - {result.description}</div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-white">{result.title}</div>
+                          <div className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                            {result.type} - {result.description}
+                          </div>
+                        </div>
+                        <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                          {index + 1}
+                        </span>
+                      </div>
                     </Link>
                   ))}
                 </div>
               ) : null}
             </div>
 
-            <RealtimeStatus />
+            <div className="hidden items-center gap-2 md:flex">
+              <RealtimeStatus />
+            </div>
             <Button variant="ghost" size="icon" aria-label="Notifikasi">
               <Bell className="size-5" />
             </Button>
@@ -282,7 +328,7 @@ export function DashboardShell({
           </div>
         </header>
 
-        <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="px-4 py-6 sm:px-6 xl:px-10">{children}</main>
       </div>
 
       <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>

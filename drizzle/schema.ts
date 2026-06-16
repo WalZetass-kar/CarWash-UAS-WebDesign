@@ -26,6 +26,7 @@ export const queueStatusEnum = pgEnum("queue_status", [
 ]);
 export const paymentMethodEnum = pgEnum("payment_method", ["tunai", "transfer", "qris", "e-wallet"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["belum_bayar", "lunas"]);
+export const reviewSentimentEnum = pgEnum("review_sentiment", ["positif", "netral", "negatif"]);
 
 const lifecycleColumns = {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -164,6 +165,22 @@ export const activityLogs = pgTable(
   ],
 );
 
+export const aiReviewAnalyses = pgTable(
+  "ai_review_analyses",
+  {
+    ...lifecycleColumns,
+    customerName: varchar("customer_name", { length: 120 }).notNull(),
+    review: text("review").notNull(),
+    sentiment: reviewSentimentEnum("sentiment").notNull().default("netral"),
+    confidenceScore: integer("confidence_score").notNull(),
+  },
+  (table) => [
+    index("ai_review_analyses_customer_idx").on(table.customerName),
+    index("ai_review_analyses_sentiment_idx").on(table.sentiment),
+    index("ai_review_analyses_created_at_idx").on(table.createdAt),
+  ],
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   transactions: many(transactions),
   activityLogs: many(activityLogs),
@@ -239,6 +256,8 @@ export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
+export type AiReviewAnalysis = typeof aiReviewAnalyses.$inferSelect;
+export type NewAiReviewAnalysis = typeof aiReviewAnalyses.$inferInsert;
 
 export const schema = {
   users,
@@ -248,6 +267,7 @@ export const schema = {
   transactions,
   payments,
   activityLogs,
+  aiReviewAnalyses,
   usersRelations,
   customersRelations,
   washPackagesRelations,
