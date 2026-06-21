@@ -6,6 +6,7 @@ import {
   demoPayments,
   demoQueues,
   demoTransactions,
+  type AiReviewAnalysis,
   type AppSettings,
   type Customer,
   type Payment,
@@ -32,6 +33,7 @@ export type DemoActivityLog = {
 
 type DemoState = {
   activityLogs: DemoActivityLog[];
+  aiReviewAnalyses: AiReviewAnalysis[];
   customers: Customer[];
   galleryUrls: string[];
   packages: WashPackage[];
@@ -79,6 +81,7 @@ function createInitialDemoState(): DemoState {
         createdAt,
       },
     ],
+    aiReviewAnalyses: [],
     customers: demoCustomers.map((item) => ({ ...item })),
     galleryUrls: [],
     packages: demoPackages.map((item) => ({ ...item })),

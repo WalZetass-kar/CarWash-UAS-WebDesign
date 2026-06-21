@@ -3,6 +3,7 @@ import {
   paymentMethods,
   paymentStatuses,
   queueStatuses,
+  reviewSentiments,
   vehicleTypes,
   type Role as AppRole,
 } from "@/lib/constants";
@@ -12,6 +13,16 @@ export type QueueStatus = (typeof queueStatuses)[number];
 export type PaymentMethod = (typeof paymentMethods)[number];
 export type PaymentStatus = (typeof paymentStatuses)[number];
 export type VehicleType = (typeof vehicleTypes)[number];
+export type ReviewSentiment = (typeof reviewSentiments)[number];
+
+export type AiReviewAnalysis = {
+  id: string;
+  customerName: string;
+  review: string;
+  sentiment: ReviewSentiment;
+  confidenceScore: number;
+  createdAt: string;
+};
 
 export type User = {
   id: string;

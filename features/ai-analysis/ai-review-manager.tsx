@@ -43,7 +43,6 @@ export function AiReviewManager({ initialData }: { initialData: AiReviewAnalysis
   const [data, setData] = useState<AiReviewAnalysis[]>(initialData);
   const [form, setForm] = useState(initialForm);
   const [filters, setFilters] = useState({
-    search: "",
     sentiment: "all" as ReviewSentiment | "all",
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -401,42 +400,36 @@ export function AiReviewManager({ initialData }: { initialData: AiReviewAnalysis
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+              <NativeSelect
+                className="min-w-40"
+                value={filters.sentiment}
+                onChange={(event) =>
+                  setFilters((current) => ({
+                    ...current,
+                    sentiment: event.target.value as ReviewSentiment | "all",
+                  }))
+                }
+              >
+                <option value="all">Semua sentimen</option>
+                <option value="positif">Positif</option>
+                <option value="netral">Netral</option>
+                <option value="negatif">Negatif</option>
+              </NativeSelect>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setFilters({ sentiment: "all" })}
+              >
+                Reset Filter
+              </Button>
+            </div>
           <DataTable
             columns={columns}
             data={sentimentFilteredData}
-            searchValue={filters.search}
-            onSearchChange={(value) => setFilters((current) => ({ ...current, search: value }))}
             searchPlaceholder="Cari nama pelanggan, isi review, atau sentimen..."
-            emptyTitle="Belum ada review dianalisis"
-            emptyDescription="Masukkan review pelanggan pertama untuk mulai melihat riwayat analisis AI."
-            toolbar={
-              <>
-                <NativeSelect
-                  className="min-w-40"
-                  value={filters.sentiment}
-                  onChange={(event) =>
-                    setFilters((current) => ({
-                      ...current,
-                      sentiment: event.target.value as ReviewSentiment | "all",
-                    }))
-                  }
-                >
-                  <option value="all">Semua sentimen</option>
-                  <option value="positif">Positif</option>
-                  <option value="netral">Netral</option>
-                  <option value="negatif">Negatif</option>
-                </NativeSelect>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFilters({ search: "", sentiment: "all" })}
-                >
-                  Reset Filter
-                </Button>
-              </>
-            }
           />
         </CardContent>
       </Card>
