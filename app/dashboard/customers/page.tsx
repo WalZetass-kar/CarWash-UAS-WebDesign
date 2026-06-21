@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { CustomerManager } from "@/features/customers/customer-manager";
 import { requireSession } from "@/lib/auth/session";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 import { listCustomers } from "@/services/customers";
 
 export const metadata = {
@@ -40,7 +40,12 @@ export default async function CustomersPage({
 
 async function loadCustomersData() {
   try {
-    return JSON.parse(JSON.stringify(await withDatabaseRetry(() => listCustomers())));
+    const customers = await loadWithTimeoutFallback(() => listCustomers(), {
+      fallback: () => [],
+      label: "customers page data",
+      timeoutMs: 2500,
+    });
+    return JSON.parse(JSON.stringify(customers));
   } catch (error) {
     console.error("Failed to load customers page data", error);
     return [];

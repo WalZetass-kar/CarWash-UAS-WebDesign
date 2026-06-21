@@ -3,6 +3,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { listRecentActivity } from "@/services/activity";
 import { listQueues } from "@/services/queues";
 import { listTransactions } from "@/services/transactions";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 
 export type OperationalNotification = {
   id: string;
@@ -23,9 +24,23 @@ const activeQueueStatuses = new Set<QueueStatus>([
 
 export async function listOperationalNotifications(limit = 6): Promise<OperationalNotification[]> {
   try {
-    const queues = await listQueues();
-    const pendingTransactions = await listTransactions("", "belum_bayar");
-    const activity = await listRecentActivity(3);
+    const [queues, pendingTransactions, activity] = await Promise.all([
+      loadWithTimeoutFallback(() => listQueues(), {
+        fallback: () => [],
+        label: "operational queues",
+        timeoutMs: 2500,
+      }),
+      loadWithTimeoutFallback(() => listTransactions("", "belum_bayar"), {
+        fallback: () => [],
+        label: "pending transactions",
+        timeoutMs: 2500,
+      }),
+      loadWithTimeoutFallback(() => listRecentActivity(3), {
+        fallback: () => [],
+        label: "recent activity",
+        timeoutMs: 2500,
+      }),
+    ]);
 
     const activeQueues = queues.filter((queue) => activeQueueStatuses.has(queue.status));
     const nextQueue = activeQueues

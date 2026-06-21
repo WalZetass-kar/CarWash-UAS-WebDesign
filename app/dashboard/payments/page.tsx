@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { PaymentManager } from "@/features/payments/payment-manager";
 import { defaultAppSettings } from "@/lib/data";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 import { listPayments } from "@/services/payments";
 import { getAppSettings } from "@/services/settings";
 import { listTransactions } from "@/services/transactions";
@@ -57,13 +57,30 @@ export default async function PaymentsPage({
 
 async function loadPaymentsData() {
   try {
-    return await withDatabaseRetry(async () => {
-      const payments = await listPayments();
-      const transactions = await listTransactions("", "belum_bayar");
-      const allTransactions = await listTransactions();
-      const settings = await getAppSettings();
-      return [payments, transactions, allTransactions, settings] as const;
-    });
+    const [payments, transactions, allTransactions, settings] = await Promise.all([
+      loadWithTimeoutFallback(() => listPayments(), {
+        fallback: () => [],
+        label: "payments page payments",
+        timeoutMs: 2500,
+      }),
+      loadWithTimeoutFallback(() => listTransactions("", "belum_bayar"), {
+        fallback: () => [],
+        label: "payments page pending transactions",
+        timeoutMs: 2500,
+      }),
+      loadWithTimeoutFallback(() => listTransactions(), {
+        fallback: () => [],
+        label: "payments page all transactions",
+        timeoutMs: 2500,
+      }),
+      loadWithTimeoutFallback(() => getAppSettings(), {
+        fallback: () => ({ ...blankSettings }),
+        label: "payments page settings",
+        timeoutMs: 2500,
+      }),
+    ]);
+
+    return [payments, transactions, allTransactions, settings] as const;
   } catch (error) {
     console.error("Failed to load payments page data", error);
     return [[], [], [], { ...blankSettings }] as const;

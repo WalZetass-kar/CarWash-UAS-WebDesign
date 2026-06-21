@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { PublicBookingForm } from "@/features/bookings/public-booking-form";
 import { defaultAppSettings } from "@/lib/data";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 import { getAppSettings } from "@/services/settings";
 import { listPackages } from "@/services/packages";
 
@@ -74,11 +74,29 @@ export default async function BookingPage({
 
 async function loadBookingData() {
   try {
-    return await withDatabaseRetry(async () => {
-      const settings = await getAppSettings();
-      const packages = await listPackages();
-      return [settings, packages] as const;
-    });
+    const [settings, packages] = await Promise.all([
+      loadWithTimeoutFallback(() => getAppSettings(), {
+        fallback: () => ({
+          ...defaultAppSettings,
+          businessName: "",
+          businessPhone: "",
+          businessAddress: "",
+          queueSlotCapacity: 1,
+          reportDefaultRangeDays: 1,
+          autoPrintInvoice: false,
+          invoiceFooter: "",
+        }),
+        label: "booking settings",
+        timeoutMs: 2500,
+      }),
+      loadWithTimeoutFallback(() => listPackages(), {
+        fallback: () => [],
+        label: "booking packages",
+        timeoutMs: 2500,
+      }),
+    ]);
+
+    return [settings, packages] as const;
   } catch (error) {
     console.error("Failed to load booking page data", error);
     return [

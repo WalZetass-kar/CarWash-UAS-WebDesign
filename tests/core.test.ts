@@ -208,6 +208,27 @@ test("service data fallback kosong saat database tidak tersedia", async () => {
   }
 });
 
+test("loader dengan timeout mengembalikan fallback cepat saat operasi lambat", async () => {
+  const { loadWithTimeoutFallback } = await import("../lib/runtime/load-with-timeout");
+
+  const started = Date.now();
+  const result = await loadWithTimeoutFallback(
+    () =>
+      new Promise<string>((resolve) => {
+        setTimeout(() => resolve("slow"), 50);
+      }),
+    {
+      fallback: () => "fallback",
+      label: "slow task",
+      timeoutMs: 10,
+    },
+  );
+  const elapsed = Date.now() - started;
+
+  assert.equal(result, "fallback");
+  assert.ok(elapsed < 40);
+});
+
 test("konfigurasi database menerima fallback POSTGRES_URL_NON_POOLING", async () => {
   const { hasDatabaseConfig } = await import("../drizzle/db");
 

@@ -20,7 +20,12 @@ export function isTestEnvironment() {
 }
 
 export function shouldUseTestFixtures() {
-  return isTestEnvironment();
+  return isTestEnvironment() || isDemoFixtureModeEnabled();
+}
+
+export function isDemoFixtureModeEnabled() {
+  const value = process.env.KILAPKENDARAAN_USE_DEMO_FIXTURES?.trim().toLowerCase();
+  return value === "1" || value === "true" || value === "yes";
 }
 
 export function getDb() {

@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { QueueManager } from "@/features/queues/queue-manager";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 import { listCustomers } from "@/services/customers";
 import { listPackages } from "@/services/packages";
 import { listQueues } from "@/services/queues";
@@ -43,12 +43,25 @@ export default async function QueuesPage({
 
 async function loadQueuesData() {
   try {
-    return await withDatabaseRetry(async () => {
-      const queues = await listQueues();
-      const customers = await listCustomers();
-      const packages = await listPackages();
-      return [queues, customers, packages] as const;
-    });
+    const [queues, customers, packages] = await Promise.all([
+      loadWithTimeoutFallback(() => listQueues(), {
+        fallback: () => [],
+        label: "queues page queues",
+        timeoutMs: 2500,
+      }),
+      loadWithTimeoutFallback(() => listCustomers(), {
+        fallback: () => [],
+        label: "queues page customers",
+        timeoutMs: 2500,
+      }),
+      loadWithTimeoutFallback(() => listPackages(), {
+        fallback: () => [],
+        label: "queues page packages",
+        timeoutMs: 2500,
+      }),
+    ]);
+
+    return [queues, customers, packages] as const;
   } catch (error) {
     console.error("Failed to load queues page data", error);
     return [[], [], []] as const;

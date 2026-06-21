@@ -2,7 +2,6 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { ReportManager } from "@/features/reports/report-manager";
 import { requireRole } from "@/lib/auth/session";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { getDashboardData, getEmptyDashboardData } from "@/services/dashboard";
 
 export const metadata = {
@@ -42,13 +41,11 @@ export default async function ReportsPage() {
 
 async function loadReportsData() {
   try {
-    return await withDatabaseRetry(async () => {
-      const data = await getDashboardData();
-      return {
-        data,
-        reportRows: buildReportRows(data.transactions, data.payments),
-      };
-    });
+    const data = await getDashboardData();
+    return {
+      data,
+      reportRows: buildReportRows(data.transactions, data.payments),
+    };
   } catch (error) {
     console.error("Failed to load reports page data", error);
     const data = getEmptyDashboardData();

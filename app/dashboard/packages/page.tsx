@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { PackageManager } from "@/features/packages/package-manager";
 import { requireSession } from "@/lib/auth/session";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 import { listPackages } from "@/services/packages";
 
 export const metadata = {
@@ -40,7 +40,12 @@ export default async function PackagesPage({
 
 async function loadPackagesData() {
   try {
-    return JSON.parse(JSON.stringify(await withDatabaseRetry(() => listPackages())));
+    const packages = await loadWithTimeoutFallback(() => listPackages(), {
+      fallback: () => [],
+      label: "packages page data",
+      timeoutMs: 2500,
+    });
+    return JSON.parse(JSON.stringify(packages));
   } catch (error) {
     console.error("Failed to load packages page data", error);
     return [];

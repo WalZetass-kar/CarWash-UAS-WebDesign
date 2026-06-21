@@ -6,7 +6,7 @@ import { DangerZone } from "@/features/settings/danger-zone";
 import { SettingsManager } from "@/features/settings/settings-manager";
 import { requireRole } from "@/lib/auth/session";
 import { defaultAppSettings } from "@/lib/data";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 import { getAppSettings } from "@/services/settings";
 
 export const metadata = {
@@ -78,7 +78,11 @@ export default async function SettingsPage() {
 
 async function loadSettingsData() {
   try {
-    return await withDatabaseRetry(() => getAppSettings());
+    return await loadWithTimeoutFallback(() => getAppSettings(), {
+      fallback: () => ({ ...blankSettings }),
+      label: "settings page data",
+      timeoutMs: 2500,
+    });
   } catch (error) {
     console.error("Failed to load settings page data", error);
     return { ...blankSettings };

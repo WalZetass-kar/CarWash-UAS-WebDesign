@@ -3,7 +3,7 @@ import { hasDatabaseConfig } from "@/drizzle/db";
 import { LandingPage } from "@/components/landing/landing-page";
 import { APP_NAME } from "@/lib/constants";
 import { defaultAppSettings, type AppSettings } from "@/lib/data";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 import { listGalleryImages } from "@/services/gallery";
 import { listPackages } from "@/services/packages";
 import { getAppSettings } from "@/services/settings";
@@ -30,7 +30,11 @@ async function loadLandingSettings() {
   if (!hasDatabaseConfig()) return getEmptyLandingSettings();
 
   try {
-    return await withDatabaseRetry(() => getAppSettings(), 2);
+    return await loadWithTimeoutFallback(() => getAppSettings(), {
+      fallback: () => getEmptyLandingSettings(),
+      label: "landing settings",
+      timeoutMs: 2500,
+    });
   } catch (error) {
     console.error("Failed to load landing settings", error);
     return getEmptyLandingSettings();
@@ -41,7 +45,11 @@ async function loadLandingPackages() {
   if (!hasDatabaseConfig()) return [];
 
   try {
-    return await withDatabaseRetry(() => listPackages(), 2);
+    return await loadWithTimeoutFallback(() => listPackages(), {
+      fallback: () => [],
+      label: "landing packages",
+      timeoutMs: 2500,
+    });
   } catch (error) {
     console.error("Failed to load landing packages", error);
     return [];
@@ -63,7 +71,11 @@ function getEmptyLandingSettings(): AppSettings {
 
 async function loadLandingGallery() {
   try {
-    return await listGalleryImages();
+    return await loadWithTimeoutFallback(() => listGalleryImages(), {
+      fallback: () => [],
+      label: "landing gallery",
+      timeoutMs: 2500,
+    });
   } catch (error) {
     console.warn("Failed to load landing gallery", error);
     return [];

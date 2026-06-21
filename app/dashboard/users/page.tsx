@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { UserManager } from "@/features/auth/user-manager";
 import { requireRole } from "@/lib/auth/session";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 import { listUsers } from "@/services/users";
 
 export const metadata = {
@@ -39,7 +39,12 @@ export default async function UsersPage({
 
 async function loadUsersData() {
   try {
-    return JSON.parse(JSON.stringify(await withDatabaseRetry(() => listUsers())));
+    const users = await loadWithTimeoutFallback(() => listUsers(), {
+      fallback: () => [],
+      label: "users page data",
+      timeoutMs: 2500,
+    });
+    return JSON.parse(JSON.stringify(users));
   } catch (error) {
     console.error("Failed to load users page data", error);
     return [];

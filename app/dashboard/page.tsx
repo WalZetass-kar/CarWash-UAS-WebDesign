@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getDashboardData, getEmptyDashboardData } from "@/services/dashboard";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { withDatabaseRetry } from "@/lib/runtime/database-retry";
 import { MonthlyLineChart, PaymentPieChart, WeeklyBarChart } from "@/features/dashboard/charts";
 
 export default async function DashboardPage() {
@@ -125,7 +124,7 @@ export default async function DashboardPage() {
 
 async function loadDashboardData() {
   try {
-    return await withDatabaseRetry(() => getDashboardData());
+    return await getDashboardData();
   } catch (error) {
     console.error("Failed to load dashboard page data", error);
     return getEmptyDashboardData();

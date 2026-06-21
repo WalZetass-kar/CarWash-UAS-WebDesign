@@ -9,6 +9,7 @@ import { getAppSettings } from "@/services/settings";
 import { listRecentActivity } from "@/services/activity";
 import { listTransactions } from "@/services/transactions";
 import { listUsers } from "@/services/users";
+import { loadWithTimeoutFallback } from "@/lib/runtime/load-with-timeout";
 
 export function getEmptyDashboardData() {
   return {
@@ -53,14 +54,66 @@ export function getEmptyDashboardData() {
 
 export async function getDashboardData() {
   try {
-    const customers = await listCustomers();
-    const packages = await listPackages();
-    const queues = await listQueues();
-    const payments = await listPayments();
-    const transactions = await listTransactions();
-    const users = await listUsers();
-    const settings = await getAppSettings();
-    const activity = await listRecentActivity(6);
+    const [
+      customers,
+      packages,
+      queues,
+      payments,
+      transactions,
+      users,
+      settings,
+      activity,
+    ] = await Promise.all([
+      loadWithTimeoutFallback(() => listCustomers(), {
+        fallback: () => [],
+        label: "dashboard customers",
+        timeoutMs: 3500,
+      }),
+      loadWithTimeoutFallback(() => listPackages(), {
+        fallback: () => [],
+        label: "dashboard packages",
+        timeoutMs: 3500,
+      }),
+      loadWithTimeoutFallback(() => listQueues(), {
+        fallback: () => [],
+        label: "dashboard queues",
+        timeoutMs: 3500,
+      }),
+      loadWithTimeoutFallback(() => listPayments(), {
+        fallback: () => [],
+        label: "dashboard payments",
+        timeoutMs: 3500,
+      }),
+      loadWithTimeoutFallback(() => listTransactions(), {
+        fallback: () => [],
+        label: "dashboard transactions",
+        timeoutMs: 3500,
+      }),
+      loadWithTimeoutFallback(() => listUsers(), {
+        fallback: () => [],
+        label: "dashboard users",
+        timeoutMs: 3500,
+      }),
+      loadWithTimeoutFallback(() => getAppSettings(), {
+        fallback: () => ({
+          ...defaultAppSettings,
+          businessName: "",
+          businessPhone: "",
+          businessAddress: "",
+          queueSlotCapacity: 1,
+          reportDefaultRangeDays: 1,
+          autoPrintInvoice: false,
+          invoiceFooter: "",
+        }),
+        label: "dashboard settings",
+        timeoutMs: 3500,
+      }),
+      loadWithTimeoutFallback(() => listRecentActivity(6), {
+        fallback: () => [],
+        label: "dashboard activity",
+        timeoutMs: 3500,
+      }),
+    ]);
 
     const todayKey = getDateKey(new Date(), APP_TIME_ZONE);
     const currentMonthKey = getMonthKey(new Date(), APP_TIME_ZONE);
