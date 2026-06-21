@@ -826,7 +826,7 @@ export function LandingPage({
                 whileHover={{ rotate: 360, scale: 1.1 }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Image src="/logo.png" alt="Logo" fill className="object-cover" />
+                <Image src="/logo.png" alt="Logo" fill sizes="24px" className="object-cover" />
               </motion.div>
               <span className="transition-colors duration-300 group-hover:text-cyan-300">{brandName}</span>
             </motion.div>

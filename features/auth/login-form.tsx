@@ -52,7 +52,7 @@ export function LoginForm() {
     <div className="mx-auto w-full max-w-md rounded-2xl border border-white/60 bg-white/90 p-5 shadow-2xl shadow-cyan-950/12 backdrop-blur sm:p-6 dark:border-slate-800 dark:bg-slate-950/90">
       <div className="mb-6 text-center sm:mb-8">
         <Link href="/" className="relative mx-auto mb-4 grid size-12 overflow-hidden rounded-xl">
-          <Image src="/logo.png" alt="Logo" fill className="object-cover" />
+          <Image src="/logo.png" alt="Logo" fill sizes="48px" className="object-cover" />
         </Link>
         <h1 className="text-2xl font-semibold">Masuk Dashboard</h1>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">

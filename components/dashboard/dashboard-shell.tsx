@@ -113,7 +113,7 @@ export function DashboardShell({
       <div className="flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
           <div className="relative grid size-9 overflow-hidden rounded-lg">
-            <Image src="/logo.png" alt="Logo" fill className="object-cover" />
+            <Image src="/logo.png" alt="Logo" fill sizes="36px" className="object-cover" />
           </div>
           {brandName}
         </Link>

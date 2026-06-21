@@ -54,7 +54,7 @@ export function GalleryUpload() {
 
       {preview ? (
         <div className="relative aspect-video overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
-          <Image src={preview} alt="Preview gallery upload" fill className="object-cover" unoptimized />
+          <Image src={preview} alt="Preview gallery upload" fill sizes="(max-width: 640px) 90vw, 500px" className="object-cover" unoptimized />
         </div>
       ) : null}
 

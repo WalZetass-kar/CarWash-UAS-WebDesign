@@ -70,7 +70,7 @@ export default function TrackingPage() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <div className="relative size-8 overflow-hidden rounded-lg">
-               <Image src="/logo.png" alt="Logo" fill className="object-cover" />
+               <Image src="/logo.png" alt="Logo" fill sizes="32px" className="object-cover" />
             </div>
             <span className="text-slate-900 dark:text-white">Kilap Kendaraan</span>
           </Link>

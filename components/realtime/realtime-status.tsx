@@ -7,10 +7,17 @@ import { cn } from "@/lib/utils";
 
 export function RealtimeStatus() {
   const [connected, setConnected] = useState(false);
-  const [supabase] = useState(() => createSupabaseBrowserClient());
-  const configured = Boolean(supabase);
+  const [configured, setConfigured] = useState(false);
+  const [supabase, setSupabase] = useState<ReturnType<typeof createSupabaseBrowserClient>>(null);
+
   const desktopLabel = connected ? "Realtime" : configured ? "Offline" : "Belum Terkonfigurasi";
   const mobileLabel = connected ? "Live" : configured ? "Off" : "Setup";
+
+  useEffect(() => {
+    const client = createSupabaseBrowserClient();
+    setConfigured(Boolean(client));
+    setSupabase(client);
+  }, []);
 
   useEffect(() => {
     if (!supabase) return;
