@@ -39,13 +39,13 @@ export function getDb() {
       // Supabase pooler on local/student deployments is more reliable with one reused connection.
       max: 1,
       prepare: false,
-      connect_timeout: 5,
-      idle_timeout: 15,
+      connect_timeout: 15,
+      idle_timeout: 30,
       connection: {
         application_name: "kilapkendaraan-car-wash",
-        statement_timeout: 10_000,
-        lock_timeout: 5_000,
-        idle_in_transaction_session_timeout: 15_000,
+        statement_timeout: 30_000,
+        lock_timeout: 10_000,
+        idle_in_transaction_session_timeout: 30_000,
       },
     });
     globalThis.kilapkendaraanSqlConnectionString = connectionString;

@@ -30,7 +30,7 @@ export function LoginForm() {
       const response = await csrfFetch("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
-        signal: AbortSignal.timeout(15_000),
+        signal: AbortSignal.timeout(60_000),
       });
       const payload = await readJsonResponse<{ message?: string }>(response);
 
