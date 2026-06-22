@@ -31,7 +31,12 @@ export async function POST(request: NextRequest) {
 
   let user: Awaited<ReturnType<typeof authenticateUser>>;
   try {
-    user = await withDatabaseRetry(() => authenticateUser(parsed.data.email, parsed.data.password));
+    user = await Promise.race([
+      withDatabaseRetry(() => authenticateUser(parsed.data.email, parsed.data.password), 2),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Login timeout")), 10_000),
+      ),
+    ]);
   } catch (error) {
     console.error("Login database check failed", error);
     return jsonResponse(
